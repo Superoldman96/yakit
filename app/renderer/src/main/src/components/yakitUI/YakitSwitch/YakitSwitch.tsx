@@ -1,10 +1,11 @@
-import {Switch} from "antd"
-import React from "react"
-import {YakitSwitchProps} from "./YakitSwitchType"
-import styles from "./YakitSwitch.module.scss"
-import classNames from "classnames"
-import {CheckIcon, RemoveIcon} from "@/assets/newIcon"
-import "./yakitSwitchAnimation.scss"
+import { Switch } from 'antd'
+import React from 'react'
+import { YakitSwitchProps } from './YakitSwitchType'
+import styles from './YakitSwitch.module.scss'
+import classNames from 'classnames'
+import { CheckIcon, RemoveIcon } from '@/assets/newIcon'
+import './yakitSwitchAnimation.scss'
+import { useI18nNamespaces } from '@/i18n/useI18nNamespaces'
 
 /**
  * 更新说明
@@ -25,62 +26,63 @@ import "./yakitSwitchAnimation.scss"
  * @param {string} wrapperClassName Switch装饰div的className
  */
 
-const showExtraSize: string[] = ["large", "middle"];
+const showExtraSize: string[] = ['large', 'middle']
 
 export const YakitSwitch: React.FC<YakitSwitchProps> = (props) => {
-    const {size = "middle", showInnerText, showInnerIcon, className = "", wrapperClassName = "",...reset} = props
-    let children = {}
-    if (showInnerText && showExtraSize.findIndex((ele) => ele === size) !== -1) {
-        children = {
-            checkedChildren: "开",
-            unCheckedChildren: "关"
-        }
+  const { size = 'middle', showInnerText, showInnerIcon, className = '', wrapperClassName = '', ...reset } = props
+  const { t } = useI18nNamespaces(['yakitUi'])
+  let children = {}
+  if (showInnerText && showExtraSize.findIndex((ele) => ele === size) !== -1) {
+    children = {
+      checkedChildren: t('YakitSwitch.on'),
+      unCheckedChildren: t('YakitSwitch.off'),
     }
-    if (showInnerIcon && showExtraSize.findIndex((ele) => ele === size) !== -1) {
-        children = {
-            checkedChildren: (
-                <CheckIcon
-                    className={classNames({
-                        [styles["yakit-switch-large-icon"]]: size === "large",
-                        [styles["yakit-switch-middle-icon"]]: size === "middle"
-                    })}
-                />
-            ),
-            unCheckedChildren: (
-                <RemoveIcon
-                    className={classNames({
-                        [styles["yakit-switch-large-icon"]]: size === "large",
-                        [styles["yakit-switch-middle-icon"]]: size === "middle"
-                    })}
-                />
-            )
-        }
+  }
+  if (showInnerIcon && showExtraSize.findIndex((ele) => ele === size) !== -1) {
+    children = {
+      checkedChildren: (
+        <CheckIcon
+          className={classNames({
+            [styles['yakit-switch-large-icon']]: size === 'large',
+            [styles['yakit-switch-middle-icon']]: size === 'middle',
+          })}
+        />
+      ),
+      unCheckedChildren: (
+        <RemoveIcon
+          className={classNames({
+            [styles['yakit-switch-large-icon']]: size === 'large',
+            [styles['yakit-switch-middle-icon']]: size === 'middle',
+          })}
+        />
+      ),
     }
-    return (
-        <div
-            className={classNames(
-                styles["yakit-switch-wrapper-item"],
-                {
-                    [styles["yakit-switch-wrapper-max-large"]]: size === "maxLarge",
-                    [styles["yakit-switch-wrapper-large"]]: size === "large",
-                    [styles["yakit-switch-wrapper-middle"]]: size === "middle",
-                    [styles["yakit-switch-wrapper-small"]]: size === "small"
-                },
-                wrapperClassName
-            )}
-        >
-            <Switch
-                {...reset}
-                {...children}
-                size='default'
-                className={classNames(styles["yakit-switch-item"], {
-                    [styles["yakit-switch-max-large"]]: size === "maxLarge",
-                    [styles["yakit-switch-large"]]: size === "large",
-                    [styles["yakit-switch-middle"]]: size === "middle",
-                    [styles["yakit-switch-small"]]: size === "small",
-                    className
-                })}
-            />
-        </div>
-    )
+  }
+  return (
+    <div
+      className={classNames(
+        styles['yakit-switch-wrapper-item'],
+        {
+          [styles['yakit-switch-wrapper-max-large']]: size === 'maxLarge',
+          [styles['yakit-switch-wrapper-large']]: size === 'large',
+          [styles['yakit-switch-wrapper-middle']]: size === 'middle',
+          [styles['yakit-switch-wrapper-small']]: size === 'small',
+        },
+        wrapperClassName,
+      )}
+    >
+      <Switch
+        {...reset}
+        {...children}
+        size="default"
+        className={classNames(styles['yakit-switch-item'], {
+          [styles['yakit-switch-max-large']]: size === 'maxLarge',
+          [styles['yakit-switch-large']]: size === 'large',
+          [styles['yakit-switch-middle']]: size === 'middle',
+          [styles['yakit-switch-small']]: size === 'small',
+          className,
+        })}
+      />
+    </div>
+  )
 }

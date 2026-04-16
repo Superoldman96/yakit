@@ -10,6 +10,8 @@ import { createRoot } from 'react-dom/client'
 import emiter from '@/utils/eventBus/eventBus'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
+import i18n from '@/i18n/i18n'
+const tOriginal = i18n.getFixedT(null, 'yakitUi')
 
 /**
  * @description:YakitDrawer  抽屉 placement === "bottom" heard有背景色
@@ -95,11 +97,11 @@ export const showYakitDrawer = (props: ShowDrawerProps) => {
             <ErrorBoundary
               FallbackComponent={({ error, resetErrorBoundary }) => {
                 if (!error) {
-                  return <div>未知错误</div>
+                  return <div>{tOriginal('YakitNotification.unknown_error')}</div>
                 }
                 return (
                   <div>
-                    <p>弹框内逻辑性崩溃，请关闭重试！</p>
+                    <p>{tOriginal('YakitNotification.modalCrashRetry')}</p>
                     <pre>{error?.message}</pre>
                   </div>
                 )

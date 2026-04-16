@@ -8,7 +8,9 @@ import { OutlineTrashSecondIcon } from '@/assets/icon/outline'
 import { yakitDuplex, yakitStream } from '@/services/electronBridge'
 import { setRemoteValue } from '../kv'
 import { GlobalConfigRemoteGV } from '@/enums/globalConfig'
+import i18n from '@/i18n/i18n'
 
+const tOriginal = i18n.getFixedT(null, 'utils')
 let id = randomString(40)
 let duplexListeners: Array<() => void> = []
 
@@ -145,7 +147,7 @@ export const startupDuplexConn = () => {
             yakitFailed({
               message: (
                 <div style={{ position: 'relative' }}>
-                  {`检测到写入数据慢，当前项目数据库偏大。可删除HTTPFlow History流量后点击顶部设置，来回收数据库空间。`}
+                  {tOriginal('Duplex.databaseTooLarge')}
                   <YakitButton
                     type="text"
                     danger

@@ -37,7 +37,7 @@ const getShortcutPageName = (page, t: TFunction) => {
 
 export const ShortcutKey: React.FC<ShortcutKeyProps> = memo((props) => {
   const { page } = props
-  const { t } = useI18nNamespaces(['shortcutKey'])
+  const { t, i18n } = useI18nNamespaces(['shortcutKey', 'utils'])
 
   const wrapper = useRef<HTMLDivElement>(null)
 
@@ -69,7 +69,7 @@ export const ShortcutKey: React.FC<ShortcutKeyProps> = memo((props) => {
       return !data[key].scopeShow || (data[key].scopeShow || []).includes(GetReleaseEdition())
     })
     return newEventKeys
-  }, [data])
+  }, [data, i18n.language])
 
   const editInfo = useRef<string>('')
   const [keyShow, setKeyShow] = useState(false)
@@ -134,7 +134,7 @@ export const ShortcutKey: React.FC<ShortcutKeyProps> = memo((props) => {
             const { name, keys } = data[key]
             return (
               <div key={key} className={styles['key-opt']}>
-                <div className={styles['opt-name']}>{name}</div>
+                <div className={styles['opt-name']}>{t(name)}</div>
 
                 <div className={styles['opt-key']} onClick={() => handleOpenKeyShow(key)}>
                   {convertKeyboardToUIKey(keys)}
