@@ -1754,6 +1754,7 @@ message GetAIToolListRequest {
   bool OnlyFavorites = 4;
 }
 message AIOutputEvent {
+  int64 ID = 24;
   string CoordinatorId = 1;
   string Type = 2;
   string NodeId = 3;
@@ -1953,6 +1954,8 @@ message AIEventFilter {
   string ProcessID = 7;
 
   repeated string NodeId = 8;
+
+  bool UseOR = 9; //默认是AND关系，也就是多条件同时满足，如果UseOR是true，那是满足任一条件即可
 }
 
 message AIEventQueryRequest {
@@ -2017,6 +2020,7 @@ message AISession {
   bool TitleInitialized = 4;
   int64 CreatedAt = 5;
   int64 UpdatedAt = 6;
+  repeated string RelatedRuntimeIDs = 7;
 }
 
 message QueryAISessionRequest {

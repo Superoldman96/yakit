@@ -22,6 +22,11 @@ export interface AIContextSectionsDetail {
 }
 
 export interface AIChatData {
+  /** 获取历史数据时的最早ID节点 */
+  beforeID: {
+    timelineID: string
+    chatID: string
+  }
   /** 记录数据里所有的coordinatorIDs */
   coordinatorIDs: string[]
   /** 记录数据里所有的httpRunTimeIDs */
@@ -55,7 +60,7 @@ export interface AIChatData {
 }
 
 /** UI-chat 信息 */
-export interface AIChatInfo {
+export interface AISession {
   /** 唯一标识 */
   Id: string
   /** 对话名称 */
@@ -72,4 +77,6 @@ export interface AIChatInfo {
   request?: AIStartParams
   /** 会话 session */
   SessionID: string
+  /** 历史流量表和风险表 run_time_id */
+  RelatedRuntimeIDs?: string[]
 }

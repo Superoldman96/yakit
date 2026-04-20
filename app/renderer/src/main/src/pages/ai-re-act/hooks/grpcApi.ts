@@ -194,6 +194,7 @@ export interface AIOutputI18n {
 }
 
 export interface AIOutputEvent {
+  ID: number
   CoordinatorId: string
   Type: string
   NodeId: string
@@ -766,6 +767,8 @@ export interface AIEventFilter {
   /** call_tool_id */
   ProcessID?: string
   NodeId?: string[]
+  /** 默认是AND关系，也就是多条件同时满足，如果UseOR是true，那是满足任一条件即可 */
+  UseOR?: boolean
 }
 
 /** QueryAIEvent 接口请求 */

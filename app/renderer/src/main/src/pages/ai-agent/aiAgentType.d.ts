@@ -1,5 +1,5 @@
 import { CSSProperties, Dispatch, ReactNode, SetStateAction, MutableRefObject } from 'react'
-import { AIChatInfo } from './type/aiChat'
+import { AISession } from './type/aiChat'
 import { AITreeNodeProps } from './aiTree/type'
 import { HoldGRPCStreamProps, StreamResult } from '@/hook/useHoldGRPCStream/useHoldGRPCStreamType'
 import { AITabsEnum } from './defaultConstant'
@@ -37,9 +37,9 @@ export interface AIAgentSideListProps {
 // 编辑对话名字
 export interface EditChatNameModalProps {
   getContainer?: HTMLElement
-  info: AIChatInfo
+  info: AISession
   visible: boolean
-  onCallback: (result: boolean, info?: AIChatInfo) => viod
+  onCallback: (result: boolean, info?: AISession) => void
 }
 
 // #region UI右侧组件定义

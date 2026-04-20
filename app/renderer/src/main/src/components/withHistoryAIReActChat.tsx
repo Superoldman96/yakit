@@ -17,7 +17,7 @@ import ChatIPCContent, {
 import { AIAgentSetting } from '@/pages/ai-agent/aiAgentType'
 import { AIAgentSettingDefault } from '@/pages/ai-agent/defaultConstant'
 import { ChatDataStore } from '@/pages/ai-agent/store/ChatDataStore'
-import { AIChatInfo } from '@/pages/ai-agent/type/aiChat'
+import { AISession } from '@/pages/ai-agent/type/aiChat'
 import {
   AIHandleStartExtraProps,
   AIHandleStartParams,
@@ -42,7 +42,7 @@ export interface HistoryAIReActChatBridge {
   events: UseChatIPCEvents
   onStop: () => void
   onChatFromHistory: (session: string) => void
-  setActiveChat: React.Dispatch<React.SetStateAction<AIChatInfo | undefined>>
+  setActiveChat: React.Dispatch<React.SetStateAction<AISession | undefined>>
 }
 
 export interface HistoryAIReActChatSlotOptions {
@@ -116,8 +116,8 @@ export const HistoryAIReActChatProvider = memo(function HistoryAIReActChatProvid
   const [inViewport = true] = useInViewport(refRef)
 
   const [setting, setSetting, getSetting] = useGetSetState<AIAgentSetting>(cloneDeep(AIAgentSettingDefault))
-  const [chats, setChats, getChats] = useGetSetState<AIChatInfo[]>([])
-  const [activeChat, setActiveChat] = useSafeState<AIChatInfo>()
+  const [chats, setChats, getChats] = useGetSetState<AISession[]>([])
+  const [activeChat, setActiveChat] = useSafeState<AISession>()
 
   const [chatIPCData, events] = useChatIPC({
     cacheDataStore,

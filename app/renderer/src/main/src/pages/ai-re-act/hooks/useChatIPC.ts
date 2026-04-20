@@ -22,6 +22,7 @@ import {
   UseChatIPCParams,
   UseChatIPCState,
   UseHookBaseParams,
+  UseTaskChatEvents,
 } from './type'
 import {
   AIAgentGrpcApi,
@@ -48,6 +49,7 @@ import { AIChatData } from '@/pages/ai-agent/type/aiChat'
 import { DeepPartial } from '@/pages/ai-agent/store/ChatDataStore'
 import { AIChatQSData, ReActChatBaseInfo } from './aiRender'
 import { formatAIAgentSetting } from '@/pages/ai-agent/utils'
+import useHistoryChat from './useHistoryChat'
 
 const { ipcRenderer } = window.require('electron')
 
@@ -121,9 +123,7 @@ function useChatIPC(params?: UseChatIPCParams) {
 
   /** 获取全部聊天数据 */
   const getChatDataStore: UseHookBaseParams['getChatDataStore'] = useMemoizedFn(() => {
-    if (!chatID.current) {
-      throw new Error('session is empty')
-    }
+    if (!chatID.current) return
     return cacheDataStore?.get(chatID.current)
   })
 
@@ -196,7 +196,7 @@ function useChatIPC(params?: UseChatIPCParams) {
   const [reActTimelines, setReActTimelines] = useThrottleState<AIAgentGrpcApi.TimelineItem[]>([], { wait: 100 })
 
   const handleResetReActTimelines = useMemoizedFn(() => {
-    setReActTimelines([])
+    setReActTimelines(() => [])
   })
   // #endregion
 
@@ -341,6 +341,18 @@ function useChatIPC(params?: UseChatIPCParams) {
   })
   // #endregion
 
+  // #region 会话的历史数据
+  const [historyState, historyEvents] = useHistoryChat({
+    getChatDataStore,
+    setTimelines: setReActTimelines,
+    setGrpcFiles: setGrpcFolders,
+    setCasualElements: casualChatEvent.setElements,
+    getCasualElements: casualChatEvent.getElements,
+    setTaskElements: taskChatEvent.setElements,
+    getTaskElements: taskChatEvent.getElements,
+  })
+  // #endregion
+
   /** 用户主动取消问题的loading状态变换 */
   const handleCancelLoadingChange = useMemoizedFn((type: ReActChatBaseInfo['chatType'], status: boolean) => {
     if (type === 'reAct') {
@@ -449,7 +461,7 @@ function useChatIPC(params?: UseChatIPCParams) {
       switch (type) {
         case 'casual':
         case 'task':
-          const events: UseCasualChatEvents | UseChatIPCEvents = type === 'casual' ? casualChatEvent : taskChatEvent
+          const events: UseCasualChatEvents | UseTaskChatEvents = type === 'casual' ? casualChatEvent : taskChatEvent
           events.handleSend({
             request: params,
             optionValue,
@@ -602,15 +614,23 @@ function useChatIPC(params?: UseChatIPCParams) {
       yakitNotify('warning', 'useChatIPC AI任务正在执行中，请稍后再试！')
       return
     }
-    if (chatID.current !== token) {
+
+    const isInit = chatID.current !== token
+    if (isInit) {
       onReset()
       try {
         cacheDataStore?.create(token)
       } catch (error) {}
+      // 历史数据的初始化加载
+      historyEvents.loadInit(token)
+
+      // setTimeout(() => {
+      //   historyEvents.loadMore('chatID', token)
+      // }, 5000)
     }
     handleResetBeforeStart()
-    setExecute(true)
     chatID.current = token
+    setExecute(true)
 
     aiRequest.current = params.Params
 
@@ -999,10 +1019,8 @@ function useChatIPC(params?: UseChatIPCParams) {
       setRiskRunTimeIDs(chatData.riskRunTimeIDs || [])
       setReActTimelines(() => chatData.reActTimelines || [])
       yakExecResultEvent.handleSetYakResult(chatData.yakExecResult || {})
-      casualChatEvent.handleSetElements(chatData.casualChat?.elements || [])
-      taskChatEvent.handleSetElements(chatData.taskChat?.elements || [])
-    } else {
-      fetchHistoryTimelines(session)
+      casualChatEvent.setElements(chatData.casualChat?.elements || [])
+      taskChatEvent.setElements(chatData.taskChat?.elements || [])
     }
     endAfterSession.current = ''
     setTimeout(() => {
@@ -1124,6 +1142,7 @@ function useChatIPC(params?: UseChatIPCParams) {
       planHistoryList,
       cancelCasualLoading,
       cancelTaskLoading,
+      historyState,
     }
   }, [
     execute,
@@ -1144,6 +1163,7 @@ function useChatIPC(params?: UseChatIPCParams) {
     planHistoryList,
     cancelCasualLoading,
     cancelTaskLoading,
+    historyState,
   ])
 
   const event: UseChatIPCEvents = useCreation(() => {
@@ -1162,6 +1182,7 @@ function useChatIPC(params?: UseChatIPCParams) {
       handleCancelLoadingChange,
       handleResetTarget,
       handleUserManualIntervention,
+      historyEvents,
     }
   }, [])
 

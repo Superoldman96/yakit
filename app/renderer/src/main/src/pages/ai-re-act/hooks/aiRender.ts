@@ -185,11 +185,13 @@ export enum AIChatQSDataTypeEnum {
   USER_MANUAL_INTERVENTION = 'user_manual_intervention',
 }
 
+export type AIChatQSDataType = `${AIChatQSDataTypeEnum}`
+
 /** 控制UI渲染的数据数组元素 */
 export interface ReActChatBaseInfo {
   chatType: 'reAct' | 'task'
   token: string
-  type: AIChatQSDataTypeEnum
+  type: AIChatQSDataType
   /** 触发渲染的次数, 无实际逻辑意义 */
   renderNum: number
 }

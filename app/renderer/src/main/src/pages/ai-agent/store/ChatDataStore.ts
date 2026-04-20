@@ -26,6 +26,10 @@ export class ChatDataStore {
   /** 生成初始化默认数据 */
   private initDefaultData(): AIChatData {
     return {
+      beforeID: {
+        timelineID: '',
+        chatID: '',
+      },
       coordinatorIDs: [],
       httpRunTimeIDs: [],
       riskRunTimeIDs: [],
