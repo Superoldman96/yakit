@@ -17,7 +17,8 @@
     "config": "Config",
     "rule": "Rule",
     "sequence": "Sequence",
-    "concurrency": "Group Concurrency"
+    "concurrency": "Group Concurrency",
+    "AI": "AI"
   },
   "PacketScanButton": {
     "packetScan": "Scan"
@@ -73,6 +74,7 @@
     "performAction": " to perform the action",
     "webFuzzerDemo": "WebFuzzer Brute-Force Animation Demo",
     "bruteForceExample": "Brute-Force Example",
+    "AI_new_conversation": "New conversation",
     "followRedirects": "Follow Redirects",
     "generatePathTemplate": "Generate as Path Template",
     "generateRawTemplate": "Generate as Raw Template",

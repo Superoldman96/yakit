@@ -186,3 +186,4 @@ export const aiChatDataStore = new ChatDataStore()
 export const knowledgeBaseDataStore = new ChatDataStore()
 export const histroyAiStore = new ChatDataStore()
 export const FlowAiStore = new ChatDataStore()
+export class WebFuzzerAiStore extends ChatDataStore {}

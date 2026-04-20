@@ -1,5 +1,6 @@
 import {KVPair} from "@/models/kv"
 import {MatchingAndExtraction} from "../MatcherAndExtractionCard/MatcherAndExtractionCardType"
+import {ReactNode} from "react"
 import {WebFuzzerType} from "../WebFuzzerPage/WebFuzzerPageType"
 
 export type FilterMode = "drop" | "match" | "onlyMatch"
@@ -124,6 +125,8 @@ export interface HttpQueryAdvancedConfigProps {
     matchSubmitFun: () => void
     /**根据type 显示高级配置中得内容 */
     showFormContentType: WebFuzzerType
+    /** Web Fuzzer 选中 AI 时替换表单主体区域 */
+    fuzzerAiSlot?: ReactNode
     proxyListRef: React.Ref
     isbuttonIsSendReqStatus: boolean
     cachedTotal: number

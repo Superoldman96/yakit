@@ -62,6 +62,7 @@ import { TFunction, useI18nNamespaces } from '@/i18n/useI18nNamespaces'
 import ProxyRulesConfig, { ProxyTest } from '@/components/configNetwork/ProxyRulesConfig'
 import { checkProxyVersion, isValidUrlWithProtocol } from '@/utils/proxyConfigUtil'
 import { useProxy } from '@/hook/useProxy'
+import i18n from '@/i18n/i18n'
 
 const { ipcRenderer } = window.require('electron')
 const { YakitPanel } = YakitCollapse
@@ -132,6 +133,7 @@ export const HttpQueryAdvancedConfig: React.FC<HttpQueryAdvancedConfigProps> = R
     id,
     matchSubmitFun,
     showFormContentType,
+    fuzzerAiSlot,
     proxyListRef,
     isbuttonIsSendReqStatus,
     cachedTotal,
@@ -1330,6 +1332,8 @@ export const HttpQueryAdvancedConfig: React.FC<HttpQueryAdvancedConfigProps> = R
             </YakitCollapse>
           </>
         )
+      case 'ai':
+        return null
       default:
         return <></>
     }
@@ -1345,23 +1349,27 @@ export const HttpQueryAdvancedConfig: React.FC<HttpQueryAdvancedConfigProps> = R
       }}
       ref={queryRef}
     >
-      <Form
-        form={form}
-        colon={false}
-        onValuesChange={(changedFields, allFields) => {
-          onSetValue(allFields)
-        }}
-        size="small"
-        labelCol={{ span: 10 }}
-        wrapperCol={{ span: 14 }}
-        style={{ overflowY: 'auto' }}
-        initialValues={{
-          ...advancedConfigValue,
-        }}
-      >
-        {renderContent()}
-        <div className={styles['to-end']}>{t('YakitEmpty.end_of_list')}</div>
-      </Form>
+      {showFormContentType === 'ai' ? (
+        <div className={styles['fuzzer-ai-slot-wrap']}>{fuzzerAiSlot}</div>
+      ) : (
+        <Form
+          form={form}
+          colon={false}
+          onValuesChange={(changedFields, allFields) => {
+            onSetValue(allFields)
+          }}
+          size="small"
+          labelCol={{ span: 10 }}
+          wrapperCol={{ span: 14 }}
+          style={{ overflowY: 'auto', flex: 1, minHeight: 0 }}
+          initialValues={{
+            ...advancedConfigValue,
+          }}
+        >
+          {renderContent()}
+          <div className={styles['to-end']}>{t('YakitEmpty.end_of_list')}</div>
+        </Form>
+      )}
       <MatcherAndExtractionDrawer
         visibleDrawer={visibleDrawer}
         defActiveType={type}

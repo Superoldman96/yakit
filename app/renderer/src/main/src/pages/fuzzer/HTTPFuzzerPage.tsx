@@ -94,6 +94,7 @@ import {
   OutlineBeakerIcon,
   OutlineExportIcon,
   OutlinePayloadIcon,
+  OutlinePlusIcon,
   OutlineXIcon,
   OutlineCodeIcon,
   OutlinePlugsIcon,
@@ -104,6 +105,9 @@ import {
   OutlineDotsverticalIcon,
 } from '@/assets/icon/outline'
 import emiter from '@/utils/eventBus/eventBus'
+import { HistoryAIReActChatProvider, useHistoryAIReActChat } from '@/components/historyAIReActChat'
+import { WebFuzzerAiStore } from '@/pages/ai-agent/store/ChatDataStore'
+import { AIInputInnerFeatureEnum } from '@/pages/ai-agent/template/type'
 import { shallow } from 'zustand/shallow'
 import { usePageInfo, PageNodeItemProps, WebFuzzerPageInfoProps, getFuzzerProcessedCacheData } from '@/store/pageInfo'
 import { YakitCopyText } from '@/components/yakitUI/YakitCopyText/YakitCopyText'
@@ -744,7 +748,7 @@ export interface SelectOptionProps {
 }
 /*LINK - app\renderer\src\main\src\defaultConstants\HTTPFuzzerPage.ts*/
 /*为避免文件相互引用造成数据问题,请将 HTTPFuzzerPage 页面的常用变量放在 app\renderer\src\main\src\defaultConstants\HTTPFuzzerPage.ts */
-const HTTPFuzzerPage: React.FC<HTTPFuzzerPageProp> = (props) => {
+const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
   const { queryPagesDataById, updatePagesDataCacheById } = usePageInfo(
     (s) => ({
       queryPagesDataById: s.queryPagesDataById,
@@ -753,6 +757,7 @@ const HTTPFuzzerPage: React.FC<HTTPFuzzerPageProp> = (props) => {
     shallow,
   )
   const { t, i18n } = useI18nNamespaces(['webFuzzer', 'yakitUi', 'yakitRoute'])
+  const { renderHistoryAIReActChat, setShowFreeChat, historyAIReActChatBridge, focusModeLoop } = useHistoryAIReActChat()
   const { checkProxyEndpoints, getProxyValue } = useProxy()
   const initWebFuzzerPageInfo = useMemoizedFn(() => {
     const currentItem: PageNodeItemProps | undefined = queryPagesDataById(YakitRoute.HTTPFuzzer, props.id)
@@ -768,7 +773,8 @@ const HTTPFuzzerPage: React.FC<HTTPFuzzerPageProp> = (props) => {
 
   // 高级配置的隐藏/显示
   const [advancedConfigShow, setAdvancedConfigShow] = useState<AdvancedConfigShowProps>({
-    ...(initWebFuzzerPageInfo().advancedConfigShow || defaultAdvancedConfigShow),
+    ...defaultAdvancedConfigShow,
+    ...(initWebFuzzerPageInfo().advancedConfigShow || {}),
   })
 
   // 切换【配置】/【规则】高级内容显示 type
@@ -2213,10 +2219,18 @@ const HTTPFuzzerPage: React.FC<HTTPFuzzerPageProp> = (props) => {
         return advancedConfigShow.config
       case 'rule':
         return advancedConfigShow.rule
+      case 'ai':
+        return advancedConfigShow.ai
       default:
         return false
     }
   }, [advancedConfigShowType, advancedConfigShow])
+
+  useEffect(() => {
+    if (advancedConfigShowType === 'ai') {
+      setShowFreeChat(true)
+    }
+  }, [advancedConfigShowType, setShowFreeChat])
   const hotPatchVisible = useCreation(
     () => advancedConfigShowType === 'hot-patch' && hotPatchSidebarVisible,
     [advancedConfigShowType, hotPatchSidebarVisible],
@@ -2452,6 +2466,48 @@ const HTTPFuzzerPage: React.FC<HTTPFuzzerPageProp> = (props) => {
                 id={props.id}
                 matchSubmitFun={matchSubmitFun}
                 showFormContentType={advancedConfigShowType}
+                fuzzerAiSlot={renderHistoryAIReActChat({
+                  externalParameters: {
+                    isOpen: false,
+                    rightIcon: (
+                      <>
+                        <Tooltip title={t('HTTPFuzzerPage.AI_new_conversation')}>
+                          <YakitButton
+                            type="text2"
+                            icon={<OutlinePlusIcon />}
+                            onClick={() => {
+                              const { activeID, events, onStop, onChatFromHistory, setActiveChat } =
+                                historyAIReActChatBridge
+                              if (activeID) {
+                                onStop()
+                                events.onReset()
+                                onChatFromHistory(activeID)
+                                setActiveChat(undefined)
+                              }
+                            }}
+                          />
+                        </Tooltip>
+                        <YakitButton
+                          type="text2"
+                          icon={<OutlineXIcon />}
+                          onClick={() => emiter.emit('onSetAdvancedConfigShow', JSON.stringify({ type: 'ai' }))}
+                        />
+                      </>
+                    ),
+                    footerLeftTypes: [
+                      AIInputInnerFeatureEnum.AIModelSelect,
+                      {
+                        type: AIInputInnerFeatureEnum.AIFocusMode,
+                        props: {
+                          value: focusModeLoop,
+                          onChange: () => {},
+                          disabled: true,
+                        },
+                      },
+                    ],
+                    filterMentionType: ['focusMode'],
+                  },
+                })}
                 proxyListRef={proxyListRef}
                 isbuttonIsSendReqStatus={isbuttonIsSendReqStatus}
                 cachedTotal={cachedTotal}
@@ -2880,6 +2936,17 @@ const HTTPFuzzerPage: React.FC<HTTPFuzzerPageProp> = (props) => {
     </>
   )
 }
+
+/** 每个 Web Fuzzer 页签独立 WebFuzzerAiStore，避免多开时共用内存缓存导致会话数据互相覆盖 */
+const HTTPFuzzerPage: React.FC<HTTPFuzzerPageProp> = (props) => {
+  const fuzzerAiChatDataStore = useCreation(() => new WebFuzzerAiStore(), [])
+  return (
+    <HistoryAIReActChatProvider cacheDataStore={fuzzerAiChatDataStore} focusModeLoop="http_flow_analyze">
+      <HTTPFuzzerPageCore {...props} />
+    </HistoryAIReActChatProvider>
+  )
+}
+
 export default HTTPFuzzerPage
 
 export interface ContextMenuProp {
