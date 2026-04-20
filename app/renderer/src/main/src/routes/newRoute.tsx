@@ -401,8 +401,8 @@ export const YakitRouteToPageInfo: Record<
     describeUi: 'YakitRoute.unifiedConfigurationManagementForPayloadProxyAndHotPatch',
   },
   'ai-memory': { label: '记忆库', labelUi: 'YakitRoute.ai-memory' },
-  'ai-tool': { label: '工具', labelUi: 'YakitRoute.ai-tool' },
-  'ai-forge': { label: '技能', labelUi: 'YakitRoute.ai-forge' },
+  'ai-tool': { label: '工具库', labelUi: 'YakitRoute.ai-tool' },
+  'ai-forge': { label: '技能库', labelUi: 'YakitRoute.ai-forge' },
 }
 /** 页面路由(无法多开的页面) */
 export const SingletonPageRoute: YakitRoute[] = [

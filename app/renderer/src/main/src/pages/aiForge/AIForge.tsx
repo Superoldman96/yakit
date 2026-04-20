@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { AIForgeProps } from './AIForgeType'
-import { useCreation, useDebounceFn, useInViewport, useMemoizedFn } from 'ahooks'
-import { QueryAIForgeRequest, QueryAIForgeResponse } from '../ai-agent/type/forge'
+import { useCreation, useDebounceFn, useInViewport, useMemoizedFn, useSelections } from 'ahooks'
+import { AIForge, QueryAIForgeRequest, QueryAIForgeResponse } from '../ai-agent/type/forge'
 import { AIForgeListDefaultPagination } from '../ai-agent/defaultConstant'
 import { grpcQueryAIForge } from '../ai-agent/grpc'
 import { HubGridList, HubGridOpt } from '../pluginHub/pluginHubList/funcTemplate'
@@ -10,12 +10,22 @@ import styles from './AIForge.module.scss'
 import { YakitEmpty } from '@/components/yakitUI/YakitEmpty/YakitEmpty'
 import { useEmptyImage } from '@/hook/useResultEmpty/SearchEmpty'
 import { YakitButton } from '@/components/yakitUI/YakitButton/YakitButton'
-import { OutlinePlusIcon, OutlineRefreshIcon, OutlineSearchIcon } from '@/assets/icon/outline'
+import {
+  OutlineExportIcon,
+  OutlineImportIcon,
+  OutlinePlusIcon,
+  OutlineRefreshIcon,
+  OutlineSearchIcon,
+} from '@/assets/icon/outline'
 import emiter from '@/utils/eventBus/eventBus'
 import { YakitRoute } from '@/enums/yakitRoute'
 import { YakitInput } from '@/components/yakitUI/YakitInput/YakitInput'
 import { TableTotalAndSelectNumber } from '@/components/TableTotalAndSelectNumber/TableTotalAndSelectNumber'
-const AIForge: React.FC<AIForgeProps> = React.memo((props) => {
+import { Divider } from 'antd'
+import { BatchExportAIforgeRef, ExportAIForgeRequest, ImportAIforgeRef } from '../ai-agent/forgeName/type'
+import { BatchExportAIforge, ImportAIforge } from '../ai-agent/forgeName/ForgeName'
+import { YakitCheckbox } from '@/components/yakitUI/YakitCheckbox/YakitCheckbox'
+const AIForgePage: React.FC<AIForgeProps> = React.memo((props) => {
   const emptyImageTarget = useEmptyImage('search')
   const [response, setResponse] = useState<QueryAIForgeResponse>({
     Pagination: { ...AIForgeListDefaultPagination },
@@ -28,6 +38,9 @@ const AIForge: React.FC<AIForgeProps> = React.memo((props) => {
   // 搜索条件
   const [search, setSearch] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
+
+  const batchExportRef = useRef<BatchExportAIforgeRef>(null)
+  const importRef = useRef<ImportAIforgeRef>(null)
 
   // 是否为获取列表第一页的加载状态
   const isInitLoading = useRef<boolean>(false)
@@ -62,10 +75,19 @@ const AIForge: React.FC<AIForgeProps> = React.memo((props) => {
     }),
     { wait: 200 },
   ).run
+  const handleEmiterTriggerRefresh = useDebounceFn(
+    () => {
+      fetchInitTotal()
+      fetchData(true)
+    },
+    { wait: 300 },
+  ).run
   // 获取 AI-Forge 列表
   const fetchData = useMemoizedFn((isInit?: boolean) => {
     if (loading) return
     if (isInit) {
+      unSelectAll()
+      hasMore.current = true
       isInitLoading.current = true
     }
     const pageInfo = response.Pagination
@@ -104,6 +126,46 @@ const AIForge: React.FC<AIForgeProps> = React.memo((props) => {
   const listLength = useCreation(() => {
     return Number(response.Total) || 0
   }, [response.Total])
+
+  const { selected, allSelected, isSelected, toggle, toggleAll, unSelectAll, partiallySelected } = useSelections(
+    response.Data,
+  )
+  const selectedLength = useCreation(() => {
+    return selected.length
+  }, [selected.length])
+  const onBatchExport = useMemoizedFn(() => {
+    const query: ExportAIForgeRequest = {
+      ForgeNames: [],
+      OutputName: '',
+      Filter: {
+        Keyword: '',
+      },
+    }
+    if (allSelected) {
+      query.Filter = {
+        Keyword: search,
+      }
+    } else {
+      query.ForgeNames = selected.map((item) => item.ForgeName)
+    }
+    batchExportRef.current?.open(query)
+  })
+  const onExport = useMemoizedFn((data: AIForge) => {
+    const tools = !!data?.ToolNames?.length ? data.ToolNames.filter(Boolean) : []
+    batchExportRef.current?.open({
+      ForgeNames: [data.ForgeName],
+      ToolNames: tools,
+      OutputName: data.ForgeVerboseName || data.ForgeName || '',
+    })
+  })
+  const onImport = useMemoizedFn(() => {
+    importRef.current?.open()
+  })
+  /** 单项勾选 */
+  const optCheck = useMemoizedFn((data: AIForge) => {
+    toggle(data)
+  })
+  console.log('selectedLength', selectedLength)
   return (
     <div className={styles['ai-forge']} ref={forgeRef}>
       <div className={styles['hub-list-header']}>
@@ -119,6 +181,19 @@ const AIForge: React.FC<AIForgeProps> = React.memo((props) => {
             wrapperClassName={styles['search-input']}
             onSearch={handleRefreshList}
           />
+          <Divider type="vertical" className={styles['diver-style']} />
+          <YakitButton
+            disabled={!selectedLength}
+            type="outline2"
+            size="large"
+            icon={<OutlineExportIcon />}
+            onClick={onBatchExport}
+          >
+            批量导出
+          </YakitButton>
+          <YakitButton type="outline2" size="large" icon={<OutlineImportIcon />} onClick={onImport}>
+            导入
+          </YakitButton>
           <YakitButton size="large" icon={<OutlinePlusIcon />} onClick={onNewForge}>
             新建技能
           </YakitButton>
@@ -127,7 +202,11 @@ const AIForge: React.FC<AIForgeProps> = React.memo((props) => {
 
       <div className={styles['ai-forge-content']}>
         <div className={styles['hub-list-subTitle']}>
-          <TableTotalAndSelectNumber total={listLength} />
+          <div className={styles['select-all']}>
+            <YakitCheckbox checked={allSelected} onChange={() => toggleAll()} indeterminate={partiallySelected} />
+            <span>全选</span>
+          </div>
+          <TableTotalAndSelectNumber total={listLength} selectNum={selectedLength} />
         </div>
         <div className={styles['hub-list-wrapper']}>
           <YakitSpin spinning={loading && isInitLoading.current}>
@@ -140,22 +219,35 @@ const AIForge: React.FC<AIForgeProps> = React.memo((props) => {
                 updateList={onUpdateList}
                 gridNode={(info) => {
                   const { index, data } = info
+                  const check = isSelected(data)
                   return (
                     <HubGridOpt
                       order={index}
                       info={data}
-                      checked={false}
-                      onCheck={() => {}}
+                      checked={check}
+                      onCheck={optCheck}
                       title={data.ForgeVerboseName || data.ForgeName}
                       type={data.ForgeType}
                       tags={data.Tag?.join(',') || ''}
                       help={data.Description || ''}
                       img={''}
                       user={''}
-                      time={0}
+                      time={data?.UpdatedAt || 0}
                       isCorePlugin={true}
                       official={true}
-                      isShowCheck={false}
+                      extraFooter={() => (
+                        <div className={styles['extra-footer']}>
+                          <YakitButton
+                            key="import"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              onExport(data)
+                            }}
+                            type="text2"
+                            icon={<OutlineExportIcon />}
+                          />
+                        </div>
+                      )}
                     />
                   )
                 }}
@@ -183,8 +275,10 @@ const AIForge: React.FC<AIForgeProps> = React.memo((props) => {
           </YakitSpin>
         </div>
       </div>
+      <BatchExportAIforge ref={batchExportRef} />
+      <ImportAIforge ref={importRef} onSuccess={handleEmiterTriggerRefresh} />
     </div>
   )
 })
 
-export default AIForge
+export default AIForgePage

@@ -9,10 +9,14 @@
     align-items: center;
     padding: 12px;
     border-bottom: 1px solid var(--Colors-Use-Neutral-Border);
+    .diver-style {
+      margin: 0;
+    }
     .title {
       color: var(--Colors-Use-Neutral-Text-1-Title);
-      font-size: 14px;
-      font-weight: 500;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 24px;
     }
     .extra {
       display: flex;
@@ -40,10 +44,23 @@
     gap: 12px;
     .hub-list-subTitle {
       display: flex;
+      .select-all {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--Colors-Use-Neutral-Text-1-Title);
+        font-size: 12px;
+        font-weight: 400;
+      }
     }
     .hub-list-wrapper {
       flex: 1;
       overflow: hidden;
+      .extra-footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+      }
     }
 
     .hub-list-empty {
