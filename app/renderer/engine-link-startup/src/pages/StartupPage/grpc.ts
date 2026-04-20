@@ -198,7 +198,7 @@ export const grpcFetchLatestOSSDomain: APINoRequestFunc<string> = (hiddenError) 
 export const grpcOpenYaklangPath: APINoRequestFunc<boolean> = (hiddenError) => {
   return new Promise(async (resolve, reject) => {
     yakitShell
-      .openYakitPath()
+      .openYaklangPath()
       .then(() => {
         resolve(true)
       })
