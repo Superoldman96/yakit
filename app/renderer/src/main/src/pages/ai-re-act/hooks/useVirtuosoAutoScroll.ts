@@ -1,8 +1,11 @@
 import { useMemoizedFn, useThrottleFn } from 'ahooks'
-import { useEffect, useRef } from 'react'
+import { FC, useEffect, useRef } from 'react'
 import type { VirtuosoHandle } from 'react-virtuoso'
 
-const useVirtuosoAutoScroll = () => {
+interface UseVirtuosoAutoScrollProps {
+  total?: number
+}
+const useVirtuosoAutoScroll = ({ total }: UseVirtuosoAutoScrollProps) => {
   const virtuosoRef = useRef<VirtuosoHandle>(null)
   const isAtBottomRef = useRef(true)
   /** 用户正在主动滚动（wheel / touch / keyboard） */
@@ -92,6 +95,11 @@ const useVirtuosoAutoScroll = () => {
   })
 
   const scrollToIndex = useMemoizedFn((index: 'LAST' | number, behavior?: 'auto' | 'smooth') => {
+    const isLast = index === 'LAST' || (total != null && index === total - 1)
+    userScrollingRef.current = isLast
+    if (!isLast) {
+      isAtBottomRef.current = false
+    }
     requestIdleCallback(() => {
       virtuosoRef.current?.scrollToIndex({
         index,

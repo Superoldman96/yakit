@@ -86,7 +86,9 @@ VirtuosoListContainer.displayName = 'VirtuosoListContainer'
 
 const TimelineCard: FC = () => {
   const { reActTimelines } = useChatIPCStore().chatIPCData
-  const { virtuosoRef, handleTotalListHeightChanged, setScrollerRef, setIsAtBottomRef } = useVirtuosoAutoScroll()
+  const { virtuosoRef, handleTotalListHeightChanged, setScrollerRef, setIsAtBottomRef } = useVirtuosoAutoScroll({
+    total: reActTimelines.length,
+  })
   const containerRef = useRef<HTMLDivElement>(null)
   const size = useSize(containerRef)
   // const [timelines, setTimelines] = useState<AIAgentGrpcApi.TimelineItem[]>([])

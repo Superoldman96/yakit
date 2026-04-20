@@ -199,7 +199,7 @@ export const AIChatLeftSide: React.FC<AIChatLeftSideProps> = memo((props) => {
 export const AIAgentChatStream: React.FC<AIAgentChatStreamProps> = memo((props) => {
   const { streams, scrollToBottom, taskStatus, session } = props
   const { virtuosoRef, setIsAtBottomRef, setScrollerRef, scrollToIndex, handleTotalListHeightChanged } =
-    useVirtuosoAutoScroll()
+    useVirtuosoAutoScroll({ total: streams.length })
   const [highlightedItem, setHighlightedItem] = useState<{ index: number; token: number } | null>(null)
   const highlightStartTimerRef = useRef<number | null>(null)
   useUpdateEffect(() => {
