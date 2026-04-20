@@ -742,6 +742,17 @@ export declare namespace AIAgentGrpcApi {
     call_tool_id: string
     params: ToolUseReviewRequire['params']
   }
+
+  export interface HttpFuzzRequestChange {
+    op: string
+    request: {
+      raw: string
+      is_https: boolean
+      summary: string
+      version: number
+    }
+    source_action: string
+  }
 }
 
 // #region AI相关普通接口的请求和定义结构

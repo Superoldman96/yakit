@@ -155,6 +155,9 @@ export interface UseChatIPCParams {
 
   /** 获取当前Agent的全局配置数据 */
   getSetting?: (() => AIAgentSetting) | undefined
+
+  /** http_fuzz_request_change事件的回调 */
+  onHttpFuzzRequestChange?: (data: AIAgentGrpcApi.HttpFuzzRequestChange) => void
 }
 
 /** 会话文件系统-pin */
