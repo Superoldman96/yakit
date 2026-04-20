@@ -149,7 +149,6 @@ const WebFuzzerPage: React.FC<WebFuzzerPageProps> = React.memo((props) => {
   })
   /**本组件中切换tab展示的事件 */
   const onSetType = useMemoizedFn((key: WebFuzzerType) => {
-    console.log('aaa')
     switch (key) {
       case 'sequence':
       case 'concurrency':

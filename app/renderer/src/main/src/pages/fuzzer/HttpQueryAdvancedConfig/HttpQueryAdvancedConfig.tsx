@@ -770,7 +770,7 @@ export const HttpQueryAdvancedConfig: React.FC<HttpQueryAdvancedConfigProps> = R
                     icon={
                       JSON.stringify(advancedConfigValue.batchTarget) !== '{}' ? (
                         Uint8ArrayToString(advancedConfigValue.batchTarget || new Uint8Array()) ? (
-                          <OutlineBadgecheckIcon style={{ color: '#56C991' }} />
+                          <OutlineBadgecheckIcon style={{ color: 'var(--Colors-Use-Green-Primary)' }} />
                         ) : (
                           <PlusSmIcon />
                         )
@@ -781,7 +781,9 @@ export const HttpQueryAdvancedConfig: React.FC<HttpQueryAdvancedConfigProps> = R
                   >
                     {JSON.stringify(advancedConfigValue.batchTarget) !== '{}' ? (
                       Uint8ArrayToString(advancedConfigValue.batchTarget || new Uint8Array()) ? (
-                        <div style={{ color: '#56C991' }}>{t('HttpQueryAdvancedConfig.configured')}</div>
+                        <div style={{ color: 'var(--Colors-Use-Green-Primary)' }}>
+                          {t('HttpQueryAdvancedConfig.configured')}
+                        </div>
                       ) : (
                         t('HttpQueryAdvancedConfig.configure_batch_target')
                       )

@@ -2941,7 +2941,7 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
 const HTTPFuzzerPage: React.FC<HTTPFuzzerPageProp> = (props) => {
   const fuzzerAiChatDataStore = useCreation(() => new WebFuzzerAiStore(), [])
   return (
-    <HistoryAIReActChatProvider cacheDataStore={fuzzerAiChatDataStore} focusModeLoop="http_flow_analyze">
+    <HistoryAIReActChatProvider cacheDataStore={fuzzerAiChatDataStore} focusModeLoop="http_fuzztest">
       <HTTPFuzzerPageCore {...props} />
     </HistoryAIReActChatProvider>
   )
