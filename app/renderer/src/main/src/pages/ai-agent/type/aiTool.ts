@@ -11,6 +11,7 @@ export interface AITool {
   VerboseName: string
   UpdatedAt: number
   CreatedAt: number
+  Author: string
 }
 export interface GetAIToolListRequest {
   Query: string

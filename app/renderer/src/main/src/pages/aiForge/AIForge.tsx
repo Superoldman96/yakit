@@ -317,7 +317,7 @@ const AIForgePageItem: React.FC<AIForgePageItemProps> = React.memo((props) => {
       tags={data.Tag?.join(',') || ''}
       help={data.Description || ''}
       img={''}
-      user={''}
+      user={data?.Author || ''}
       time={data?.UpdatedAt || 0}
       isCorePlugin={true}
       official={true}

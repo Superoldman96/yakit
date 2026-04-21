@@ -96,7 +96,7 @@ const AIToolPage: React.FC<AIToolProps> = React.memo((props) => {
       ToolName: '',
       Pagination: {
         ...genDefaultPagination(20),
-        Page: isInit ? 1 : Number(response.Pagination.Page) + 1,
+        Page: isInit ? 1 : Number(pageInfo.Page) + 1,
       },
       OnlyFavorites: toolQueryType === 'collect',
     }
@@ -298,7 +298,7 @@ const AIToolPageItem: React.FC<AIToolPageItemProps> = React.memo((props) => {
       tags={data?.Keywords?.join(',')}
       help={data.Description || ''}
       img={''}
-      user={''}
+      user={data?.Author}
       time={data?.UpdatedAt || 0}
       isCorePlugin={true}
       official={true}

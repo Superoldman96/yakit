@@ -44,6 +44,7 @@ export interface AIForge {
   SkillPath?: string
   CreatedAt?: number
   UpdatedAt?: number
+  Author?: string
 }
 
 /** forge 相关的过滤条件 */
