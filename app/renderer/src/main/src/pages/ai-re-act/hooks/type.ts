@@ -251,7 +251,7 @@ export interface TaskChatTaskInfo {
   coordinatorId: AIOutputEvent['CoordinatorId']
 }
 
-export interface UseChatIPCEvents {
+export interface UseChatIPCEvents extends Omit<UseHistoryChatEvents, 'loadInit'> {
   /** 获取当前执行接口流的唯一标识符 */
   fetchToken: () => string
   /** 获取当前执行接口流的请求参数 */
@@ -285,8 +285,6 @@ export interface UseChatIPCEvents {
   handleResetTarget: (target: 'memoryList') => void
   /** 用户手动干预的执行事件 */
   handleUserManualIntervention: (chatInfo: AIChatQSData) => void
-  /** 历史数据获取的事件 */
-  historyEvents: UseHistoryChatEvents
 }
 // #endregion
 
