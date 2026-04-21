@@ -395,6 +395,9 @@ export const AIModelSelect: React.FC<AIModelSelectProps> = React.memo((props) =>
                         dropdownClassName={styles['select-policy-dropdown']}
                         wrapperStyle={{ width: 80, marginRight: 4 }}
                         dropdownMatchSelectWidth={false}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                        }}
                       />
                     )}
                     <Tooltip title={getTipByType(policy, t)}>
