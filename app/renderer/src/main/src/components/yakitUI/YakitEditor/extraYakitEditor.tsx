@@ -455,12 +455,12 @@ export const HTTPPacketYakitEditor: React.FC<HTTPPacketYakitEditor> = React.memo
             label: t('YakitEditor.HTTPPacketYakitEditor.sendToWsFuzzer'),
             children: [
               {
-                key: '发送并跳转',
+                key: 'send-and-redirect',
                 label: t('YakitEditor.HTTPPacketYakitEditor.sendAndRedirect'),
                 keybindings: YakEditorOptionShortcutKey.CommonSendAndJumpToWebFuzzer,
               },
               {
-                key: '仅发送',
+                key: 'send-only',
                 label: t('YakitEditor.HTTPPacketYakitEditor.sendOnly'),
                 keybindings: YakEditorOptionShortcutKey.CommonSendToWebFuzzer,
               },
@@ -474,14 +474,14 @@ export const HTTPPacketYakitEditor: React.FC<HTTPPacketYakitEditor> = React.memo
               info(t('YakitEditor.HTTPPacketYakitEditor.packetEmpty'))
               return
             }
-            if (key === '发送并跳转') {
+            if (key === 'send-and-redirect') {
               newWebsocketFuzzerTab(
                 defaultHttps || false,
                 StringToUint8Array(text),
                 true,
                 StringToUint8Array(webSocketToServer || ''),
               )
-            } else if (key === '仅发送') {
+            } else if (key === 'send-only') {
               newWebsocketFuzzerTab(
                 defaultHttps || false,
                 StringToUint8Array(text),
@@ -502,12 +502,12 @@ export const HTTPPacketYakitEditor: React.FC<HTTPPacketYakitEditor> = React.memo
             label: t('YakitEditor.HTTPPacketYakitEditor.sendToWebFuzzer'),
             children: [
               {
-                key: '发送并跳转',
+                key: 'send-and-redirect',
                 label: t('YakitEditor.HTTPPacketYakitEditor.sendAndRedirect'),
                 keybindings: YakEditorOptionShortcutKey.CommonSendAndJumpToWebFuzzer,
               },
               {
-                key: '仅发送',
+                key: 'send-only',
                 label: t('YakitEditor.HTTPPacketYakitEditor.sendOnly'),
                 keybindings: YakEditorOptionShortcutKey.CommonSendToWebFuzzer,
               },
@@ -529,7 +529,7 @@ export const HTTPPacketYakitEditor: React.FC<HTTPPacketYakitEditor> = React.memo
                 request,
                 advancedConfiguration: advancedConfigValue,
               }
-              const openFlag = key === '发送并跳转'
+              const openFlag = key === 'send-and-redirect'
               ipcRenderer
                 .invoke('send-to-tab', {
                   type: 'fuzzer',
@@ -552,7 +552,7 @@ export const HTTPPacketYakitEditor: React.FC<HTTPPacketYakitEditor> = React.memo
                 info(t('YakitEditor.HTTPPacketYakitEditor.packetEmpty'))
                 return
               }
-              if (key === '发送并跳转') {
+              if (key === 'send-and-redirect') {
                 newWebFuzzerTab({
                   isHttps: defaultHttps || false,
                   request: text,
@@ -562,7 +562,7 @@ export const HTTPPacketYakitEditor: React.FC<HTTPPacketYakitEditor> = React.memo
                 }).finally(() => {
                   webFuzzerCallBack && webFuzzerCallBack()
                 })
-              } else if (key === '仅发送') {
+              } else if (key === 'send-only') {
                 newWebFuzzerTab({
                   isHttps: defaultHttps || false,
                   request: text,

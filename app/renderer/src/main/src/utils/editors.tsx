@@ -88,6 +88,7 @@ export interface EditorProps {
 }
 
 export const YakEditor: React.FC<EditorProps> = (props) => {
+  const { t, i18n } = useI18nNamespaces(['utils'])
   const [editor, setEditor] = useState<IMonacoEditor>()
   const [reload, setReload] = useState(false)
   const [triggerId, setTrigger] = useState<any>()
@@ -233,7 +234,7 @@ export const YakEditor: React.FC<EditorProps> = (props) => {
       editor.addAction({
         contextMenuGroupId: 'yaklang',
         id: YAK_FORMATTER_COMMAND_ID,
-        label: 'Yak 代码格式化',
+        label: t('YakEditor.yakFormat'),
         run: () => {
           yakCompileAndFormat.run(editor, model)
           return undefined

@@ -119,11 +119,18 @@
       "loadingFile": "Loading file...",
       "downloadingFile": "{{fileName}} downloading...",
       "downloading": "Downloading...",
-      "downloadedPercent": "Downloaded {{percent}}%",
       "getFileInfoErrorTitle": "Failed to get file info",
       "getLinkInfoError": "Failed to get link info: {{error}}",
       "getFileInfoError": "Failed to get file info: {{error}}",
       "getLocalFileNameFailed": "getLocalFileName failed: {{error}}"
     }
+  },
+  "ImportExportModal": {
+    "exportDone": "Export completed",
+    "exporting": "Exporting...",
+    "importDone": "Import completed",
+    "importing": "Importing...",
+    "exportHint": "After exporting in remote mode, open the ~Yakit\\yakit-projects\\projects path to view the exported file. No file suffix is needed.",
+    "importHint": "Importing external resources carries potential risks. They may contain malicious code or payloads that can cause data leakage or system compromise. Please consider whether external resources are necessary, and ensure the source is trusted and safe. If you must use external resources, prefer official safe versions or write a controlled data source yourself. Keep your system and software up to date and patch known vulnerabilities promptly."
   }
 }
