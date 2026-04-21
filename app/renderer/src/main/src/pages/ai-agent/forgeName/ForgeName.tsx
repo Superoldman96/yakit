@@ -76,7 +76,15 @@ const ForwardForgeName = forwardRef((props: ForgeNameProps, ref: Ref<ForgeNameRe
   // #region AIForge 模板增删改功能 使用功能
   // 新建 forge 模板
   const handleNewAIForge = useMemoizedFn(() => {
-    emiter.emit('menuOpenPage', JSON.stringify({ route: YakitRoute.AddAIForge }))
+    emiter.emit(
+      'openPage',
+      JSON.stringify({
+        route: YakitRoute.AddAIForge,
+        params: {
+          source: YakitRoute.AI_Agent,
+        },
+      }),
+    )
   })
   // 编辑 forge 模板
   const handleModifyAIForge = useMemoizedFn((info: AIForge) => {

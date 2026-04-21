@@ -245,7 +245,15 @@ const AIChatWelcome: React.FC<AIChatWelcomeProps> = React.memo(
             <YakitButton
               key="add"
               onClick={() => {
-                emiter.emit('menuOpenPage', JSON.stringify({ route: YakitRoute.AddAITool }))
+                emiter.emit(
+                  'openPage',
+                  JSON.stringify({
+                    route: YakitRoute.AddAITool,
+                    params: {
+                      source: YakitRoute.AI_Agent,
+                    },
+                  }),
+                )
               }}
               type="text2"
               icon={<OutlinePluscircleIcon />}

@@ -1,62 +1,64 @@
-import {PaginationSchema} from "@/pages/invoker/schema"
+import { PaginationSchema } from '@/pages/invoker/schema'
 
 export interface AITool {
-    Name: string
-    Description: string
-    Content: string
-    ToolPath: string
-    Keywords: string[]
-    IsFavorite: boolean
-    ID: number
-    VerboseName: string
+  Name: string
+  Description: string
+  Content: string
+  ToolPath: string
+  Keywords: string[]
+  IsFavorite: boolean
+  ID: number
+  VerboseName: string
+  UpdatedAt: number
+  CreatedAt: number
 }
 export interface GetAIToolListRequest {
-    Query: string
-    ToolName: string
-    Pagination: PaginationSchema
-    OnlyFavorites: boolean
-    ToolID?: number
+  Query: string
+  ToolName: string
+  Pagination: PaginationSchema
+  OnlyFavorites: boolean
+  ToolID?: number
 }
 export interface GetAIToolListResponse {
-    Tools: AITool[]
-    Pagination: PaginationSchema
-    Total: number
+  Tools: AITool[]
+  Pagination: PaginationSchema
+  Total: number
 }
 export interface ToggleAIToolFavoriteRequest {
-    /**@deprecated */
-    ToolName?: string
-    ID: number
+  /**@deprecated */
+  ToolName?: string
+  ID: number
 }
 export interface ToggleAIToolFavoriteResponse {
-    IsFavorite: boolean
-    Message: string
+  IsFavorite: boolean
+  Message: string
 }
 export interface SaveAIToolRequest {
-    Name: string
-    Description: string
-    Content: string
-    ToolPath: string
-    Keywords: string[]
+  Name: string
+  Description: string
+  Content: string
+  ToolPath: string
+  Keywords: string[]
 }
 export interface SaveAIToolV2Response {
-    IsSuccess: boolean
-    Message: string
-    AITool: AITool
+  IsSuccess: boolean
+  Message: string
+  AITool: AITool
 }
 export interface UpdateAIToolRequest extends SaveAIToolRequest {
-    ID: number
+  ID: number
 }
 export interface DeleteAIToolRequest {
-    /**@deprecated */
-    ToolNames?: string
-    IDs: number[]
+  /**@deprecated */
+  ToolNames?: string
+  IDs: number[]
 }
 export interface AIToolGenerateMetadataRequest {
-    ToolName: string
-    Content: string
+  ToolName: string
+  Content: string
 }
 export interface AIToolGenerateMetadataResponse {
-    Name: string
-    Description: string
-    Keywords: string[]
+  Name: string
+  Description: string
+  Keywords: string[]
 }

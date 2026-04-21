@@ -916,11 +916,15 @@ export const MainOperatorContent: React.FC<MainOperatorContentProps> = React.mem
       case YakitRoute.ShortcutKey:
         addShortcutKey(params)
         break
+      case YakitRoute.AddAIForge:
       case YakitRoute.ModifyAIForge:
-        modifyAIForge(params)
+        const isModifyAIForge = route === YakitRoute.ModifyAIForge
+        modifyAIForge(params, isModifyAIForge)
         break
+      case YakitRoute.AddAITool:
       case YakitRoute.ModifyAITool:
-        modifyAITool(params)
+        const isModifyAITool = route === YakitRoute.ModifyAITool
+        modifyAITool(params, isModifyAITool)
         break
       case YakitRoute.DB_Report:
         dbReport()
@@ -1335,10 +1339,11 @@ export const MainOperatorContent: React.FC<MainOperatorContentProps> = React.mem
    * @name 新建forge模板
    * @param source 触发打开页面的父页面路由
    */
-  const modifyAIForge = useMemoizedFn((data: AIForgeEditorPageInfoProps) => {
-    const isExist = pageCache.filter((item) => item.route === YakitRoute.ModifyAIForge).length
+  const modifyAIForge = useMemoizedFn((data: AIForgeEditorPageInfoProps, isModifyAIForge: boolean) => {
+    const route = isModifyAIForge ? YakitRoute.ModifyAIForge : YakitRoute.AddAIForge
+    const isExist = pageCache.filter((item) => item.route === route).length
     if (isExist) {
-      const modalProps = getSubscribeClose(YakitRoute.ModifyAIForge)
+      const modalProps = getSubscribeClose(route)
       if (modalProps) {
         judgeDataIsFuncOrSettingForConfirm(
           modalProps['reset'],
@@ -1350,11 +1355,15 @@ export const MainOperatorContent: React.FC<MainOperatorContentProps> = React.mem
       }
     }
     openMenuPage(
-      { route: YakitRoute.ModifyAIForge },
+      { route: route },
       {
-        pageParams: {
-          modifyAIForgePageInfo: { ...data },
-        },
+        pageParams: isModifyAIForge
+          ? {
+              modifyAIForgePageInfo: { ...data },
+            }
+          : {
+              addAIForgePageInfo: { ...data },
+            },
       },
     )
   })
@@ -1363,10 +1372,11 @@ export const MainOperatorContent: React.FC<MainOperatorContentProps> = React.mem
    * @name 编辑AI tool
    * @param source 触发打开页面的父页面路由
    */
-  const modifyAITool = useMemoizedFn((data: AIToolEditorPageInfoProps) => {
-    const isExist = pageCache.filter((item) => item.route === YakitRoute.ModifyAITool).length
+  const modifyAITool = useMemoizedFn((data: AIToolEditorPageInfoProps, isModifyAITool: boolean) => {
+    const route = isModifyAITool ? YakitRoute.ModifyAITool : YakitRoute.AddAITool
+    const isExist = pageCache.filter((item) => item.route === route).length
     if (isExist) {
-      const modalProps = getSubscribeClose(YakitRoute.ModifyAITool)
+      const modalProps = getSubscribeClose(route)
       if (modalProps) {
         judgeDataIsFuncOrSettingForConfirm(
           modalProps['reset'],
@@ -1378,11 +1388,15 @@ export const MainOperatorContent: React.FC<MainOperatorContentProps> = React.mem
       }
     }
     openMenuPage(
-      { route: YakitRoute.ModifyAITool },
+      { route: route },
       {
-        pageParams: {
-          modifyAIToolPageInfo: { ...data },
-        },
+        pageParams: isModifyAITool
+          ? {
+              modifyAIToolPageInfo: { ...data },
+            }
+          : {
+              addAIToolPageInfo: { ...data },
+            },
       },
     )
   })
@@ -1396,12 +1410,12 @@ export const MainOperatorContent: React.FC<MainOperatorContentProps> = React.mem
   }, [])
   const onClosePage = useMemoizedFn((res: string) => {
     // @ts-ignore
-    let data: { route: YakitRoute } = {}
+    let data: { route: YakitRoute; source: YakitRoute } = {}
     try {
       data = JSONParseLog(res || '{}', { page: 'MainOperatorContent', fun: 'onClosePage' })
     } catch (error) {}
 
-    const { route } = data
+    const { route, source } = data
     switch (route) {
       case YakitRoute.AddYakitScript:
         // 判断页面是由谁触发打开的
@@ -1414,14 +1428,14 @@ export const MainOperatorContent: React.FC<MainOperatorContentProps> = React.mem
         break
       case YakitRoute.AddAIForge:
       case YakitRoute.ModifyAIForge:
-        // 新建|编辑 forge 的关闭后跳转回 ai-agent 页面
-        removeMenuPage({ route: route, menuName: '' }, { route: YakitRoute.AI_Agent, menuName: '' })
+        // 新建|编辑 forge 的关闭后跳转回 source/ai-agent 页面
+        removeMenuPage({ route: route, menuName: '' }, { route: source || YakitRoute.AI_Agent, menuName: '' })
         break
 
       case YakitRoute.AddAITool:
       case YakitRoute.ModifyAITool:
-        // 新建|编辑 tool 的关闭后跳转回 ai-agent 页面
-        removeMenuPage({ route: route, menuName: '' }, { route: YakitRoute.AI_Agent, menuName: '' })
+        // 新建|编辑 tool 的关闭后跳转回 source/ai-agent 页面
+        removeMenuPage({ route: route, menuName: '' }, { route: source || YakitRoute.AI_Agent, menuName: '' })
         break
 
       case YakitRoute.MITMHacker:
@@ -1973,8 +1987,14 @@ export const MainOperatorContent: React.FC<MainOperatorContentProps> = React.mem
       case YakitRoute.ModifyAIForge:
         onSetModifyAIForgeData(singleUpdateNode, 1)
         break
+      case YakitRoute.AddAIForge:
+        onSetAddAIForgeData(singleUpdateNode, 1)
+        break
       case YakitRoute.ModifyAITool:
         onSetModifyAIToolData(singleUpdateNode, 1)
+        break
+      case YakitRoute.AddAITool:
+        onSetAddAIToolData(singleUpdateNode, 1)
         break
       case YakitRoute.YakRunner_ScanHistory:
         onSetYakRunnerScanHistory(singleUpdateNode, 1)
@@ -2075,6 +2095,25 @@ export const MainOperatorContent: React.FC<MainOperatorContentProps> = React.mem
     }
     setPagesData(YakitRoute.ModifyAIForge, pageNodeInfo)
   })
+  const onSetAddAIForgeData = useMemoizedFn((node: MultipleNodeInfo, order: number) => {
+    const newPageNode: PageNodeItemProps = {
+      id: `${randomString(8)}-${order}`,
+      routeKey: YakitRoute.AddAIForge,
+      pageGroupId: node.groupId,
+      pageId: node.id,
+      pageName: node.verbose,
+      pageParamsInfo: {
+        addAIForgePageInfo: node.pageParams?.addAIForgePageInfo ? { ...node.pageParams.addAIForgePageInfo } : undefined,
+      },
+      sortFieId: order,
+    }
+    let pageNodeInfo: PageProps = {
+      ...cloneDeep(defPage),
+      pageList: [newPageNode],
+      routeKey: YakitRoute.AddAIForge,
+    }
+    setPagesData(YakitRoute.AddAIForge, pageNodeInfo)
+  })
   const onSetModifyAIToolData = useMemoizedFn((node: MultipleNodeInfo, order: number) => {
     const newPageNode: PageNodeItemProps = {
       id: `${randomString(8)}-${order}`,
@@ -2095,6 +2134,26 @@ export const MainOperatorContent: React.FC<MainOperatorContentProps> = React.mem
       routeKey: YakitRoute.ModifyAITool,
     }
     setPagesData(YakitRoute.ModifyAITool, pageNodeInfo)
+  })
+
+  const onSetAddAIToolData = useMemoizedFn((node: MultipleNodeInfo, order: number) => {
+    const newPageNode: PageNodeItemProps = {
+      id: `${randomString(8)}-${order}`,
+      routeKey: YakitRoute.AddAITool,
+      pageGroupId: node.groupId,
+      pageId: node.id,
+      pageName: node.verbose,
+      pageParamsInfo: {
+        addAIToolPageInfo: node.pageParams?.addAIToolPageInfo ? { ...node.pageParams.addAIToolPageInfo } : undefined,
+      },
+      sortFieId: order,
+    }
+    let pageNodeInfo: PageProps = {
+      ...cloneDeep(defPage),
+      pageList: [newPageNode],
+      routeKey: YakitRoute.AddAITool,
+    }
+    setPagesData(YakitRoute.AddAITool, pageNodeInfo)
   })
 
   const onSetYakRunnerScanHistory = useMemoizedFn((node: MultipleNodeInfo, order: number) => {

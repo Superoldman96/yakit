@@ -83,8 +83,12 @@ interface PageParamsInfoProps {
   mitmHackerPageInfo?: MITMHackerPageInfoProps
   /** 编辑 ai-forge 模板页面 */
   modifyAIForgePageInfo?: AIForgeEditorPageInfoProps
+  /** 新增 ai-forge 模板页面 */
+  addAIForgePageInfo?: AIForgeEditorPageInfoProps
   /** 编辑 ai tool 页面 */
   modifyAIToolPageInfo?: AIToolEditorPageInfoProps
+  /** 新增 ai tool 页面 */
+  addAIToolPageInfo?: AIToolEditorPageInfoProps
   /** 扫描历史页面 */
   yakRunnerScanHistory?: YakRunnerScanHistoryPageInfoProps
   /** 并发页面高级配置 */

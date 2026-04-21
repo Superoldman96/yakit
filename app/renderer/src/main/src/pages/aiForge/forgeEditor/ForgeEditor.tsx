@@ -459,7 +459,10 @@ const ForgeEditor: React.FC<ForgeEditorProps> = memo((props) => {
         destroySaveModal()
         emiter.emit(
           'closePage',
-          JSON.stringify({ route: !!isModify ? YakitRoute.ModifyAIForge : YakitRoute.AddAIForge }),
+          JSON.stringify({
+            route: !!isModify ? YakitRoute.ModifyAIForge : YakitRoute.AddAIForge,
+            source: !!isModify ? getModifyAIForgeSource() : getAddAIForgeSource(),
+          }),
         )
       })
       .catch(() => {})
@@ -471,6 +474,21 @@ const ForgeEditor: React.FC<ForgeEditorProps> = memo((props) => {
       destroySaveModal()
       handleModifyInit()
     } catch (error) {}
+  })
+
+  /** 获取编辑页面的打开的来源 */
+  const getModifyAIForgeSource = useMemoizedFn(() => {
+    const currentItem: PageNodeItemProps | undefined = queryPagesDataById(
+      YakitRoute.ModifyAIForge,
+      YakitRoute.ModifyAIForge,
+    )
+    return currentItem?.pageParamsInfo.modifyAIForgePageInfo?.source
+  })
+
+  /** 获取新建页面的打开的来源 */
+  const getAddAIForgeSource = useMemoizedFn(() => {
+    const currentItem: PageNodeItemProps | undefined = queryPagesDataById(YakitRoute.AddAIForge, YakitRoute.AddAIForge)
+    return currentItem?.pageParamsInfo.addAIForgePageInfo?.source
   })
   const { setSubscribeClose, removeSubscribeClose } = useSubscribeClose()
   // 二次提示框的实例
@@ -496,7 +514,10 @@ const ForgeEditor: React.FC<ForgeEditorProps> = memo((props) => {
             },
             onCancel: (m) => {
               destroySaveModal()
-              emiter.emit('closePage', JSON.stringify({ route: YakitRoute.ModifyAIForge }))
+              emiter.emit(
+                'closePage',
+                JSON.stringify({ route: YakitRoute.ModifyAIForge, source: getModifyAIForgeSource() }),
+              )
             },
             getModal: (m) => {
               modalRef.current = m
@@ -552,7 +573,7 @@ const ForgeEditor: React.FC<ForgeEditorProps> = memo((props) => {
             },
             onCancel: () => {
               destroySaveModal()
-              emiter.emit('closePage', JSON.stringify({ route: YakitRoute.AddAIForge }))
+              emiter.emit('closePage', JSON.stringify({ route: YakitRoute.AddAIForge, source: getAddAIForgeSource() }))
             },
             getModal: (m) => {
               modalRef.current = m

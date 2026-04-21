@@ -121,7 +121,15 @@ const AIForgePage: React.FC<AIForgeProps> = React.memo((props) => {
     fetchData()
   })
   const onNewForge = useMemoizedFn(() => {
-    emiter.emit('menuOpenPage', JSON.stringify({ route: YakitRoute.AddAIForge }))
+    emiter.emit(
+      'openPage',
+      JSON.stringify({
+        route: YakitRoute.AddAIForge,
+        params: {
+          source: YakitRoute.AI_Forge,
+        },
+      }),
+    )
   })
   const listLength = useCreation(() => {
     return Number(response.Total) || 0
@@ -165,7 +173,6 @@ const AIForgePage: React.FC<AIForgeProps> = React.memo((props) => {
   const optCheck = useMemoizedFn((data: AIForge) => {
     toggle(data)
   })
-  console.log('selectedLength', selectedLength)
   return (
     <div className={styles['ai-forge']} ref={forgeRef}>
       <div className={styles['hub-list-header']}>

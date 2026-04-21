@@ -669,9 +669,13 @@ export interface ComponentParams {
 
   /** 编辑 forge 模板 */
   modifyAIForgePageInfo?: AIForgeEditorPageInfoProps
-
+  /** 新增 ai-forge 模板页面 */
+  addAIForgePageInfo?: AIForgeEditorPageInfoProps
   /** 编辑 ai tool 页面 */
   modifyAIToolPageInfo?: AIToolEditorPageInfoProps
+
+  /** 新增 ai tool 页面 */
+  addAIToolPageInfo?: AIToolEditorPageInfoProps
   /** 扫描历史页面 */
   yakRunnerScanHistoryPageInfo?: YakRunnerScanHistoryPageInfoProps
   /** 规则管理页面 */
