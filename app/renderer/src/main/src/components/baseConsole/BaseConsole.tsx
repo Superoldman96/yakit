@@ -14,6 +14,7 @@ import { YakitSystem } from '@/yakitGVDefine'
 import { setClipboardText } from '@/utils/clipboard'
 import { useXTermOptions } from '@/hook/useXTermOptions/useXTermOptions'
 import { yakitEngine, yakitStream, yakitSystem } from '@/services/electronBridge'
+import { useI18nNamespaces } from '@/i18n/useI18nNamespaces'
 
 export interface EngineConsoleProp {
   isMini: boolean
@@ -21,6 +22,7 @@ export interface EngineConsoleProp {
 
 export const EngineConsole: React.FC<EngineConsoleProp> = (props) => {
   const { isMini } = props
+  const { t } = useI18nNamespaces(['engineConsole'])
   const timeRef = useRef<ReturnType<typeof setTimeout>>()
   const xtermRef = useRef<any>(null)
   // 缓存Console日志信息
@@ -62,7 +64,7 @@ export const EngineConsole: React.FC<EngineConsoleProp> = (props) => {
     })
 
     yakitEngine.attachCombinedOutput({}, token).then(() => {
-      info(`启动输出监控成功`)
+      info(t('EngineConsole.monitorStarted'))
     })
 
     return () => {

@@ -477,10 +477,6 @@ export const StartupPage: React.FC = () => {
       case 'local':
         handleLinkLocalMode()
         return
-      case 'current_version':
-        // 跳旧的yakit窗口引擎连接逻辑
-        yakitApp.completeEngineLink({ useOldLink: true })
-        return
       case 'database_error':
       case 'fix_database_timeout':
         setRestartLoading(true)
@@ -882,7 +878,7 @@ export const StartupPage: React.FC = () => {
   // 引擎连接成功发送数据到主界面
   useEffect(() => {
     if (engineLink && getYakitStatus() === 'link' && getCredential().Port && !isStopSend.current) {
-      yakitApp.completeEngineLink({ useOldLink: false, credential: getCredential() })
+      yakitApp.completeEngineLink({ credential: getCredential() })
     }
   }, [engineLink, yakitStatus])
 

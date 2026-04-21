@@ -17,6 +17,7 @@ import { getRemoteValue, setRemoteValue } from './kv'
 import { useI18nNamespaces } from '@/i18n/useI18nNamespaces'
 import i18n from '@/i18n/i18n'
 import { yakitExporter, yakitStream } from '@/services/electronBridge'
+import { getReleaseEditionName } from './envfile'
 const tOriginal = i18n.getFixedT(null, ['utils'])
 
 export interface ExtractableValue {
@@ -362,7 +363,7 @@ const GeneralExporterForm: React.FC<GeneralExporterFormProp> = (props) => {
       </Form.Item>
       <Form.Item label={t('GeneralExporterForm.outputToDirectory')} valuePropName="checked">
         <YakitInput
-          placeholder={t('GeneralExporterForm.optionalDefaultYakitTempDir', { yakit: t('YakitRoute.Yakit') })}
+          placeholder={t('GeneralExporterForm.optionalDefaultYakitTempDir', { edition: getReleaseEditionName() })}
           onChange={(e) => setParams({ ...params, DirName: e.target.value })}
           value={params.DirName}
         />

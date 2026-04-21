@@ -9,6 +9,7 @@ import { setClipboardText } from '@/utils/clipboard'
 import { useTheme } from '@/hook/useTheme'
 import { getXtermTheme } from '@/hook/useXTermOptions/useXTermOptions'
 import { yakitEngine, yakitStream, yakitWindow } from '@/services/electronBridge'
+import { useI18nNamespaces } from '@/i18n/useI18nNamespaces'
 
 export let clickEngineConsoleFlag = false
 export const changeClickEngineConsoleFlag = (flag: boolean) => {
@@ -17,6 +18,7 @@ export const changeClickEngineConsoleFlag = (flag: boolean) => {
 export let engineConsoleWindowHash = ''
 interface useEngineConsoleHooks {}
 export default function useEngineConsole(props: useEngineConsoleHooks) {
+  const { t } = useI18nNamespaces(['engineConsole'])
   const { theme: themeGlobal } = useTheme()
   const [engineConsoleToken, setEngineConsoleToken] = useState<string>('')
   const { consoleLog, setConsoleInfo } = useEngineConsoleStore()
@@ -84,7 +86,7 @@ export default function useEngineConsole(props: useEngineConsoleHooks) {
     const newToken = randomString(40)
     setEngineConsoleToken(newToken)
     yakitEngine.attachCombinedOutput({}, newToken).then(() => {
-      yakitNotify('info', '启动输出监控成功')
+      yakitNotify('info', t('EngineConsole.monitorStarted'))
     })
   }
 

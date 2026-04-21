@@ -76,7 +76,7 @@ import { compareAsc } from '@/pages/yakitStore/viewers/base'
 import { batchPluginType } from '@/defaultConstants/PluginBatchExecutor'
 import { defaultPocPageInfo } from '@/defaultConstants/YakPoC'
 import { HybridScanControlAfterRequest } from '@/models/HybridScan'
-import { getRemoteHttpSettingGV } from '@/utils/envfile'
+import { getReleaseEditionName, getRemoteHttpSettingGV } from '@/utils/envfile'
 import { YakitTabsProps } from '@/components/yakitSideTab/YakitSideTabType'
 import { YakitSideTab } from '@/components/yakitSideTab/YakitSideTab'
 import { TFunction, useI18nNamespaces } from '@/i18n/useI18nNamespaces'
@@ -651,7 +651,10 @@ const PluginGroupByKeyWord: React.FC<PluginGroupByKeyWordProps> = React.memo((pr
       </div>
       {initialResponseRef.current.length === 0 ? (
         <div className={styles['yak-poc-empty']}>
-          <YakitEmpty title={t('YakitEmpty.noData')} description={t('PluginGroupByKeyWord.noDataDesc')} />
+          <YakitEmpty
+            title={t('YakitEmpty.noData')}
+            description={t('PluginGroupByKeyWord.noDataDesc', { edition: getReleaseEditionName() })}
+          />
           <div className={styles['yak-poc-buttons']}>
             <YakitButton type="outline1" icon={<CloudDownloadIcon />} onClick={() => setVisibleOnline(true)}>
               {t('YakitButton.oneClickDownload')}

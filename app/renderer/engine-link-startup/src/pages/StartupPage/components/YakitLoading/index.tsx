@@ -235,15 +235,6 @@ export const YakitLoading: React.FC<YakitLoadingProp> = (props) => {
               下载引擎
             </YakitButton>
           )}
-          <YakitButton
-            className={styles['btn-style']}
-            size="large"
-            loading={restartLoading}
-            type="secondary2"
-            onClick={() => btnClickCallback('current_version')}
-          >
-            使用当前版本
-          </YakitButton>
         </>
       )
     }

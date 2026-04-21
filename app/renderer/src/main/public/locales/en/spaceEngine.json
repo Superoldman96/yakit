@@ -30,7 +30,7 @@
     "randomDelayHelp": "Random delay range (seconds), 0 means no delay",
     "retryTimes": "Retry Times",
     "scanVerification": "Scan Verification",
-    "scanVerificationHelp": "When enabled, Yakit's port scan will be used for verification",
+    "scanVerificationHelp": "When enabled, {{edition}}'s port scan will be used for verification",
     "zone": "Zone Mapping"
   },
   "ZoomeyeHelp": {

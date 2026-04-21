@@ -151,12 +151,12 @@ export const RemoteEngine: React.FC<RemoteEngineProps> = React.memo((props) => {
             )}
             {isEnpriTrace() && (
               <div className={styles['logo-img']}>
-                {isIRify() ? <SolidIrifyMiniLogoIcon /> : <img src={yakitEE} alt="暂无图片" />}
+                {isIRify() ? <SolidIrifyMiniLogoIcon /> : <img src={yakitEE} alt={t('YakitEmpty.noImage')} />}
               </div>
             )}
             {isEnpriTraceAgent() && (
               <div className={styles['logo-img']}>
-                <img src={yakitSE} alt="暂无图片" />
+                <img src={yakitSE} alt={t('YakitEmpty.noImage')} />
               </div>
             )}
             <div className={styles['title-style']}>{t('RemoteEngine.remoteMode')}</div>

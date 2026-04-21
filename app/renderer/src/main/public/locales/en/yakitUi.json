@@ -54,6 +54,7 @@
     "resetAll": "Reset All",
     "batchOperation": "Batch Operation",
     "clear": "Clear",
+    "clearAll": "Clear all",
     "disable": "Disable",
     "disable_all": "Disable All",
     "enable": "Enable",
@@ -81,6 +82,7 @@
     "rename": "Rename",
     "copy": "Copy",
     "advancedFilter": "Filter",
+    "collapseFilter": "Collapse Filter",
     "newFolder": "New Folder",
     "newFile": "New File",
     "remove": "Remove",
@@ -92,7 +94,17 @@
     "locate": "Locate",
     "ignore": "Ignore",
     "update": "Update",
-    "modify": "Modify"
+    "modify": "Modify",
+    "closeAll": "Close all",
+    "oneClickUpdate": "One-click update",
+    "skip": "Skip",
+    "login": "Login",
+    "loginNow": "Login now",
+    "retry": "Retry",
+    "updateNow": "Update now",
+    "closeNow": "Close now",
+    "collapse": "Collapse",
+    "expand": "Expand"
   },
   "YakitNotification": {
     "unknown_error": "Unknown Error",
@@ -147,7 +159,9 @@
     "addFailed": "Failed to add: {{error}}",
     "copyFailedNoError": "Copy failed",
     "pasteFailed": "Paste failed: {{error}}",
-    "modalCrashRetry": "The modal logic crashed. Please close and try again!"
+    "modalCrashRetry": "The modal logic crashed. Please close and try again!",
+    "installFailed": "Installation failed: {{error}}",
+    "updateContentFailed": "Update failed: {{error}}"
   },
   "YakitFormDragger": {
     "filePath": "File Path",
@@ -203,7 +217,8 @@
     "noData": "No data available",
     "noMoreData": "No More Data",
     "end_of_list": "You've reached the end~",
-    "searchEmpty": "Search result is empty"
+    "searchEmpty": "Search result is empty",
+    "noImage": "No image"
   },
   "YakitDatePicker": {
     "oneMinute": "1 Minute",
@@ -244,8 +259,12 @@
     "loadMore": "Load more..."
   },
   "YakitProgress": {
+    "progress": "Progress {{percent}}%",
     "uploadedPercent": "Uploaded {{percent}}%",
-    "downloadedPercent": "Downloaded {{percent}}%"
+    "downloadedPercent": "Downloaded {{percent}}%",
+    "remainingTime": "Remaining time: {{time}}s",
+    "elapsedTime": "Elapsed: {{time}}s",
+    "downloadSpeed": "Download speed: {{speed}}M/s"
   },
   "YakitSelect": {
     "pleaseSelect": "Please select...",
@@ -257,6 +276,7 @@
   "YakitCheckbox": {
     "selectAll": "Select All",
     "dontRemindAgain": "Don't remind me again",
+    "dontAskAgain": "Don't ask again",
     "confirmDeleteSelected": "Confirm deleting the selected data?",
     "confirmClearList": "Confirm clearing the list data?"
   },
@@ -356,17 +376,11 @@
     "on": "On",
     "off": "Off"
   },
-  "YakitResizeBox": {
-    "collapse": "Collapse"
-  },
-  "YakitCollapseText": {
-    "collapse": "Collapse",
-    "expand": "Expand"
-  },
-  "YakitUploadModal": {
-    "progress": "Progress",
-    "remainingTime": "Remaining time:",
-    "elapsedTime": "Elapsed time:",
-    "downloadSpeed": "Download speed:"
+  "YakitWindow": {
+    "dockPosition": "Dock position",
+    "floatWindow": "Float window",
+    "dockBottom": "Dock bottom",
+    "dockLeft": "Dock left",
+    "dockRight": "Dock right"
   }
 }

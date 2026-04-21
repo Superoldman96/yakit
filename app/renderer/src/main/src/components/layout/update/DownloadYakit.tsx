@@ -26,6 +26,7 @@ import classNames from 'classnames'
 import styles from './DownloadYakit.module.scss'
 import { apiDownloadStorageType } from '@/pages/notepadManage/notepadManage/utils'
 import { yakitEngine, yakitShell } from '@/services/electronBridge'
+import { useI18nNamespaces } from '@/i18n/useI18nNamespaces'
 
 interface useDownloadYakitProps {
   intranetYakit?: boolean
@@ -36,6 +37,7 @@ interface useDownloadYakitProps {
 /** @name Yakit软件更新下载 */
 export const useDownloadYakit = (props: useDownloadYakitProps) => {
   const { intranetYakit = true, setVisible, onDownloadFinish } = props
+  const { t } = useI18nNamespaces(['yakitUi', 'layout'])
   // 是否中断下载进程
   const isBreakRef = useRef<boolean>(false)
   /** 下载进度条数据 */
@@ -63,7 +65,7 @@ export const useDownloadYakit = (props: useDownloadYakitProps) => {
                 onDownloadFinish(newFilePath, true)
                 return
               }
-              success('下载完毕')
+              success(t('YakitNotification.downloaded'))
               if (!isAlready) {
                 if (!getDownloadProgress()?.size) return
                 setDownloadProgress({
@@ -83,7 +85,7 @@ export const useDownloadYakit = (props: useDownloadYakitProps) => {
             .catch((e: any) => {
               if (!isBreakRef.current) return
               onDownloadFinish?.(newFilePath, false)
-              failed(`下载失败: ${e}`)
+              failed(t('YakitNotification.downloadFailed', { error: e + '' }))
             })
             .finally(() => {
               setVisible?.(false)
@@ -106,7 +108,7 @@ export const useDownloadYakit = (props: useDownloadYakitProps) => {
               })
               .then(() => {
                 if (!isBreakRef.current) return
-                success('下载完毕')
+                success(t('YakitNotification.downloaded'))
                 if (!getDownloadProgress()?.size) return
                 setDownloadProgress({
                   time: {
@@ -123,7 +125,7 @@ export const useDownloadYakit = (props: useDownloadYakitProps) => {
               })
               .catch((e: any) => {
                 if (!isBreakRef.current) return
-                failed(`下载失败: ${e}`)
+                failed(t('YakitNotification.downloadFailed', { error: e + '' }))
               })
               .finally(() => setVisible?.(false))
           })
@@ -174,6 +176,7 @@ interface DownloadYakitProps {
 /** @name Yakit软件更新下载弹窗 */
 export const DownloadYakit: React.FC<DownloadYakitProps> = React.memo((props) => {
   const { system, visible, setVisible, intranetYakit } = props
+  const { t } = useI18nNamespaces(['yakitUi', 'layout'])
 
   const [downloadProgress, { onDownloadStart, onCancel, onBreak }] = useDownloadYakit({ intranetYakit, setVisible })
   /** 常见问题弹窗是否展示 */
@@ -256,26 +259,36 @@ export const DownloadYakit: React.FC<DownloadYakitProps> = React.memo((props) =>
 
               <div className={styles['hint-right-wrapper']}>
                 <div className={classNames(styles['hint-right-download'], 'yakit-progress-wrapper')}>
-                  <div className={styles['hint-right-title']}>{getReleaseEditionName()} 软件下载中...</div>
+                  <div className={styles['hint-right-title']}>
+                    {t('DownloadYakit.downloading', { edition: getReleaseEditionName() })}
+                  </div>
                   <Progress
                     strokeColor="var(--Colors-Use-Main-Primary)"
                     trailColor="var(--Colors-Use-Neutral-Bg-Hover)"
                     percent={Math.floor((downloadProgress?.percent || 0) * 100)}
                   />
                   <div className={styles['download-info-wrapper']}>
-                    <div>剩余时间 : {(downloadProgress?.time.remaining || 0).toFixed(2)}s</div>
+                    <div>
+                      {t('YakitProgress.remainingTime', { time: (downloadProgress?.time.remaining || 0).toFixed(2) })}
+                    </div>
                     <div className={styles['divider-wrapper']}>
                       <div className={styles['divider-style']}></div>
                     </div>
-                    <div>耗时 : {(downloadProgress?.time.elapsed || 0).toFixed(2)}s</div>
+                    <div>
+                      {t('YakitProgress.elapsedTime', { time: (downloadProgress?.time.elapsed || 0).toFixed(2) })}
+                    </div>
                     <div className={styles['divider-wrapper']}>
                       <div className={styles['divider-style']}></div>
                     </div>
-                    <div>下载速度 : {((downloadProgress?.speed || 0) / 1000000).toFixed(2)}M/s</div>
+                    <div>
+                      {t('YakitProgress.downloadSpeed', {
+                        speed: ((downloadProgress?.speed || 0) / 1000000).toFixed(2),
+                      })}
+                    </div>
                   </div>
                   <div style={{ marginTop: 24 }}>
                     <YakitButton size="max" type="outline2" onClick={onCancel}>
-                      取消
+                      {t('YakitButton.cancel')}
                     </YakitButton>
                   </div>
                 </div>
@@ -301,6 +314,7 @@ interface AgrAndQSModalProps {
 /** @name Yakit-常见问题弹窗 */
 const YakitQuestionModal: React.FC<AgrAndQSModalProps> = React.memo((props) => {
   const { isTop, setIsTop, system, visible, setVisible } = props
+  const { t } = useI18nNamespaces(['layout'])
 
   const [show, setShow] = useState<boolean>(false)
 
@@ -358,7 +372,7 @@ const YakitQuestionModal: React.FC<AgrAndQSModalProps> = React.memo((props) => {
                     </div>
                   )}
                 </div>
-                <span>Yakit 软件官网下载链接</span>
+                <span>{t('DownloadYakit.officialDownloadLink')}</span>
               </div>
             ) : (
               <div
@@ -369,17 +383,17 @@ const YakitQuestionModal: React.FC<AgrAndQSModalProps> = React.memo((props) => {
                 onMouseOut={() => setDisabled(true)}
                 onMouseDown={() => setIsTop(2)}
               >
-                <span className={styles['header-title']}>Yakit 软件官网下载链接</span>
+                <span className={styles['header-title']}>{t('DownloadYakit.officialDownloadLink')}</span>
                 <div className={styles['close-wrapper']} onClick={() => setVisible(false)}>
                   <WinUIOpCloseSvgIcon className={styles['icon-style']} />
                 </div>
               </div>
             )}
             <div className={styles['modal-body']}>
-              <div className={styles['yakit-update-hint']}>如遇网络问题无法下载，可到官网下载安装：</div>
+              <div className={styles['yakit-update-hint']}>{t('DownloadYakit.officialDownloadHint')}</div>
 
               <div className={styles['yakit-update-link']}>
-                官网地址
+                {t('DownloadYakit.website')}
                 <div className={styles['link-wrapper']}>
                   {WebsiteGV.OfficialWebsite}
                   <CopyComponents className={styles['copy-icon']} copyText={WebsiteGV.OfficialWebsite} />

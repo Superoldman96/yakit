@@ -12,6 +12,7 @@ import { yakitShell } from '@/services/electronBridge'
 
 import classNames from 'classnames'
 import styles from './HelpDoc.module.scss'
+import { useI18nNamespaces } from '@/i18n/useI18nNamespaces'
 
 interface HelpDocProps {
   system: YakitSystem
@@ -20,6 +21,7 @@ interface HelpDocProps {
 /** @name Yakit软件更新下载弹窗 */
 export const HelpDoc: React.FC<HelpDocProps> = React.memo((props) => {
   const { system } = props
+  const { t } = useI18nNamespaces(['layout'])
 
   const [show, setShow] = useState<boolean>(false)
   const menu = (
@@ -27,19 +29,19 @@ export const HelpDoc: React.FC<HelpDocProps> = React.memo((props) => {
       data={[
         {
           key: 'official_website',
-          label: '官方网站',
+          label: t('HelpDoc.officialWebsite'),
         },
         {
           key: 'Github',
           label: 'Github',
           children: [
-            { label: '功能建议', key: 'feature_request' },
+            { label: t('HelpDoc.featureRequest'), key: 'feature_request' },
             { label: 'BUG', key: 'report_bug' },
           ],
         },
         {
           key: 'aboutUs',
-          label: '关于我们',
+          label: t('HelpDoc.aboutUs'),
         },
       ]}
       onClick={({ key }) => menuSelect(key)}

@@ -40,6 +40,7 @@ import { ZoomeyeHelp } from './ZoomeyeHelp'
 import { YakitRoute } from '@/enums/yakitRoute'
 import NewThirdPartyApplicationConfig from '@/components/configNetwork/NewThirdPartyApplicationConfig'
 import { useI18nNamespaces } from '@/i18n/useI18nNamespaces'
+import { getReleaseEditionName } from '@/utils/envfile'
 
 interface SpaceEnginePageProps {
   /**页面id */
@@ -410,7 +411,7 @@ const SpaceEngineFormContent: React.FC<SpaceEngineFormContentProps> = React.memo
         valuePropName="checked"
         tooltip={{
           icon: <OutlineInformationcircleIcon />,
-          title: t('SpaceEngineFormContent.scanVerificationHelp'),
+          title: t('SpaceEngineFormContent.scanVerificationHelp', { edition: getReleaseEditionName() }),
         }}
       >
         <YakitSwitch size="large" disabled={disabled} />

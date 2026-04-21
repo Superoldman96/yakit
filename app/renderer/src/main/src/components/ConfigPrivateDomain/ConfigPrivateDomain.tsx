@@ -20,6 +20,7 @@ import { getRemoteConfigBaseUrlGV, getRemoteHttpSettingGV, isEnpriTrace } from '
 import { useUploadInfoByEnpriTrace } from '../layout/utils'
 import { JSONParseLog } from '@/utils/tool'
 import { yakitAuth, yakitCodec, yakitProfile, yakitUILayout } from '@/services/electronBridge'
+import { useI18nNamespaces } from '@/i18n/useI18nNamespaces'
 
 interface OnlineProfileProps {
   BaseUrl: string
@@ -44,6 +45,7 @@ interface ConfigPrivateDomainProps {
 
 export const ConfigPrivateDomain: React.FC<ConfigPrivateDomainProps> = React.memo((props) => {
   const { onClose, onSuccee, enterpriseLogin = false, skipShow = false } = props
+  const { t } = useI18nNamespaces(['components', 'yakitUi'])
   const [form] = Form.useForm()
   const [loading, setLoading] = useState<boolean>(false)
   const httpHistoryRef: React.MutableRefObject<YakitAutoCompleteRefProps> = useRef<YakitAutoCompleteRefProps>({
@@ -102,7 +104,7 @@ export const ConfigPrivateDomain: React.FC<ConfigPrivateDomainProps> = React.mem
           }
           setStoreUserInfo(user)
           if (data?.next) {
-            success('企业登录成功')
+            success(t('ConfigPrivateDomain.enterpriseLoginSuccess'))
             onClose && onClose()
             onSuccee && onSuccee()
             uploadProjectEvent.startUpload({
@@ -118,7 +120,7 @@ export const ConfigPrivateDomain: React.FC<ConfigPrivateDomainProps> = React.mem
       })
       .catch((err) => {
         setTimeout(() => setLoading(false), 300)
-        failed('企业登录失败：' + err)
+        failed(t('ConfigPrivateDomain.enterpriseLoginFailed', { error: String(err) }))
         if (typeof err === 'string' && skipShow && (err.includes('密码不正确') || err.includes('用户不存在'))) {
           return
         }
@@ -146,12 +148,12 @@ export const ConfigPrivateDomain: React.FC<ConfigPrivateDomainProps> = React.mem
         setFormValue(values)
         if (!enterpriseLogin) {
           yakitUILayout.requestSignOut()
-          success('私有域设置成功')
+          success(t('ConfigPrivateDomain.privateDomainSetSuccess'))
           syncLoginOut()
           onClose && onClose()
         }
         yakitAuth.editBaseUrl(values.BaseUrl).catch((err) => {
-          failed('设置私有域失败:' + err)
+          failed(t('ConfigPrivateDomain.privateDomainSetFailed', { error: String(err) }))
           setShowSkip(true)
         })
         if (v?.pwd) {
@@ -172,7 +174,7 @@ export const ConfigPrivateDomain: React.FC<ConfigPrivateDomainProps> = React.mem
       })
       .catch((e: any) => {
         // !enterpriseLogin && setTimeout(() => setLoading(false), 300)
-        failed('设置私有域失败:' + e)
+        failed(t('ConfigPrivateDomain.privateDomainSetFailed', { error: String(e) }))
       })
       .finally(() => {
         setTimeout(() => setLoading(false), 300)
@@ -228,7 +230,7 @@ export const ConfigPrivateDomain: React.FC<ConfigPrivateDomainProps> = React.mem
         if (re.test(value)) {
           return Promise.resolve()
         } else {
-          return Promise.reject('密码为8-20位，且必须包含大小写字母、数字及特殊字符')
+          return Promise.reject(t('ConfigPrivateDomain.passwordRules'))
         }
       },
     },
@@ -239,11 +241,11 @@ export const ConfigPrivateDomain: React.FC<ConfigPrivateDomainProps> = React.mem
       validator: (_, value) => {
         let re = /http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?/
         if (/\s/.test(value)) {
-          return Promise.reject('私有域地址存在空格')
+          return Promise.reject(t('ConfigPrivateDomain.privateDomainHasSpace'))
         } else if (re.test(value)) {
           return Promise.resolve()
         } else {
-          return Promise.reject('请输入符合要求的私有域地址')
+          return Promise.reject(t('ConfigPrivateDomain.enterValidPrivateDomain'))
         }
       },
     },
@@ -255,16 +257,20 @@ export const ConfigPrivateDomain: React.FC<ConfigPrivateDomainProps> = React.mem
           <div className="icon-box">
             <img src={yakitImg} className="type-icon-img" />
           </div>
-          <div className="title-box">企业登录</div>
+          <div className="title-box">{t('ConfigPrivateDomain.enterpriseLogin')}</div>
         </div>
       )}
       <Form {...layout} form={form} name="control-hooks" onFinish={(v) => onFinish(v)} size="small">
-        <Form.Item name="BaseUrl" label="私有域地址" rules={[{ required: true, message: '该项为必填' }, ...judgeUrl()]}>
+        <Form.Item
+          name="BaseUrl"
+          label={t('ConfigPrivateDomain.privateDomainAddress')}
+          rules={[{ required: true, message: t('YakitForm.requiredField') }, ...judgeUrl()]}
+        >
           <YakitAutoComplete
             ref={httpHistoryRef}
             cacheHistoryDataKey={getRemoteConfigBaseUrlGV()}
             initValue={defaultHttpUrl}
-            placeholder="请输入你的私有域地址"
+            placeholder={t('ConfigPrivateDomain.enterPrivateDomain')}
             defaultOpen={!enterpriseLogin}
           />
         </Form.Item>
@@ -273,8 +279,8 @@ export const ConfigPrivateDomain: React.FC<ConfigPrivateDomainProps> = React.mem
             name="Proxy"
             label={
               <span className="form-label">
-                设置代理
-                <Tooltip title="特殊情况无法访问插件商店时，可设置代理进行访问" overlayStyle={{ width: 150 }}>
+                {t('ConfigPrivateDomain.setProxy')}
+                <Tooltip title={t('ConfigPrivateDomain.proxyHelp')} overlayStyle={{ width: 150 }}>
                   <InformationCircleIcon className="info-icon" />
                 </Tooltip>
               </span>
@@ -283,18 +289,26 @@ export const ConfigPrivateDomain: React.FC<ConfigPrivateDomainProps> = React.mem
             <YakitAutoComplete
               ref={httpProxyRef}
               cacheHistoryDataKey={CacheDropDownGV.ConfigProxy}
-              placeholder="设置代理"
+              placeholder={t('ConfigPrivateDomain.setProxy')}
             />
           </Form.Item>
         )}
         {enterpriseLogin && (
-          <Form.Item name="user_name" label="用户名" rules={[{ required: true, message: '该项为必填' }]}>
-            <YakitInput placeholder="请输入你的用户名" allowClear />
+          <Form.Item
+            name="user_name"
+            label={t('ConfigPrivateDomain.username')}
+            rules={[{ required: true, message: t('YakitForm.requiredField') }]}
+          >
+            <YakitInput placeholder={t('ConfigPrivateDomain.enterUsername')} allowClear />
           </Form.Item>
         )}
         {enterpriseLogin && (
-          <Form.Item name="pwd" label="密码" rules={[{ required: true, message: '该项为必填' }, ...judgePass()]}>
-            <YakitInput.Password placeholder="请输入你的密码" allowClear />
+          <Form.Item
+            name="pwd"
+            label={t('ConfigPrivateDomain.password')}
+            rules={[{ required: true, message: t('YakitForm.requiredField') }, ...judgePass()]}
+          >
+            <YakitInput.Password placeholder={t('ConfigPrivateDomain.enterPassword')} allowClear />
           </Form.Item>
         )}
         {enterpriseLogin ? (
@@ -307,7 +321,7 @@ export const ConfigPrivateDomain: React.FC<ConfigPrivateDomainProps> = React.mem
                 }}
                 size="large"
               >
-                跳过
+                {t('YakitButton.skip')}
               </YakitButton>
             )}
             <YakitButton
@@ -317,16 +331,16 @@ export const ConfigPrivateDomain: React.FC<ConfigPrivateDomainProps> = React.mem
               style={{ width: 165, marginLeft: isShowSkip ? 0 : 43 }}
               loading={loading}
             >
-              登录
+              {t('YakitButton.login')}
             </YakitButton>
           </Form.Item>
         ) : (
           <div className="form-btns">
             <YakitButton type="outline2" onClick={(e) => onClose && onClose()}>
-              取消
+              {t('YakitButton.cancel')}
             </YakitButton>
             <YakitButton type="primary" htmlType="submit" loading={loading}>
-              确定
+              {t('YakitButton.ok')}
             </YakitButton>
           </div>
         )}

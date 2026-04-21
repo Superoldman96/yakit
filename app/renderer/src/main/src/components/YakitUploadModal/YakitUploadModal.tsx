@@ -48,7 +48,7 @@ export const ImportAndExportStatusInfo: React.FC<ImportAndExportStatusInfo> = me
               showInfo={false}
             />
             <div className={styles['progress-title']}>
-              {t('YakitUploadModal.progress')} {Math.round(streamData.Progress * 100)}%
+              {t('YakitProgress.progress', { percent: Math.round(streamData.Progress * 100) })}
             </div>
           </div>
           {showDownloadDetail && (
@@ -57,8 +57,9 @@ export const ImportAndExportStatusInfo: React.FC<ImportAndExportStatusInfo> = me
                 {streamData.RestDurationVerbose && (
                   <>
                     <div>
-                      {t('YakitUploadModal.remainingTime')}{' '}
-                      {streamData.Progress === 1 ? '0s' : streamData.RestDurationVerbose}
+                      {t('YakitProgress.remainingTime', {
+                        time: streamData.Progress === 1 ? '0' : streamData.RestDurationVerbose,
+                      })}
                     </div>
                     <div className={styles['divider-wrapper']}>
                       <div className={styles['divider-style']}></div>
@@ -69,9 +70,7 @@ export const ImportAndExportStatusInfo: React.FC<ImportAndExportStatusInfo> = me
               <>
                 {streamData.CostDurationVerbose && (
                   <>
-                    <div>
-                      {t('YakitUploadModal.elapsedTime')} {streamData.CostDurationVerbose}
-                    </div>
+                    <div>{t('YakitProgress.elapsedTime', { time: streamData.CostDurationVerbose })}</div>
                     <div className={styles['divider-wrapper']}>
                       <div className={styles['divider-style']}></div>
                     </div>
@@ -81,9 +80,7 @@ export const ImportAndExportStatusInfo: React.FC<ImportAndExportStatusInfo> = me
               <>
                 {streamData.Speed && (
                   <>
-                    <div>
-                      {t('YakitUploadModal.downloadSpeed')} {streamData.Speed}M/s
-                    </div>
+                    <div>{t('YakitProgress.downloadSpeed', { speed: streamData.Speed })}</div>
                     <div className={styles['divider-wrapper']}>
                       <div className={styles['divider-style']}></div>
                     </div>

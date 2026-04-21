@@ -507,7 +507,7 @@ export const YakitResizeBox: React.FC<YakitResizeBoxProps> = React.memo((props) 
               onClick={onClickHiddenBox}
             >
               <OutlineChevrondoubledownIcon />
-              <span className={styles['resize-split-handle-text']}>{t('YakitResizeBox.collapse')}</span>
+              <span className={styles['resize-split-handle-text']}>{t('YakitButton.collapse')}</span>
             </div>
           )}
           <div
