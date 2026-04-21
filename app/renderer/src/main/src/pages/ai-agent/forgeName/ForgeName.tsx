@@ -68,7 +68,21 @@ export interface ForgeNameRef {
   openImport: () => void
   onBatchExport: () => void
 }
-
+// 编辑 forge 模板
+export const handleModifyAIForge = (info: AIForge, source?: YakitRoute) => {
+  const id = Number(info.Id) || 0
+  if (!id) {
+    yakitNotify('error', `该模板 ID('${info.Id}') 异常, 无法编辑`)
+    return
+  }
+  emiter.emit(
+    'openPage',
+    JSON.stringify({
+      route: YakitRoute.ModifyAIForge,
+      params: { id: id, source: source || YakitRoute.AI_Agent },
+    }),
+  )
+}
 const ForwardForgeName = forwardRef((props: ForgeNameProps, ref: Ref<ForgeNameRef>) => {
   // const {} = props
   const batchExportRef = useRef<BatchExportAIforgeRef>(null)
@@ -83,21 +97,6 @@ const ForwardForgeName = forwardRef((props: ForgeNameProps, ref: Ref<ForgeNameRe
         params: {
           source: YakitRoute.AI_Agent,
         },
-      }),
-    )
-  })
-  // 编辑 forge 模板
-  const handleModifyAIForge = useMemoizedFn((info: AIForge) => {
-    const id = Number(info.Id) || 0
-    if (!id) {
-      yakitNotify('error', `该模板 ID('${info.Id}') 异常, 无法编辑`)
-      return
-    }
-    emiter.emit(
-      'openPage',
-      JSON.stringify({
-        route: YakitRoute.ModifyAIForge,
-        params: { id: id, source: YakitRoute.AI_Agent },
       }),
     )
   })

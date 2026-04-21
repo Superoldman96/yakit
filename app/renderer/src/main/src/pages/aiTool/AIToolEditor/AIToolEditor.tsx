@@ -131,7 +131,11 @@ const AIToolEditor: React.FC<AIToolEditorProps> = React.memo((props) => {
         yakitNotify('error', `尝试编辑的工具异常(ID: ${id}), 请关闭页面重试`)
         return
       }
-
+      // 如果当前 ID 已经初始化过，不再重复拉取
+      if (toolIdRef.current === id) {
+        setDelayCancelFetchDataLoading()
+        return
+      }
       grpcGetAIToolById(id, false)
         .then((res) => {
           if (!res) {

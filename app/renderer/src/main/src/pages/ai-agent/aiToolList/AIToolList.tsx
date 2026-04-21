@@ -42,6 +42,32 @@ export const toolTypeOptions = [
     value: 'collect',
   },
 ]
+export const toolMenu: YakitMenuItemType[] = [
+  {
+    key: 'copy',
+    label: '复制',
+    itemIcon: <OutlineClipboardcopyIcon />,
+  },
+  {
+    key: 'delete',
+    label: '删除',
+    type: 'danger',
+    itemIcon: <OutlineTrashIcon />,
+  },
+]
+export const handleModifyAITool = (item: AITool, source?: YakitRoute) => {
+  if (!item.ID) {
+    yakitNotify('error', `该模板 ID('${item.ID}') 异常, 无法编辑`)
+    return
+  }
+  emiter.emit(
+    'openPage',
+    JSON.stringify({
+      route: YakitRoute.ModifyAITool,
+      params: { id: item.ID, source: source || YakitRoute.AI_Agent } as AIToolEditorPageInfoProps,
+    }),
+  )
+}
 const AIToolList: React.FC<AIToolListProps> = React.memo((props) => {
   const [toolQueryType, setToolQueryType] = useState<ToolQueryType>('all')
   const [keyWord, setKeyWord] = useState<string>('')
@@ -235,21 +261,6 @@ const AIToolListItem: React.FC<AIToolListItemProps> = React.memo((props) => {
       </div>
     )
   }, [item.Keywords])
-  const toolMenu: YakitMenuItemType[] = useCreation(() => {
-    return [
-      {
-        key: 'copy',
-        label: '复制',
-        itemIcon: <OutlineClipboardcopyIcon />,
-      },
-      {
-        key: 'delete',
-        label: '删除',
-        type: 'danger',
-        itemIcon: <OutlineTrashIcon />,
-      },
-    ]
-  }, [item.IsFavorite])
   const menuSelect = useMemoizedFn((key: string) => {
     switch (key) {
       case 'copy':
@@ -270,17 +281,7 @@ const AIToolListItem: React.FC<AIToolListItemProps> = React.memo((props) => {
   })
   const onEdit = useMemoizedFn((e) => {
     e.stopPropagation()
-    if (!item.ID) {
-      yakitNotify('error', `该模板 ID('${item.ID}') 异常, 无法编辑`)
-      return
-    }
-    emiter.emit(
-      'openPage',
-      JSON.stringify({
-        route: YakitRoute.ModifyAITool,
-        params: { id: item.ID, source: YakitRoute.AI_Agent } as AIToolEditorPageInfoProps,
-      }),
-    )
+    handleModifyAITool(item)
   })
   const onToolClick = useMemoizedFn((e) => {
     e.stopPropagation()

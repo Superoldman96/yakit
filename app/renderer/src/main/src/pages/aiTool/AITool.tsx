@@ -8,7 +8,14 @@ import styles from './AITool.module.scss'
 import { YakitEmpty } from '@/components/yakitUI/YakitEmpty/YakitEmpty'
 import { useEmptyImage } from '@/hook/useResultEmpty/SearchEmpty'
 import { YakitButton } from '@/components/yakitUI/YakitButton/YakitButton'
-import { OutlinePlusIcon, OutlineRefreshIcon, OutlineSearchIcon, OutlineStarIcon } from '@/assets/icon/outline'
+import {
+  OutlineDotsverticalIcon,
+  OutlinePencilaltIcon,
+  OutlinePlusIcon,
+  OutlineRefreshIcon,
+  OutlineSearchIcon,
+  OutlineStarIcon,
+} from '@/assets/icon/outline'
 import emiter from '@/utils/eventBus/eventBus'
 import { YakitRoute } from '@/enums/yakitRoute'
 import { YakitInput } from '@/components/yakitUI/YakitInput/YakitInput'
@@ -16,11 +23,14 @@ import { TableTotalAndSelectNumber } from '@/components/TableTotalAndSelectNumbe
 import { Divider } from 'antd'
 import { GetAIToolListRequest, GetAIToolListResponse, ToggleAIToolFavoriteRequest } from '../ai-agent/type/aiTool'
 import { genDefaultPagination } from '../invoker/schema'
-import { grpcGetAIToolList, grpcToggleAIToolFavorite } from '../ai-agent/aiToolList/utils'
+import { grpcDeleteAITool, grpcGetAIToolList, grpcToggleAIToolFavorite } from '../ai-agent/aiToolList/utils'
 import { ToolQueryType } from '../ai-agent/aiToolList/AIToolListType'
 import { YakitRadioButtons } from '@/components/yakitUI/YakitRadioButtons/YakitRadioButtons'
-import { toolTypeOptions } from '../ai-agent/aiToolList/AIToolList'
+import { handleModifyAITool, toolMenu, toolTypeOptions } from '../ai-agent/aiToolList/AIToolList'
 import { SolidStarIcon } from '@/assets/icon/solid'
+import { YakitDropdownMenu } from '@/components/yakitUI/YakitDropdownMenu/YakitDropdownMenu'
+import { setClipboardText } from '@/utils/clipboard'
+import { yakitNotify } from '@/utils/notification'
 const AIToolPage: React.FC<AIToolProps> = React.memo((props) => {
   const [toolQueryType, setToolQueryType] = useState<ToolQueryType>('all')
   const emptyImageTarget = useEmptyImage('search')
@@ -150,7 +160,18 @@ const AIToolPage: React.FC<AIToolProps> = React.memo((props) => {
       }))
     })
   })
-  console.log('response.Tools', response.Tools)
+  const onRemove = useMemoizedFn((data) => {
+    return grpcDeleteAITool({ IDs: [data.ID] }).then(() => {
+      setResponse((old) => {
+        return {
+          ...old,
+          Total: old.Total - 1,
+          Tools: old.Tools.filter((item) => item.ID !== data.ID),
+        }
+      })
+      yakitNotify('success', '删除成功')
+    })
+  })
   return (
     <div className={styles['ai-tool']} ref={forgeRef}>
       <div className={styles['hub-list-header']}>
@@ -195,7 +216,15 @@ const AIToolPage: React.FC<AIToolProps> = React.memo((props) => {
                 updateList={onUpdateList}
                 gridNode={(info) => {
                   const { index, data } = info
-                  return <AIToolPageItem key={data.ID} index={index} data={data} onFavorite={onFavorite} />
+                  return (
+                    <AIToolPageItem
+                      key={data.ID}
+                      index={index}
+                      data={data}
+                      onFavorite={onFavorite}
+                      onRemove={onRemove}
+                    />
+                  )
                 }}
               />
             ) : listTotal > 0 ? (
@@ -228,8 +257,9 @@ const AIToolPage: React.FC<AIToolProps> = React.memo((props) => {
 export default AIToolPage
 
 const AIToolPageItem: React.FC<AIToolPageItemProps> = React.memo((props) => {
-  const { index, data, onFavorite } = props
+  const { index, data, onFavorite, onRemove } = props
   const [favoriteLoading, setFavoriteLoading] = useState<boolean>(false)
+  const [visible, setVisible] = useState<boolean>(false)
 
   const handleFavorite = useMemoizedFn((e) => {
     e.stopPropagation()
@@ -239,6 +269,22 @@ const AIToolPageItem: React.FC<AIToolPageItemProps> = React.memo((props) => {
         setFavoriteLoading(false)
       }, 200)
     })
+  })
+  const onEdit = useMemoizedFn((e) => {
+    e.stopPropagation()
+    handleModifyAITool(data)
+  })
+  const menuSelect = useMemoizedFn((key: string) => {
+    switch (key) {
+      case 'copy':
+        setClipboardText(data.Name)
+        break
+      case 'delete':
+        onRemove(data)
+        break
+      default:
+        break
+    }
   })
 
   return (
@@ -271,6 +317,23 @@ const AIToolPageItem: React.FC<AIToolPageItemProps> = React.memo((props) => {
             }
             onClick={handleFavorite}
           />
+          <div className={styles['diver-style']} />
+          <YakitButton type="text2" icon={<OutlinePencilaltIcon />} onClick={onEdit} />
+          <div className={styles['diver-style']} />
+          <YakitDropdownMenu
+            menu={{
+              data: toolMenu,
+              onClick: ({ key }) => menuSelect(key),
+            }}
+            dropdown={{
+              trigger: ['click', 'contextMenu'],
+              placement: 'bottomLeft',
+              visible: visible,
+              onVisibleChange: setVisible,
+            }}
+          >
+            <YakitButton isActive={visible} type="text2" size="small" icon={<OutlineDotsverticalIcon />} />
+          </YakitDropdownMenu>
         </div>
       )}
     />

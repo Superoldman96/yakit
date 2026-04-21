@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { AIForgeProps } from './AIForgeType'
+import { AIForgePageItemProps, AIForgeProps } from './AIForgeType'
 import { useCreation, useDebounceFn, useInViewport, useMemoizedFn, useSelections } from 'ahooks'
 import { AIForge, QueryAIForgeRequest, QueryAIForgeResponse } from '../ai-agent/type/forge'
 import { AIForgeListDefaultPagination } from '../ai-agent/defaultConstant'
-import { grpcQueryAIForge } from '../ai-agent/grpc'
+import { grpcDeleteAIForge, grpcQueryAIForge } from '../ai-agent/grpc'
 import { HubGridList, HubGridOpt } from '../pluginHub/pluginHubList/funcTemplate'
 import { YakitSpin } from '@/components/yakitUI/YakitSpin/YakitSpin'
 import styles from './AIForge.module.scss'
@@ -13,9 +13,11 @@ import { YakitButton } from '@/components/yakitUI/YakitButton/YakitButton'
 import {
   OutlineExportIcon,
   OutlineImportIcon,
+  OutlinePencilaltIcon,
   OutlinePlusIcon,
   OutlineRefreshIcon,
   OutlineSearchIcon,
+  OutlineTrashIcon,
 } from '@/assets/icon/outline'
 import emiter from '@/utils/eventBus/eventBus'
 import { YakitRoute } from '@/enums/yakitRoute'
@@ -23,8 +25,10 @@ import { YakitInput } from '@/components/yakitUI/YakitInput/YakitInput'
 import { TableTotalAndSelectNumber } from '@/components/TableTotalAndSelectNumber/TableTotalAndSelectNumber'
 import { Divider } from 'antd'
 import { BatchExportAIforgeRef, ExportAIForgeRequest, ImportAIforgeRef } from '../ai-agent/forgeName/type'
-import { BatchExportAIforge, ImportAIforge } from '../ai-agent/forgeName/ForgeName'
+import { BatchExportAIforge, handleModifyAIForge, ImportAIforge } from '../ai-agent/forgeName/ForgeName'
 import { YakitCheckbox } from '@/components/yakitUI/YakitCheckbox/YakitCheckbox'
+import { YakitPopconfirm } from '@/components/yakitUI/YakitPopconfirm/YakitPopconfirm'
+import { yakitNotify } from '@/utils/notification'
 const AIForgePage: React.FC<AIForgeProps> = React.memo((props) => {
   const emptyImageTarget = useEmptyImage('search')
   const [response, setResponse] = useState<QueryAIForgeResponse>({
@@ -173,6 +177,24 @@ const AIForgePage: React.FC<AIForgeProps> = React.memo((props) => {
   const optCheck = useMemoizedFn((data: AIForge) => {
     toggle(data)
   })
+  // 删除 forge 模板
+  const handleDeleteAIForge = useMemoizedFn((info: AIForge) => {
+    const id = Number(info.Id) || 0
+    if (!id) {
+      yakitNotify('error', `该模板 ID('${info.Id}') 异常, 无法编辑`)
+      return Promise.reject('ID 异常')
+    }
+    return grpcDeleteAIForge({ Id: id }).then(() => {
+      yakitNotify('success', '删除Forge模板成功')
+      setResponse((old) => {
+        return {
+          ...old,
+          Total: old.Total - 1,
+          Data: old.Data.filter((item) => item.Id !== info.Id),
+        }
+      })
+    })
+  })
   return (
     <div className={styles['ai-forge']} ref={forgeRef}>
       <div className={styles['hub-list-header']}>
@@ -228,33 +250,14 @@ const AIForgePage: React.FC<AIForgeProps> = React.memo((props) => {
                   const { index, data } = info
                   const check = isSelected(data)
                   return (
-                    <HubGridOpt
-                      order={index}
-                      info={data}
+                    <AIForgePageItem
+                      key={data.Id || index}
+                      index={index}
+                      data={data}
                       checked={check}
                       onCheck={optCheck}
-                      title={data.ForgeVerboseName || data.ForgeName}
-                      type={data.ForgeType}
-                      tags={data.Tag?.join(',') || ''}
-                      help={data.Description || ''}
-                      img={''}
-                      user={''}
-                      time={data?.UpdatedAt || 0}
-                      isCorePlugin={true}
-                      official={true}
-                      extraFooter={() => (
-                        <div className={styles['extra-footer']}>
-                          <YakitButton
-                            key="import"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              onExport(data)
-                            }}
-                            type="text2"
-                            icon={<OutlineExportIcon />}
-                          />
-                        </div>
-                      )}
+                      onExport={onExport}
+                      onRemove={handleDeleteAIForge}
                     />
                   )
                 }}
@@ -289,3 +292,77 @@ const AIForgePage: React.FC<AIForgeProps> = React.memo((props) => {
 })
 
 export default AIForgePage
+
+const AIForgePageItem: React.FC<AIForgePageItemProps> = React.memo((props) => {
+  const { index, data, checked, onCheck, onExport, onRemove } = props
+
+  const [loading, setLoading] = useState<boolean>(false)
+
+  const handleDeleteAIForge = useMemoizedFn((data: AIForge) => {
+    setLoading(true)
+    onRemove(data).finally(() => {
+      setTimeout(() => {
+        setLoading(false)
+      }, 200)
+    })
+  })
+  return (
+    <HubGridOpt
+      order={index}
+      info={data}
+      checked={checked}
+      onCheck={onCheck}
+      title={data.ForgeVerboseName || data.ForgeName}
+      type={data.ForgeType}
+      tags={data.Tag?.join(',') || ''}
+      help={data.Description || ''}
+      img={''}
+      user={''}
+      time={data?.UpdatedAt || 0}
+      isCorePlugin={true}
+      official={true}
+      extraFooter={() => (
+        <div className={styles['extra-footer']}>
+          <YakitButton
+            key="import"
+            onClick={(e) => {
+              e.stopPropagation()
+              onExport(data)
+            }}
+            type="text2"
+            icon={<OutlineExportIcon />}
+          />
+          <div className={styles['diver-style']} />
+          <YakitButton
+            type="text2"
+            icon={<OutlinePencilaltIcon />}
+            onClick={(e) => {
+              e.stopPropagation()
+              handleModifyAIForge(data, YakitRoute.AI_Forge)
+            }}
+          />
+          <div className={styles['diver-style']} />
+          <YakitPopconfirm
+            title={'是否删除该 Forge 模板?'}
+            onConfirm={(e) => {
+              e?.stopPropagation()
+              handleDeleteAIForge(data)
+            }}
+            onCancel={(e) => {
+              e?.stopPropagation()
+            }}
+          >
+            <YakitButton
+              loading={loading}
+              type="text2"
+              icon={<OutlineTrashIcon className={styles['del-icon']} />}
+              onClick={(e) => {
+                e.stopPropagation()
+              }}
+            />
+          </YakitPopconfirm>
+        </div>
+      )}
+    />
+  )
+})

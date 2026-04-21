@@ -135,7 +135,6 @@ const ForgeEditor: React.FC<ForgeEditorProps> = memo((props) => {
   // #region forge模板全局数据和全局功能 全局数据和全局功能方法
   /** 储存着已有ID的数据(包括编辑获取和新建保存后的数据) */
   const forgeData = useRef<AIForge>()
-
   const [fetchDataLoading, setFetchDataLoading] = useState(false)
   const setDelayCancelFetchDataLoading = useMemoizedFn(() => {
     setTimeout(() => {
@@ -152,19 +151,15 @@ const ForgeEditor: React.FC<ForgeEditorProps> = memo((props) => {
     )
     if (currentItem && currentItem.pageParamsInfo.modifyAIForgePageInfo) {
       const id = currentItem.pageParamsInfo.modifyAIForgePageInfo?.id
-      const newCurrentItem: PageNodeItemProps = {
-        ...currentItem,
-        pageParamsInfo: {
-          ...currentItem.pageParamsInfo,
-          modifyAIForgePageInfo: undefined,
-        },
-      }
-      updatePagesDataCacheById(YakitRoute.ModifyAIForge, { ...newCurrentItem })
       if (!id) {
         yakitNotify('error', `尝试编辑的模板异常(ID: ${id}), 请关闭页面重试`)
         return
       }
-
+      // 如果当前 ID 已经初始化过，不再重复拉取
+      if (forgeData.current?.Id && forgeData.current?.Id === id) {
+        setDelayCancelFetchDataLoading()
+        return
+      }
       try {
         const res = await grpcGetAIForge({ ID: id, InflateSkillPath: true })
 
