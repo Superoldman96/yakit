@@ -454,7 +454,7 @@ export const DownFilesModal: React.FC<DownFilesModalProps> = React.memo((props) 
     onSuccess,
     isEncodeURI,
   } = props
-  const { t, i18n } = useI18nNamespaces(['components', "yakitUi"])
+  const { t, i18n } = useI18nNamespaces(['components', 'yakitUi'])
 
   const [percent, setPercent] = useState<number>(0)
 

@@ -562,7 +562,7 @@ export interface InstallVulinboxPromptProp {
 }
 
 const InstallVulinboxPrompt: React.FC<InstallVulinboxPromptProp> = (props) => {
-  const { t } = useI18nNamespaces(['vulinbox', "yakitUi"])
+  const { t } = useI18nNamespaces(['vulinbox', 'yakitUi'])
   const [token, setToken] = useState(randomString(60))
   const [data, setData, getData] = useGetState<string[]>([])
   const [percent, setPercent] = useState(0)

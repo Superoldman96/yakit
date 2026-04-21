@@ -25,7 +25,7 @@ import { useI18nNamespaces } from '@/i18n/useI18nNamespaces'
 import { yakitReverse, yakitScript, yakitStream } from '@/services/electronBridge'
 
 export const ConfigGlobalReverse = React.memo(() => {
-  const {t, i18n} = useI18nNamespaces(["utils", "yakitUi"])
+  const { t, i18n } = useI18nNamespaces(['utils', 'yakitUi'])
   const [addr, setAddr, getAddr] = useGetState('')
   const [password, setPassword, getPassword] = useGetState('')
   const [localIP, setLocalIP, getLocalIP] = useGetState('')
@@ -82,10 +82,10 @@ export const ConfigGlobalReverse = React.memo(() => {
               DNSLogSecret: password,
             })
             .then(() => {
-              info(t("basic.ConfigGlobalReverse.dnslogSuccess"))
+              info(t('basic.ConfigGlobalReverse.dnslogSuccess'))
             })
             .catch((e) => {
-              failed(t("basic.ConfigGlobalReverse.dnslogFailed", { error: e }))
+              failed(t('basic.ConfigGlobalReverse.dnslogFailed', { error: e }))
             })
         } else {
           setRemoteValue(DNSLOG_ADDR, dnslogAddr)
@@ -96,10 +96,10 @@ export const ConfigGlobalReverse = React.memo(() => {
               DNSLogSecret: dnslogPassword,
             })
             .then(() => {
-              info(t("basic.ConfigGlobalReverse.dnslogSuccess"))
+              info(t('basic.ConfigGlobalReverse.dnslogSuccess'))
             })
             .catch((e) => {
-              failed(t("basic.ConfigGlobalReverse.dnslogFailed", { error: e }))
+              failed(t('basic.ConfigGlobalReverse.dnslogFailed', { error: e }))
             })
         }
       })
@@ -202,7 +202,7 @@ export const ConfigGlobalReverse = React.memo(() => {
         wrapperCol={{ span: 16 }}
       >
         <InputItem
-          label={t("basic.ConfigGlobalReverse.localReverseIP")}
+          label={t('basic.ConfigGlobalReverse.localReverseIP')}
           value={localIP}
           disable={ok}
           setValue={setLocalIP}
@@ -217,48 +217,50 @@ export const ConfigGlobalReverse = React.memo(() => {
                 }}
                 icon={<RefreshIcon />}
               >
-                {t("basic.ConfigGlobalReverse.updateYakEngineLocalIP")}
+                {t('basic.ConfigGlobalReverse.updateYakEngineLocalIP')}
               </YakitButton>
             </div>
           }
         />
-        <Divider orientation={'left'}>{t("basic.ConfigGlobalReverse.publicReverseConfig")}</Divider>
+        <Divider orientation={'left'}>{t('basic.ConfigGlobalReverse.publicReverseConfig')}</Divider>
         <Form.Item label={' '} colon={false}>
           <Alert
             message={
               <Space direction={'vertical'}>
-                <div>{t("basic.ConfigGlobalReverse.runOnPublicServer")}</div>
+                <div>{t('basic.ConfigGlobalReverse.runOnPublicServer')}</div>
                 <YakitTag enableCopy={true} color="blue" copyText={`yak bridge --secret [your-password]`}></YakitTag>
-                <div>{t("basic.ConfigGlobalReverse.or")}</div>
+                <div>{t('basic.ConfigGlobalReverse.or')}</div>
                 <YakitTag
                   enableCopy={true}
                   color="blue"
                   copyText={`docker run -it --rm --net=host v1ll4n/yak-bridge yak bridge --secret
                         [your-password]`}
                 ></YakitTag>
-                <div>{t("basic.ConfigGlobalReverse.configured")}</div>
+                <div>{t('basic.ConfigGlobalReverse.configured')}</div>
               </Space>
             }
           />
         </Form.Item>
         <InputItem
-          label={t("basic.ConfigGlobalReverse.yakBridgeAddress")}
+          label={t('basic.ConfigGlobalReverse.yakBridgeAddress')}
           value={addr}
           setValue={setAddr}
           disable={ok}
-          help={t("basic.ConfigGlobalReverse.yakBridgeAddressHelp")}
+          help={t('basic.ConfigGlobalReverse.yakBridgeAddressHelp')}
         />
         <InputItem
-          label={t("basic.ConfigGlobalReverse.yakBridgePassword")}
+          label={t('basic.ConfigGlobalReverse.yakBridgePassword')}
           setValue={setPassword}
           value={password}
           type={'password'}
           disable={ok}
-          help={t("basic.ConfigGlobalReverse.yakBridgePasswordHelp")}
+          help={t('basic.ConfigGlobalReverse.yakBridgePasswordHelp')}
         />
-        <Divider orientation={'left'}>{isCommunityEdition() && 'Yakit'} {t("basic.ConfigGlobalReverse.globalDNSLogConfig")}</Divider>
+        <Divider orientation={'left'}>
+          {isCommunityEdition() && 'Yakit'} {t('basic.ConfigGlobalReverse.globalDNSLogConfig')}
+        </Divider>
         <SwitchItem
-          label={t("basic.ConfigGlobalReverse.reuseYakBridgeConfig")}
+          label={t('basic.ConfigGlobalReverse.reuseYakBridgeConfig')}
           disabled={ok}
           value={inheritBridge}
           setValue={setInheritBridge}
@@ -266,20 +268,25 @@ export const ConfigGlobalReverse = React.memo(() => {
         />
         {!inheritBridge && (
           <InputItem
-            label={t("basic.ConfigGlobalReverse.dnslogConfig")}
+            label={t('basic.ConfigGlobalReverse.dnslogConfig')}
             disable={ok}
             value={dnslogAddr}
-            help={t("basic.ConfigGlobalReverse.dnslogAddressHelp")}
+            help={t('basic.ConfigGlobalReverse.dnslogAddressHelp')}
             setValue={setDNSLogAddr}
           />
         )}
         {!inheritBridge && (
-          <InputItem label={t("basic.ConfigGlobalReverse.dnslogPassword")} disable={ok} value={dnslogPassword} setValue={setDNSLogPassword} />
+          <InputItem
+            label={t('basic.ConfigGlobalReverse.dnslogPassword')}
+            disable={ok}
+            value={dnslogPassword}
+            setValue={setDNSLogPassword}
+          />
         )}
         <Form.Item colon={false} label={' '}>
           <YakitButton type="primary" htmlType="submit" disabled={ok}>
             {' '}
-            {t("basic.ConfigGlobalReverse.configureReverseConnection")}{' '}
+            {t('basic.ConfigGlobalReverse.configureReverseConnection')}{' '}
           </YakitButton>
           {ok && (
             <YakitButton
@@ -291,7 +298,7 @@ export const ConfigGlobalReverse = React.memo(() => {
               style={{ marginLeft: 8 }}
             >
               {' '}
-              {t("YakitButton.stop")}{' '}
+              {t('YakitButton.stop')}{' '}
             </YakitButton>
           )}
         </Form.Item>
