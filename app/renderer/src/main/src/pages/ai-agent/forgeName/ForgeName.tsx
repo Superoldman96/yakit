@@ -579,9 +579,9 @@ export const BatchExportAIforge = memo(
 
     const getAiToolData = async (page: number, keyword = searchKeyword) => {
       setSelectLoading(true)
-      const paginationProps = {
+      const paginationProps: GetAIToolListRequest['Pagination'] = {
         ...aiToolPagination,
-        page: page,
+        Page: page,
       }
       const newQuery: GetAIToolListRequest = {
         Query: keyword,
@@ -594,7 +594,7 @@ export const BatchExportAIforge = memo(
         const res = await grpcGetAIToolList(newQuery)
         if (!res.Tools) res.Tools = []
         if (res.Tools.length > 0) {
-          setAiToolPagination((v) => ({ ...v, Page: paginationProps.page }))
+          setAiToolPagination((v) => ({ ...v, Page: paginationProps.Page }))
         }
         const newData = res.Tools.map((item) => ({ ...item }))
         const opsd = isInit ? newData : aiTool.concat(newData)

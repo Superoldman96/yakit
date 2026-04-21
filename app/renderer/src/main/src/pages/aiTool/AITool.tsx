@@ -65,7 +65,7 @@ const AIToolPage: React.FC<AIToolProps> = React.memo((props) => {
         Page: 1,
         Limit: 1,
       },
-      Query: keyWord,
+      Query: '',
       ToolName: '',
       OnlyFavorites: false,
     }
@@ -96,7 +96,7 @@ const AIToolPage: React.FC<AIToolProps> = React.memo((props) => {
       ToolName: '',
       Pagination: {
         ...genDefaultPagination(20),
-        Page: isInit ? 1 : ++pageInfo.Page,
+        Page: isInit ? 1 : Number(response.Pagination.Page) + 1,
       },
       OnlyFavorites: toolQueryType === 'collect',
     }

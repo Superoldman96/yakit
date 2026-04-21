@@ -562,7 +562,7 @@ export const usePageInfo = createWithEqualityFn<PageInfoStoreProps>()(
             if (ele.pageId.endsWith('group')) {
               return {
                 ...ele,
-                expand: true,
+                expand: isExpand,
               }
             }
             return ele

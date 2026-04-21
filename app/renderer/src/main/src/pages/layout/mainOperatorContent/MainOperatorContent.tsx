@@ -1409,12 +1409,11 @@ export const MainOperatorContent: React.FC<MainOperatorContentProps> = React.mem
     }
   }, [])
   const onClosePage = useMemoizedFn((res: string) => {
-    // @ts-ignore
-    let data: { route: YakitRoute; source: YakitRoute } = {}
+    let data: { route: YakitRoute; source: YakitRoute } | undefined = undefined
     try {
       data = JSONParseLog(res || '{}', { page: 'MainOperatorContent', fun: 'onClosePage' })
     } catch (error) {}
-
+    if (!data || !data?.route) return
     const { route, source } = data
     switch (route) {
       case YakitRoute.AddYakitScript:

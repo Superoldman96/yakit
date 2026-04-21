@@ -98,7 +98,7 @@ const AIForgePage: React.FC<AIForgeProps> = React.memo((props) => {
     const request: QueryAIForgeRequest = {
       Pagination: {
         ...pageInfo,
-        Page: isInit ? 1 : ++pageInfo.Page,
+        Page: isInit ? 1 : Number(pageInfo.Page) + 1,
       },
     }
     if (search) request.Filter = { Keyword: search }

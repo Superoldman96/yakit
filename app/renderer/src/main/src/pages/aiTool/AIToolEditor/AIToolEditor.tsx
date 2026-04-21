@@ -119,18 +119,19 @@ const AIToolEditor: React.FC<AIToolEditorProps> = React.memo((props) => {
   })
 
   const handleModifyInit = useMemoizedFn(() => {
-    setFetchDataLoading(true)
-
     const currentItem: PageNodeItemProps | undefined = queryPagesDataById(
       YakitRoute.ModifyAITool,
       YakitRoute.ModifyAITool,
     )
     if (currentItem && currentItem.pageParamsInfo.modifyAIToolPageInfo) {
+      setFetchDataLoading(true)
       const id = currentItem.pageParamsInfo.modifyAIToolPageInfo?.id
       if (!id) {
         yakitNotify('error', `尝试编辑的工具异常(ID: ${id}), 请关闭页面重试`)
+        setDelayCancelFetchDataLoading()
         return
       }
+
       // 如果当前 ID 已经初始化过，不再重复拉取
       if (toolIdRef.current === id) {
         setDelayCancelFetchDataLoading()
