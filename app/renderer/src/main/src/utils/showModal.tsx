@@ -8,7 +8,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend'
 import { DndProvider } from 'react-dnd'
 import { YakitDrawer } from '@/components/yakitUI/YakitDrawer/YakitDrawer'
 import i18n from '@/i18n/i18n'
-const tOriginal = i18n.getFixedT(null, 'utils')
+const tOriginal = i18n.getFixedT(null, 'yakitUi')
 
 export interface BaseModalProp extends ModalProps, React.ComponentProps<any> {
   onVisibleSetter?: (setter: (i: boolean) => any) => any
@@ -81,7 +81,7 @@ export const showModal = (props: ShowModalProps) => {
                 }
                 return (
                   <div>
-                    <p>{tOriginal('ShowModal.modalLogicCrash')}</p>
+                    <p>{tOriginal('YakitNotification.modalLogicCrash')}</p>
                     <pre>{error?.message}</pre>
                   </div>
                 )

@@ -133,9 +133,6 @@
     "hoursAgo": "hours ago",
     "daysAgo": "days ago"
   },
-  "ShowModal": {
-    "modalLogicCrash": "The dialog logic has crashed, please close and try again!"
-  },
   "ProxyConfigUtil": {
     "engineVersionTooLow": "Engine version is too low, please update to {{version}} or above",
     "checkEngineVersionFailed": "Failed to check engine version"

@@ -715,7 +715,7 @@ export const InputFileNameItem: React.FC<InputFileNameItemProps> = (p) => {
                 ) : (
                   <div>
                     {t('YakitDraggerContent.drag_file_tip')}
-                    <span style={{ color: 'var(--yakit-primary-5' }}>{t('YakitDraggerContent.click_here')}</span>
+                    <span style={{ color: 'var(--yakit-primary-5)' }}>{t('YakitDraggerContent.click_here')}</span>
                     {t('YakitButton.upload')}
                   </div>
                 )

@@ -133,9 +133,6 @@
     "hoursAgo": "小时前",
     "daysAgo": "天前"
   },
-  "ShowModal": {
-    "modalLogicCrash": "弹框内逻辑性崩溃，请关闭重试！"
-  },
   "ProxyConfigUtil": {
     "engineVersionTooLow": "引擎版本过低，请更新到 {{version}} 及以上",
     "checkEngineVersionFailed": "检查引擎版本失败"
