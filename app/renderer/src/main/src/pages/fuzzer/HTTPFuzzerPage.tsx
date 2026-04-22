@@ -2769,9 +2769,13 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
                       placement: 'bottom',
                     }}
                   >
-                    <YakitButton type="primary" icon={<OutlineCodeIcon />}>
-                      {t('HTTPFuzzerPage.generateYamlTemplate')}
-                    </YakitButton>
+                    <FuncBtn
+                      maxWidth={1600}
+                      type="primary"
+                      icon={<OutlineCodeIcon />}
+                      name={t('HTTPFuzzerPage.generateYamlTemplate')}
+                      tooltipPlacement="topRight"
+                    />
                   </YakitDropdownMenu>
                 </div>
               </div>

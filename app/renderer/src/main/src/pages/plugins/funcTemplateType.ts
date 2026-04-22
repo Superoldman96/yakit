@@ -1,7 +1,7 @@
 import {ReactNode} from "react"
 import {YakitButtonProp} from "@/components/yakitUI/YakitButton/YakitButton"
 import {YakitMenuProp} from "@/components/yakitUI/YakitMenu/YakitMenu"
-import {DropDownProps} from "antd"
+import {DropDownProps, TooltipProps} from "antd"
 import {PluginFilterParams, PluginSearchParams} from "./baseTemplateType"
 import {YakitPluginOnlineDetail} from "./online/PluginsOnlineType"
 import {OnlinePluginAppAction} from "./pluginReducer"
@@ -30,6 +30,8 @@ export interface FuncBtnProps extends YakitButtonProp {
     name: string
     /** 切换纯图标按钮的宽度界限 */
     maxWidth?: number
+    /** 仅展示图标时 Tooltip 的 `placement`（不传则与 antd 默认一致） */
+    tooltipPlacement?: TooltipProps["placement"]
 }
 export interface FuncBtnIconProps extends YakitButtonProp {
     /** 按钮展示名称 */

@@ -212,7 +212,7 @@ export const TypeSelect: React.FC<TypeSelectProps> = memo((props) => {
 
 /** @name 带屏幕宽度自适应的按钮组件 */
 export const FuncBtn: React.FC<FuncBtnProps> = memo((props) => {
-  const { name, maxWidth, className, ...rest } = props
+  const { name, maxWidth, className, tooltipPlacement, ...rest } = props
 
   const [isIcon, setIsIcon, getIsIcon] = useGetState<boolean>(false)
   const mediaHandle = useMemoizedFn((e) => {
@@ -232,7 +232,7 @@ export const FuncBtn: React.FC<FuncBtnProps> = memo((props) => {
   }, [])
 
   return isIcon ? (
-    <Tooltip title={name} overlayClassName="plugins-tooltip">
+    <Tooltip title={name} placement={tooltipPlacement} overlayClassName="plugins-tooltip">
       <YakitButton {...rest}></YakitButton>
     </Tooltip>
   ) : (

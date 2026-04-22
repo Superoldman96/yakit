@@ -47,7 +47,6 @@ function useChatDataStoreKeyBranch(key: ChatDataStoreKey) {
 export const AIYaklangCode: React.FC<AIYaklangCodeProps> = React.memo((props) => {
   const { content: defContent, nodeLabel, modalInfo, contentType, referenceNode } = props
   const [content, setContent] = useState(defContent)
-  const [cardHover, setCardHover] = useState(false)
   useThrottleEffect(
     () => {
       setContent(defContent)
@@ -97,22 +96,17 @@ export const AIYaklangCode: React.FC<AIYaklangCodeProps> = React.memo((props) =>
     return (
       <ModalInfo
         {...modalInfo}
-        timeHoverActive={isWebFuzzerAiStore && cardHover}
-        timeHoverReplacement={
+        trailing={
           isWebFuzzerAiStore && webFuzzerAiStoreFuzzerPageId ? (
             <WebFuzzerAiStoreCardRightHeader content={content} fuzzerPageId={webFuzzerAiStoreFuzzerPageId} />
           ) : undefined
         }
       />
     )
-  }, [modalInfo, isWebFuzzerAiStore, cardHover, content, webFuzzerAiStoreFuzzerPageId])
+  }, [modalInfo, isWebFuzzerAiStore, content, webFuzzerAiStoreFuzzerPageId])
 
   return (
-    <div
-      className={styles['ai-yaklang-code-hover-wrap']}
-      onMouseEnter={() => setCardHover(true)}
-      onMouseLeave={() => setCardHover(false)}
-    >
+    <div className={styles['ai-yaklang-code-hover-wrap']}>
       <ChatCard titleText={nodeLabel} titleIcon={<OutlinCompileTwoIcon />} titleExtra={titleExtra}>
         <div className={styles['ai-yaklang-code']}>{renderCode()}</div>
         {referenceNode}
