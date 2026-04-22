@@ -11,7 +11,7 @@ Unicode true
 Var /Global IS_INSTALLED
 Var /Global IS_UPDATED
 Var /Global INSTALL_PATH
-Var /Global INSTALL_PATH_REG_KEY_NAME 
+Var /Global INSTALL_PATH_REG_KEY_NAME
 Var /Global EXE_NAME
 Var /Global KEEP_FOLDER
 Var /Global DeleteOldEngine
@@ -55,17 +55,17 @@ Function FinishPageShow
     Pop $DeleteOldEngine
     ${NSD_CreateLabel} 131u 130u 60% 16u "删除旧引擎"
     Pop $DeleteOldEngineLabel
-     SetCtlColors $DeleteOldEngineLabel "0x000000" "TRANSPARENT"   
+     SetCtlColors $DeleteOldEngineLabel "0x000000" "TRANSPARENT"
     ${NSD_Check} $DeleteOldEngine
 FunctionEnd
 
-Function FinishLeave 
+Function FinishLeave
     ${NSD_GetState} $mui.FinishPage.Run $0
-    ${If} $0 <> 0 
+    ${If} $0 <> 0
     Exec "$INSTDIR\$EXE_NAME.exe"
     ${EndIf}
     ${NSD_GetState} $mui.FinishPage.ShowReadme $0
-    ${If} $0 <> 0 
+    ${If} $0 <> 0
     CreateShortCut "$DESKTOP\$EXE_NAME.lnk" "$INSTDIR\$EXE_NAME.exe"
     ${EndIf}
     ${NSD_GetState} $DeleteOldEngine $0
@@ -80,7 +80,7 @@ FunctionEnd
 
 !macro checkInstalled
     ReadRegStr $INSTALL_PATH HKCU "Software\Yakit" $INSTALL_PATH_REG_KEY_NAME
-    ${If} $INSTALL_PATH != "" 
+    ${If} $INSTALL_PATH != ""
         ; set install path
         StrCpy $INSTDIR $INSTALL_PATH
     ${EndIf}
@@ -95,12 +95,12 @@ FunctionEnd
     ClearErrors
     ${GetParameters} $0
     ${GetOptions} $0 "--updated" $R0
-    ${IfNot} ${Errors} ; 是更新 
+    ${IfNot} ${Errors} ; 是更新
         StrCpy $IS_UPDATED "true"
     ${EndIf}
 !macroend
 
-!macro customInit 
+!macro customInit
     ; 根据不同版本设置不同的RegKey 社区版/SE/EE
     StrCpy $INSTALL_PATH_REG_KEY_NAME "InstallPath"
     StrCpy $EXE_NAME "Yakit"
@@ -136,20 +136,20 @@ FunctionEnd
 
     ; 设置用户一开始的安装路径
     StrCpy $INSTDIR ""
-    
+
     !insertmacro checkInstalled
     !insertmacro checkIsUpdated
 !macroend
 
-!macro customUnInit 
+!macro customUnInit
     ; 根据不同版本设置不同的RegKey 社区版/SE/EE
     StrCpy $INSTALL_PATH_REG_KEY_NAME "InstallPath"
     StrCpy $EXE_NAME "Yakit"
-    ${If} ${FileExists} `$INSTDIR\EnpriTraceAgent.exe` ; se 
+    ${If} ${FileExists} `$INSTDIR\EnpriTraceAgent.exe` ; se
         StrCpy $INSTALL_PATH_REG_KEY_NAME "EnpriTraceAgent_InstallPath"
         StrCpy $EXE_NAME "EnpriTraceAgent"
     ${Else}
-        ${If} ${FileExists} `$INSTDIR\IRifyEnpriTrace.exe` ; irifyee 
+        ${If} ${FileExists} `$INSTDIR\IRifyEnpriTrace.exe` ; irifyee
             StrCpy $INSTALL_PATH_REG_KEY_NAME "IRifyEnpriTrace_InstallPath"
             StrCpy $EXE_NAME "IRifyEnpriTrace"
         ${Else}
@@ -189,7 +189,7 @@ FunctionEnd
         Push "$INSTDIR"
         Push "yakit-projects"
         Call un.DeleteFoldersWithExclusion
-        
+
         DELETE "$INSTDIR\$EXE_NAME.exe"
     ${Else}
         RMDir /r "$INSTDIR"
@@ -210,36 +210,37 @@ FunctionEnd
     ${EndIf}
 !macroend
 
-!macro customInstall 
+!macro customInstall
     ; Migrate yakit-projects folder
     ${If} "$PROFILE\yakit-projects" != "$INSTDIR\yakit-projects"
     ${AndIf} ${FileExists} "$PROFILE\yakit-projects"
+        CreateDirectory "$INSTDIR\yakit-projects"
         ClearErrors
-        CopyFiles $PROFILE\yakit-projects "$INSTDIR\yakit-projects"
-        ${If} ${Errors} 
+        ; 旧版本数据可能包含多层目录和隐藏文件，这里必须递归复制，且不要在安装阶段直接删源目录
+        ExecWait '"$SYSDIR\cmd.exe" /C xcopy "$PROFILE\yakit-projects" "$INSTDIR\yakit-projects\\" /E /I /H /K /Y /C >nul' $0
+        ${If} $0 != 0
             DetailPrint "迁移yakit-projects文件夹失败..."
         ${Else}
-            RMDir /R $PROFILE\yakit-projects
-            DetailPrint "删除旧的yakit-projects文件夹..."
-        ${EndIf} 
+            DetailPrint "迁移yakit-projects文件夹成功..."
+        ${EndIf}
     ${EndIf}
 
     ; 存储安装目录
     DetailPrint "写入环境变量..."
     WriteRegStr HKCU "Software\Yakit" $INSTALL_PATH_REG_KEY_NAME "$INSTDIR"
-    WriteRegStr HKCU "Environment" "YAKIT_HOME" "$INSTDIR\yakit-projects" 
+    WriteRegStr HKCU "Environment" "YAKIT_HOME" "$INSTDIR\yakit-projects"
     ; 创建 yakit-projects 文件夹
     DetailPrint "创建yakit-projects文件夹..."
     CreateDirectory "$INSTDIR\yakit-projects"
-    DetailPrint "正在安装..." 
+    DetailPrint "正在安装..."
 !macroend
 
 Section "Main" SectionMain
    ; create new directory if not installed and choose folder is not empty
-    ${If} $IS_INSTALLED != "true" 
-        Push "$INSTDIR" 
+    ${If} $IS_INSTALLED != "true"
+        Push "$INSTDIR"
         Call isEmptyDir
-        Pop $0    
+        Pop $0
         ${If} $0 == 0
             StrCpy $INSTDIR "$INSTDIR\$EXE_NAME"
             CreateDirectory $INSTDIR
@@ -269,49 +270,49 @@ Function un.DeleteFoldersWithExclusion
  Exch $R1 ; route dir
  Push $R2
  Push $R3
- 
- 
+
+
   ClearErrors
   FindFirst $R3 $R2 "$R1\*.*"
- 
- 
+
+
   Top:
    StrCmp $R2 "." Next
    StrCmp $R2 ".." Next
    StrCmp $R2 $R0 Exit
    IfFileExists "$R1\$R2\*.*" Jump DeleteFile
- 
+
    Jump:
     Push '$R1\$R2'
     Push '$R0'
     Call un.DeleteFoldersWithExclusion
- 
-    Push "$R1\$R2" 
+
+    Push "$R1\$R2"
     Call un.isEmptyDir
-    Pop $0    
+    Pop $0
     StrCmp $0 1 RmD Next
- 
+
    RmD:
     RMDir /r $R1\$R2
     Goto Next
- 
+
    DeleteFile:
     Delete '$R1\$R2'
- 
+
    Next:
     ClearErrors
     FindNext $R3 $R2
     IfErrors Exit
    Goto Top
- 
+
   Exit:
   FindClose $R3
- 
+
  Pop $R3
  Pop $R2
  Pop $R1
  Pop $R0
- 
+
 FunctionEnd
 
 Function isEmptyDir
@@ -337,8 +338,8 @@ Function isEmptyDir
        Exch $0                  # Stack: 0 (false)
   _end:
 FunctionEnd
- 
- 
+
+
 Function un.isEmptyDir
   # Stack ->                    # Stack: <directory>
   Exch $0                       # Stack: $0
