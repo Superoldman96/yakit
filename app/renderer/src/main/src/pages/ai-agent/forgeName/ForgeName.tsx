@@ -1,4 +1,4 @@
-import React, { forwardRef, memo, Ref, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import React, { forwardRef, memo, Ref, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import {
   BatchExportAIforgeProps,
   BatchExportAIforgeRef,
@@ -11,15 +11,7 @@ import {
   ImportAIforgeRef,
   ImportAIForgeRequest,
 } from './type'
-import { YakitRoundCornerTag } from '@/components/yakitUI/YakitRoundCornerTag/YakitRoundCornerTag'
-import {
-  OutlineExportIcon,
-  OutlineImportIcon,
-  OutlinePencilaltIcon,
-  OutlinePlussmIcon,
-  OutlineSearchIcon,
-  OutlineTrashIcon,
-} from '@/assets/icon/outline'
+import { OutlineExportIcon, OutlinePencilaltIcon, OutlineSearchIcon, OutlineTrashIcon } from '@/assets/icon/outline'
 import { YakitInput } from '@/components/yakitUI/YakitInput/YakitInput'
 import {
   useDebounceEffect,
@@ -59,7 +51,7 @@ import styles from './ForgeName.module.scss'
 import { YakitProtoCheckbox } from '@/components/TableVirtualResize/YakitProtoCheckbox/YakitProtoCheckbox'
 import { YakitCheckbox } from '@/components/yakitUI/YakitCheckbox/YakitCheckbox'
 import { cloneDeep } from 'lodash'
-import { usePageInfo } from '@/store/pageInfo'
+import { AIForgeEditorPageInfoProps, usePageInfo } from '@/store/pageInfo'
 import { shallow } from 'zustand/shallow'
 const { ipcRenderer } = window.require('electron')
 
@@ -80,11 +72,12 @@ export const handleModifyAIForge = (info: AIForge, source?: YakitRoute) => {
     yakitNotify('error', `该模板 ID('${info.Id}') 异常, 无法编辑`)
     return
   }
+  const params: AIForgeEditorPageInfoProps = { id: id, source: source || YakitRoute.AI_Agent }
   emiter.emit(
     'openPage',
     JSON.stringify({
       route: YakitRoute.ModifyAIForge,
-      params: { id: id, source: source || YakitRoute.AI_Agent },
+      params,
     }),
   )
 }
@@ -93,13 +86,15 @@ export const handleModifyAIForge = (info: AIForge, source?: YakitRoute) => {
  * @param source 打开来源，默认为 AI_Agent
  */
 export const handleAddAIForge = (source?: YakitRoute) => {
+  const params: AIForgeEditorPageInfoProps = {
+    id: 0,
+    source: source || YakitRoute.AI_Agent,
+  }
   emiter.emit(
     'openPage',
     JSON.stringify({
       route: YakitRoute.AddAIForge,
-      params: {
-        source: source || YakitRoute.AI_Agent,
-      },
+      params,
     }),
   )
 }

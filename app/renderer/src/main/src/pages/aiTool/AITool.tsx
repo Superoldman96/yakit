@@ -50,8 +50,8 @@ const AIToolPage: React.FC<AIToolProps> = React.memo((props) => {
   const isInitLoading = useRef<boolean>(false)
   const hasMore = useRef<boolean>(true)
 
-  const forgeRef = useRef<HTMLDivElement>(null)
-  const [inViewPort = true] = useInViewport(forgeRef)
+  const toolRef = useRef<HTMLDivElement>(null)
+  const [inViewPort = true] = useInViewport(toolRef)
   useEffect(() => {
     if (inViewPort) {
       fetchData(true)
@@ -165,7 +165,7 @@ const AIToolPage: React.FC<AIToolProps> = React.memo((props) => {
     })
   })
   return (
-    <div className={styles['ai-tool']} ref={forgeRef}>
+    <div className={styles['ai-tool']} ref={toolRef}>
       <div className={styles['hub-list-header']}>
         <div className={styles['title']}>工具库</div>
         <div className={styles['extra']}>

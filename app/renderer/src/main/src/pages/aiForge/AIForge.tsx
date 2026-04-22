@@ -19,7 +19,6 @@ import {
   OutlineSearchIcon,
   OutlineTrashIcon,
 } from '@/assets/icon/outline'
-import emiter from '@/utils/eventBus/eventBus'
 import { YakitRoute } from '@/enums/yakitRoute'
 import { YakitInput } from '@/components/yakitUI/YakitInput/YakitInput'
 import { TableTotalAndSelectNumber } from '@/components/TableTotalAndSelectNumber/TableTotalAndSelectNumber'

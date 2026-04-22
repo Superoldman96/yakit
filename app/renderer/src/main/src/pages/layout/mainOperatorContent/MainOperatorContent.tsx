@@ -1355,7 +1355,7 @@ export const MainOperatorContent: React.FC<MainOperatorContentProps> = React.mem
       }
     }
     openMenuPage(
-      { route: route },
+      { route },
       {
         pageParams: isModifyAIForge
           ? {
@@ -1388,7 +1388,7 @@ export const MainOperatorContent: React.FC<MainOperatorContentProps> = React.mem
       }
     }
     openMenuPage(
-      { route: route },
+      { route },
       {
         pageParams: isModifyAITool
           ? {

@@ -76,11 +76,15 @@ export const handleModifyAITool = (item: AITool, source?: YakitRoute) => {
     yakitNotify('error', `该模板 ID('${item.ID}') 异常, 无法编辑`)
     return
   }
+  const params: AIToolEditorPageInfoProps = {
+    id: item.ID,
+    source: source || YakitRoute.AI_Agent,
+  }
   emiter.emit(
     'openPage',
     JSON.stringify({
       route: YakitRoute.ModifyAITool,
-      params: { id: item.ID, source: source || YakitRoute.AI_Agent } as AIToolEditorPageInfoProps,
+      params,
     }),
   )
 }
@@ -89,13 +93,15 @@ export const handleModifyAITool = (item: AITool, source?: YakitRoute) => {
  * @param source 打开新建页面的来源路由，默认为 YakitRoute.AI_Agent, 用于区分从哪个页面打开的新建页面，方便编辑页面关闭时返回对应的页面
  */
 export const handleAddAITool = (source?: YakitRoute) => {
+  const params: AIToolEditorPageInfoProps = {
+    id: 0,
+    source: source || YakitRoute.AI_Agent,
+  }
   emiter.emit(
     'openPage',
     JSON.stringify({
       route: YakitRoute.AddAITool,
-      params: {
-        source: source || YakitRoute.AI_Agent,
-      } as AIToolEditorPageInfoProps,
+      params,
     }),
   )
 }

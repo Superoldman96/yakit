@@ -254,7 +254,7 @@ const AIToolEditor: React.FC<AIToolEditorProps> = React.memo((props) => {
           return {
             title: '工具未保存',
             content: '是否要将工具保存?',
-            confirmLoading: saveLoading,
+            // confirmLoading: saveLoading,
             maskClosable: false,
             onOk: (m) => {
               modalRef.current = m
@@ -272,7 +272,7 @@ const AIToolEditor: React.FC<AIToolEditorProps> = React.memo((props) => {
           return {
             title: '工具未保存',
             content: '是否要将当前工具保存，并编辑点击的工具?',
-            confirmLoading: saveLoading,
+            // confirmLoading: saveLoading,
             maskClosable: false,
             onOk: (m) => {
               modalRef.current = m
@@ -294,7 +294,7 @@ const AIToolEditor: React.FC<AIToolEditorProps> = React.memo((props) => {
           return {
             title: '工具未保存',
             content: '是否要将工具保存?',
-            confirmLoading: saveLoading,
+            // confirmLoading: saveLoading,
             maskClosable: false,
             onOk: (m) => {
               modalRef.current = m
