@@ -137,7 +137,9 @@ const normalizeRelativeApiPath = (value) => {
   return trimmed.replace(/^\/+/, '')
 }
 
-const validateOpenPath = (targetPath) => {
+const validateOpenPath = (targetPath, options = {}) => {
+  const { allowBlockedExtensions = false } = options
+
   if (typeof targetPath !== 'string') {
     throw new Error('path must be a string')
   }
@@ -151,7 +153,7 @@ const validateOpenPath = (targetPath) => {
   const stats = fs.statSync(resolvedPath)
   if (stats.isFile()) {
     const ext = path.extname(resolvedPath).toLowerCase()
-    if (BLOCKED_OPEN_PATH_EXTENSIONS.has(ext)) {
+    if (!allowBlockedExtensions && BLOCKED_OPEN_PATH_EXTENSIONS.has(ext)) {
       throw new Error(`opening ${ext} files is blocked`)
     }
   }

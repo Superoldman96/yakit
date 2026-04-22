@@ -709,7 +709,8 @@ module.exports = {
     // 打开指定路径文件
     ipcMain.handle('open-specified-file', async (e, path) => {
       assertTrustedAppSender(e, 'open-specified-file')
-      return shell.showItemInFolder(validateOpenPath(path))
+      const resolvedPath = validateOpenPath(path, { allowBlockedExtensions: true })
+      return shell.showItemInFolder(resolvedPath)
     })
 
     const generateInstallScript = () => {
@@ -1352,7 +1353,8 @@ module.exports = {
     // 打开指定路径文件
     ipcMain.handle(ipcEventPre + 'open-specified-file', async (e, path) => {
       assertTrustedAppSender(e, ipcEventPre + 'open-specified-file')
-      return shell.showItemInFolder(validateOpenPath(path))
+      const resolvedPath = validateOpenPath(path, { allowBlockedExtensions: true })
+      return shell.showItemInFolder(resolvedPath)
     })
 
     // asyncDownloadLatestYakit wrapper
