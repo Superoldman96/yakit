@@ -68,7 +68,12 @@ export interface ForgeNameRef {
   openImport: () => void
   onBatchExport: () => void
 }
-// 编辑 forge 模板
+/**
+ * 打开编辑 AIForge 模板页面
+ * @param info AIForge 模板信息
+ * @param source  打开来源，默认为 AI_Agent
+ * @returns
+ */
 export const handleModifyAIForge = (info: AIForge, source?: YakitRoute) => {
   const id = Number(info.Id) || 0
   if (!id) {
@@ -83,6 +88,21 @@ export const handleModifyAIForge = (info: AIForge, source?: YakitRoute) => {
     }),
   )
 }
+/**
+ * 打开新建 AIForge 模板页面
+ * @param source 打开来源，默认为 AI_Agent
+ */
+export const handleAddAIForge = (source?: YakitRoute) => {
+  emiter.emit(
+    'openPage',
+    JSON.stringify({
+      route: YakitRoute.AddAIForge,
+      params: {
+        source: source || YakitRoute.AI_Agent,
+      },
+    }),
+  )
+}
 const ForwardForgeName = forwardRef((props: ForgeNameProps, ref: Ref<ForgeNameRef>) => {
   // const {} = props
   const batchExportRef = useRef<BatchExportAIforgeRef>(null)
@@ -90,15 +110,7 @@ const ForwardForgeName = forwardRef((props: ForgeNameProps, ref: Ref<ForgeNameRe
   // #region AIForge 模板增删改功能 使用功能
   // 新建 forge 模板
   const handleNewAIForge = useMemoizedFn(() => {
-    emiter.emit(
-      'openPage',
-      JSON.stringify({
-        route: YakitRoute.AddAIForge,
-        params: {
-          source: YakitRoute.AI_Agent,
-        },
-      }),
-    )
+    handleAddAIForge()
   })
 
   // 删除的 forge 队列
@@ -142,7 +154,6 @@ const ForwardForgeName = forwardRef((props: ForgeNameProps, ref: Ref<ForgeNameRe
     )
   })
   // #region AI-Forge 列表数据
-  const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [data, setData, getData] = useGetSetState<QueryAIForgeResponse>({
     Pagination: { ...AIForgeListDefaultPagination },
@@ -160,24 +171,6 @@ const ForwardForgeName = forwardRef((props: ForgeNameProps, ref: Ref<ForgeNameRe
     overscan: 5,
   })
 
-  // 获取 AI-Forge 总数
-  const fetchDataTotal = useMemoizedFn(() => {
-    grpcQueryAIForge(
-      {
-        Pagination: {
-          Page: 1,
-          Limit: 1,
-          Order: 'desc',
-          OrderBy: 'id',
-        },
-      },
-      true,
-    )
-      .then((res) => {
-        setTotal(Number(res.Total) || 0)
-      })
-      .catch(() => {})
-  })
   // 获取 AI-Forge 列表
   const fetchData = useMemoizedFn((isInit?: boolean) => {
     if (isInit) isMore.current = true
@@ -225,8 +218,6 @@ const ForwardForgeName = forwardRef((props: ForgeNameProps, ref: Ref<ForgeNameRe
   })
 
   useEffect(() => {
-    fetchDataTotal()
-
     emiter.on('onTriggerRefreshForgeList', handleEmiterUpdateData)
     return () => {
       emiter.off('onTriggerRefreshForgeList', handleEmiterUpdateData)
@@ -245,7 +236,6 @@ const ForwardForgeName = forwardRef((props: ForgeNameProps, ref: Ref<ForgeNameRe
   // 通信触发的刷新列表请求
   const handleEmiterTriggerRefresh = useDebounceFn(
     () => {
-      fetchDataTotal()
       isMore.current = true
       fetchData(true)
     },
@@ -337,26 +327,6 @@ const ForwardForgeName = forwardRef((props: ForgeNameProps, ref: Ref<ForgeNameRe
   return (
     <div ref={wrapper} className={styles['forge-name']}>
       <div className={styles['header-wrapper']}>
-        {/* <div className={styles["haeder-first"]}>
-                    <div className={styles["first-title"]}>
-                        技能库
-                        <YakitRoundCornerTag>{total}</YakitRoundCornerTag>
-                    </div>
-                    <div className={styles["first-btns"]}>
-                        <YakitButton
-                            icon={<OutlineImportIcon />}
-                            onClick={() =>
-                                handleOpenImportExportHint({
-                                    title: "导入技能",
-                                    type: "import",
-                                    apiKey: "ImportAIForge"
-                                })
-                            }
-                        />
-                        <YakitButton icon={<OutlinePlussmIcon />} onClick={handleNewAIForge} />
-                    </div>
-                </div> */}
-
         <div className={styles['header-second']}>
           <YakitInput
             prefix={<OutlineSearchIcon className={styles['search-icon']} />}

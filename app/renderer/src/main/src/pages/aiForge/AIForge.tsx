@@ -25,7 +25,12 @@ import { YakitInput } from '@/components/yakitUI/YakitInput/YakitInput'
 import { TableTotalAndSelectNumber } from '@/components/TableTotalAndSelectNumber/TableTotalAndSelectNumber'
 import { Divider } from 'antd'
 import { BatchExportAIforgeRef, ExportAIForgeRequest, ImportAIforgeRef } from '../ai-agent/forgeName/type'
-import { BatchExportAIforge, handleModifyAIForge, ImportAIforge } from '../ai-agent/forgeName/ForgeName'
+import {
+  BatchExportAIforge,
+  handleAddAIForge,
+  handleModifyAIForge,
+  ImportAIforge,
+} from '../ai-agent/forgeName/ForgeName'
 import { YakitCheckbox } from '@/components/yakitUI/YakitCheckbox/YakitCheckbox'
 import { YakitPopconfirm } from '@/components/yakitUI/YakitPopconfirm/YakitPopconfirm'
 import { yakitNotify } from '@/utils/notification'
@@ -98,7 +103,7 @@ const AIForgePage: React.FC<AIForgeProps> = React.memo((props) => {
     const request: QueryAIForgeRequest = {
       Pagination: {
         ...pageInfo,
-        Page: isInit ? 1 : Number(pageInfo.Page) + 1,
+        Page: isInit ? 1 : ++pageInfo.Page,
       },
     }
     if (search) request.Filter = { Keyword: search }
@@ -125,15 +130,7 @@ const AIForgePage: React.FC<AIForgeProps> = React.memo((props) => {
     fetchData()
   })
   const onNewForge = useMemoizedFn(() => {
-    emiter.emit(
-      'openPage',
-      JSON.stringify({
-        route: YakitRoute.AddAIForge,
-        params: {
-          source: YakitRoute.AI_Forge,
-        },
-      }),
-    )
+    handleAddAIForge(YakitRoute.AI_Forge)
   })
   const listLength = useCreation(() => {
     return Number(response.Total) || 0

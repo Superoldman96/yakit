@@ -41,7 +41,7 @@ import KnowledgeSidebarList, { KnowledgeModalRef } from './KnowledgeSidebarList/
 import { YakitDrawer } from '@/components/yakitUI/YakitDrawer/YakitDrawer'
 import Tabs from './Tabs/Tabs'
 import ForgeName, { ForgeNameRef } from '../forgeName/ForgeName'
-import AIToolList from '../aiToolList/AIToolList'
+import AIToolList, { handleAddAITool } from '../aiToolList/AIToolList'
 import { SplitView } from '@/pages/yakRunner/SplitView/SplitView'
 import { InstallPluginModal } from '@/pages/KnowledgeBase/compoment/InstallPluginModal/InstallPluginModal'
 import { reseultKnowledgePlugin, useCheckKnowledgePlugin } from '@/pages/KnowledgeBase/hooks/useCheckKnowledgePlugin'
@@ -245,15 +245,7 @@ const AIChatWelcome: React.FC<AIChatWelcomeProps> = React.memo(
             <YakitButton
               key="add"
               onClick={() => {
-                emiter.emit(
-                  'openPage',
-                  JSON.stringify({
-                    route: YakitRoute.AddAITool,
-                    params: {
-                      source: YakitRoute.AI_Agent,
-                    },
-                  }),
-                )
+                handleAddAITool()
               }}
               type="text2"
               icon={<OutlinePluscircleIcon />}

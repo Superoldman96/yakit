@@ -149,7 +149,7 @@ const AIToolEditor: React.FC<AIToolEditorProps> = React.memo((props) => {
               const formValue: SaveAIToolRequest = {
                 Name: res.Name ?? '',
                 Description: res.Description ?? '',
-                Keywords: res.Keywords ?? '',
+                Keywords: res.Keywords ?? [],
                 Content: '',
                 ToolPath: '',
               }

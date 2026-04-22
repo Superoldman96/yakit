@@ -32,6 +32,11 @@ import { YakitRoundCornerTag } from '@/components/yakitUI/YakitRoundCornerTag/Ya
 import { yakitNotify } from '@/utils/notification'
 import { AIToolEditorPageInfoProps } from '@/store/pageInfo'
 
+/**
+ * 工具类型选项
+ *  - 全部：展示全部工具
+ *  - 收藏：只展示收藏的工具
+ */
 export const toolTypeOptions = [
   {
     label: '全部',
@@ -42,6 +47,11 @@ export const toolTypeOptions = [
     value: 'collect',
   },
 ]
+/**
+ * 工具操作菜单
+ *  - 复制：将工具的名称复制到剪贴板
+ *  - 删除：删除该工具
+ */
 export const toolMenu: YakitMenuItemType[] = [
   {
     key: 'copy',
@@ -55,6 +65,12 @@ export const toolMenu: YakitMenuItemType[] = [
     itemIcon: <OutlineTrashIcon />,
   },
 ]
+/**
+ * 打开编辑页面
+ * @param item AITool 模板数据
+ * @param source 打开编辑页面的来源路由，默认为 YakitRoute.AI_Agent, 用于区分从哪个页面打开的编辑页面，方便编辑页面关闭时返回对应的页面
+ * @returns
+ */
 export const handleModifyAITool = (item: AITool, source?: YakitRoute) => {
   if (!item.ID) {
     yakitNotify('error', `该模板 ID('${item.ID}') 异常, 无法编辑`)
@@ -65,6 +81,21 @@ export const handleModifyAITool = (item: AITool, source?: YakitRoute) => {
     JSON.stringify({
       route: YakitRoute.ModifyAITool,
       params: { id: item.ID, source: source || YakitRoute.AI_Agent } as AIToolEditorPageInfoProps,
+    }),
+  )
+}
+/**
+ *
+ * @param source 打开新建页面的来源路由，默认为 YakitRoute.AI_Agent, 用于区分从哪个页面打开的新建页面，方便编辑页面关闭时返回对应的页面
+ */
+export const handleAddAITool = (source?: YakitRoute) => {
+  emiter.emit(
+    'openPage',
+    JSON.stringify({
+      route: YakitRoute.AddAITool,
+      params: {
+        source: source || YakitRoute.AI_Agent,
+      } as AIToolEditorPageInfoProps,
     }),
   )
 }

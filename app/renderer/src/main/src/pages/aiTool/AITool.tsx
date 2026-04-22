@@ -16,7 +16,6 @@ import {
   OutlineSearchIcon,
   OutlineStarIcon,
 } from '@/assets/icon/outline'
-import emiter from '@/utils/eventBus/eventBus'
 import { YakitRoute } from '@/enums/yakitRoute'
 import { YakitInput } from '@/components/yakitUI/YakitInput/YakitInput'
 import { TableTotalAndSelectNumber } from '@/components/TableTotalAndSelectNumber/TableTotalAndSelectNumber'
@@ -26,11 +25,12 @@ import { genDefaultPagination } from '../invoker/schema'
 import { grpcDeleteAITool, grpcGetAIToolList, grpcToggleAIToolFavorite } from '../ai-agent/aiToolList/utils'
 import { ToolQueryType } from '../ai-agent/aiToolList/AIToolListType'
 import { YakitRadioButtons } from '@/components/yakitUI/YakitRadioButtons/YakitRadioButtons'
-import { handleModifyAITool, toolMenu, toolTypeOptions } from '../ai-agent/aiToolList/AIToolList'
+import { handleAddAITool, handleModifyAITool, toolMenu, toolTypeOptions } from '../ai-agent/aiToolList/AIToolList'
 import { SolidStarIcon } from '@/assets/icon/solid'
 import { YakitDropdownMenu } from '@/components/yakitUI/YakitDropdownMenu/YakitDropdownMenu'
 import { setClipboardText } from '@/utils/clipboard'
 import { yakitNotify } from '@/utils/notification'
+
 const AIToolPage: React.FC<AIToolProps> = React.memo((props) => {
   const [toolQueryType, setToolQueryType] = useState<ToolQueryType>('all')
   const emptyImageTarget = useEmptyImage('search')
@@ -96,7 +96,7 @@ const AIToolPage: React.FC<AIToolProps> = React.memo((props) => {
       ToolName: '',
       Pagination: {
         ...genDefaultPagination(20),
-        Page: isInit ? 1 : Number(pageInfo.Page) + 1,
+        Page: isInit ? 1 : ++pageInfo.Page,
       },
       OnlyFavorites: toolQueryType === 'collect',
     }
@@ -123,16 +123,8 @@ const AIToolPage: React.FC<AIToolProps> = React.memo((props) => {
   const onUpdateList = useMemoizedFn(() => {
     fetchData()
   })
-  const onNewForge = useMemoizedFn(() => {
-    emiter.emit(
-      'openPage',
-      JSON.stringify({
-        route: YakitRoute.AddAITool,
-        params: {
-          source: YakitRoute.AI_Tool,
-        },
-      }),
-    )
+  const onNewTool = useMemoizedFn(() => {
+    handleAddAITool(YakitRoute.AI_Tool)
   })
   const listLength = useCreation(() => {
     return Number(response.Total) || 0
@@ -152,7 +144,7 @@ const AIToolPage: React.FC<AIToolProps> = React.memo((props) => {
       setResponse((preV) => ({
         ...preV,
         Tools: preV.Tools.map((ele) => {
-          if (ele.Name === item.Name) {
+          if (ele.ID === item.ID) {
             return { ...ele, IsFavorite: !item.IsFavorite }
           }
           return ele
@@ -189,7 +181,7 @@ const AIToolPage: React.FC<AIToolProps> = React.memo((props) => {
           />
           <Divider type="vertical" className={styles['diver-style']} />
 
-          <YakitButton size="large" icon={<OutlinePlusIcon />} onClick={onNewForge}>
+          <YakitButton size="large" icon={<OutlinePlusIcon />} onClick={onNewTool}>
             新建工具
           </YakitButton>
         </div>
@@ -238,7 +230,7 @@ const AIToolPage: React.FC<AIToolProps> = React.memo((props) => {
               <div className={styles['hub-list-empty']}>
                 <YakitEmpty title="暂无数据" description="可新建工具,创建属于自己的工具" />
                 <div className={styles['refresh-buttons']}>
-                  <YakitButton type="outline1" icon={<OutlinePlusIcon />} onClick={onNewForge}>
+                  <YakitButton type="outline1" icon={<OutlinePlusIcon />} onClick={onNewTool}>
                     新建工具
                   </YakitButton>
                   <YakitButton type="outline1" icon={<OutlineRefreshIcon />} onClick={handleRefreshList}>
@@ -272,7 +264,7 @@ const AIToolPageItem: React.FC<AIToolPageItemProps> = React.memo((props) => {
   })
   const onEdit = useMemoizedFn((e) => {
     e.stopPropagation()
-    handleModifyAITool(data)
+    handleModifyAITool(data, YakitRoute.AI_Tool)
   })
   const menuSelect = useMemoizedFn((key: string) => {
     switch (key) {
