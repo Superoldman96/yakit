@@ -2131,7 +2131,7 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
     const currentOrder = sorterTableRef.current?.order || 'desc'
     const currentOrderBy = sorterTableRef.current?.orderBy || 'Id'
     const currentLastId = data[data.length - 1]?.Id
-    const useOffsetPagination = !isInit && toWebFuzzer && currentOrderBy === 'Id' && !!currentLastId
+    const useOffsetPagination = !isInit && currentOrderBy === 'Id' && !!currentLastId
 
     const params = {
       ...query,
