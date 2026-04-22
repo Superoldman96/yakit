@@ -1182,7 +1182,8 @@ function useChatIPC(params?: UseChatIPCParams) {
       handleCancelLoadingChange,
       handleResetTarget,
       handleUserManualIntervention,
-      historyEvents,
+      fetchHasMore: historyEvents.fetchHasMore,
+      loadMore: historyEvents.loadMore,
     }
   }, [])
 
