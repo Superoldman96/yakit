@@ -47,7 +47,8 @@ contextBridge.exposeInMainWorld('yakitBridge', {
     openUrl: (url) => invokePrefixed('open-url', url),
     openSpecifiedFile: (targetPath) => invokePrefixed('open-specified-file', targetPath),
     openRemoteLink: () => invokePrefixed('open-remote-link'),
-    openYakitPath: () => invokePrefixed('open-yaklang-path'),
+    openYakitPath: () => invokePrefixed('open-yakit-path'),
+    openYaklangPath: () => invokePrefixed('open-yaklang-path'),
     getRemoteFilePath: () => invokePrefixed('fetch-remote-file-path'),
   },
   clipboard: {

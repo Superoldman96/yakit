@@ -38,6 +38,7 @@ interface YakitBridge {
     openSpecifiedFile: (targetPath: string) => Promise<unknown>
     openRemoteLink: () => Promise<unknown>
     openYakitPath: () => Promise<unknown>
+    openYaklangPath: () => Promise<unknown>
     getRemoteFilePath: () => Promise<string>
   }
   clipboard: {

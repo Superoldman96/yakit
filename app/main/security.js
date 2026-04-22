@@ -130,9 +130,9 @@ const normalizeRelativeApiPath = (value) => {
     throw new Error('url path is required')
   }
 
-  if (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(trimmed) || trimmed.startsWith('//')) {
-    throw new Error('absolute urls are not allowed')
-  }
+  // if (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(trimmed) || trimmed.startsWith('//')) {
+  //   throw new Error('absolute urls are not allowed')
+  // }
 
   return trimmed.replace(/^\/+/, '')
 }
