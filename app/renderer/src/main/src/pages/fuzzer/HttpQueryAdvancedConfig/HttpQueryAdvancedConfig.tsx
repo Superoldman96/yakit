@@ -176,6 +176,26 @@ export const HttpQueryAdvancedConfig: React.FC<HttpQueryAdvancedConfigProps> = R
     [advancedConfigValue.batchTarget],
   )
 
+  /** AI 模式需随外层 YakitResizeBox 分栏变宽；配置/规则仍用固定 300/460 宽 */
+  const advancedConfigRootStyle = useMemo((): React.CSSProperties => {
+    if (!visible) {
+      return { display: 'none' }
+    }
+    const minW = i18n.language === 'zh' ? 300 : 460
+    if (showFormContentType === 'ai') {
+      return {
+        width: '100%',
+        minWidth: minW,
+        maxWidth: 'none',
+      }
+    }
+    return {
+      width: minW,
+      minWidth: minW,
+      maxWidth: minW,
+    }
+  }, [visible, showFormContentType, i18n.language])
+
   useEffect(() => {
     setHttpResponse(defaultHttpResponse)
   }, [defaultHttpResponse])
@@ -1341,16 +1361,7 @@ export const HttpQueryAdvancedConfig: React.FC<HttpQueryAdvancedConfigProps> = R
     }
   })
   return (
-    <div
-      className={classNames(styles['http-query-advanced-config'])}
-      style={{
-        display: visible ? '' : 'none',
-        width: i18n.language === 'zh' ? 300 : 460,
-        minWidth: i18n.language === 'zh' ? 300 : 460,
-        maxWidth: i18n.language === 'zh' ? 300 : 460,
-      }}
-      ref={queryRef}
-    >
+    <div className={classNames(styles['http-query-advanced-config'])} style={advancedConfigRootStyle} ref={queryRef}>
       {showFormContentType === 'ai' ? (
         <div className={styles['fuzzer-ai-slot-wrap']}>{fuzzerAiSlot}</div>
       ) : (

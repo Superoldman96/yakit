@@ -33,9 +33,16 @@
       word-break: break-all;
     }
 
+    /** 与标题拉开间距；时间串较长，用较小左间距即可 */
     &-time {
       color: var(--Colors-Use-Neutral-Disable);
       margin-left: 10px;
+    }
+    /** 悬停替换的 SVG 等窄内容，需略大左间距与「模型名」区对齐 */
+    &-svg {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 32px;
     }
     .icon-small {
       width: 14px;

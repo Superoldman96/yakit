@@ -107,7 +107,9 @@ import {
 import emiter from '@/utils/eventBus/eventBus'
 import { HistoryAIReActChatProvider, useHistoryAIReActChat } from '@/components/historyAIReActChat'
 import { WebFuzzerAiStore } from '@/pages/ai-agent/store/ChatDataStore'
+import useChatIPCDispatcher from '@/pages/ai-agent/useContext/ChatIPCContent/useDispatcher'
 import { AIInputInnerFeatureEnum } from '@/pages/ai-agent/template/type'
+import { AIAgentGrpcApi } from '@/pages/ai-re-act/hooks/grpcApi'
 import { shallow } from 'zustand/shallow'
 import { usePageInfo, PageNodeItemProps, WebFuzzerPageInfoProps, getFuzzerProcessedCacheData } from '@/store/pageInfo'
 import { YakitCopyText } from '@/components/yakitUI/YakitCopyText/YakitCopyText'
@@ -2235,22 +2237,33 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
     () => advancedConfigShowType === 'hot-patch' && hotPatchSidebarVisible,
     [advancedConfigShowType, hotPatchSidebarVisible],
   )
+  /** AI 侧栏展示时，与热加载一样允许拖动顶部分栏宽度 */
+  const aiTopPanelResizable = useCreation(
+    () => advancedConfigShowType === 'ai' && advancedConfigShow.ai,
+    [advancedConfigShowType, advancedConfigShow],
+  )
   const topPanelVisible = useCreation(
     () => advancedConfigVisible || hotPatchVisible,
     [advancedConfigVisible, hotPatchVisible],
   )
   const defaultTopPanelFirstRatio = useMemo(() => (i18n.language === 'zh' ? '300px' : '460px'), [i18n.language])
   const [hotPatchTopPanelFirstRatio, setHotPatchTopPanelFirstRatio] = useState<string>(defaultTopPanelFirstRatio)
-  const topPanelDraggable = useCreation(() => topPanelVisible && hotPatchVisible, [topPanelVisible, hotPatchVisible])
+  const topPanelDraggable = useCreation(
+    () => topPanelVisible && (hotPatchVisible || aiTopPanelResizable),
+    [topPanelVisible, hotPatchVisible, aiTopPanelResizable],
+  )
   const topPanelFirstRatio = useCreation(() => {
     if (!topPanelVisible) {
       return '0px'
     }
-    return hotPatchVisible ? hotPatchTopPanelFirstRatio : defaultTopPanelFirstRatio
-  }, [topPanelVisible, hotPatchVisible, hotPatchTopPanelFirstRatio, defaultTopPanelFirstRatio])
+    if (hotPatchVisible || aiTopPanelResizable) {
+      return hotPatchTopPanelFirstRatio
+    }
+    return defaultTopPanelFirstRatio
+  }, [topPanelVisible, hotPatchVisible, aiTopPanelResizable, hotPatchTopPanelFirstRatio, defaultTopPanelFirstRatio])
 
   const onTopPanelResize = useMemoizedFn(({ firstSizeNum }) => {
-    if (!hotPatchVisible) return
+    if (!hotPatchVisible && !aiTopPanelResizable) return
     setHotPatchTopPanelFirstRatio(`${firstSizeNum}px`)
   })
 
