@@ -1,14 +1,32 @@
-import React, { memo } from 'react'
-import { AITriageChatContentProps } from './type'
+import React, { memo, useEffect, useRef, useState } from 'react'
+import { AITriageChatContentEditProps, AITriageChatContentProps } from './type'
 
 import classNames from 'classnames'
 import styles from './AITriageChat.module.scss'
 import { PreWrapper } from '../ToolInvokerCard'
-import { useMemoizedFn } from 'ahooks'
+import { useCreation, useMemoizedFn } from 'ahooks'
 import { AIMilkdownInput } from '../aiMilkdownInput/AIMilkdownInput'
+import { YakitButton } from '@/components/yakitUI/YakitButton/YakitButton'
+import { CopyComponents } from '@/components/yakitUI/YakitTag/YakitTag'
+import { OutlinePencilaltIcon } from '@/assets/icon/outline'
+import { Tooltip } from 'antd'
+import { EditorMilkdownProps } from '@/components/MilkdownEditor/MilkdownEditorType'
+import { editorViewCtx } from '@milkdown/kit/core'
+import { convertKeyEventToKeyCombination } from '@/utils/globalShortcutKey/utils'
+import { YakitKeyBoard } from '@/utils/globalShortcutKey/keyboard'
+import { TextSelection } from '@milkdown/kit/prose/state'
+import { getMarkdown } from '@milkdown/kit/utils'
+import { AIChatTextareaSubmit } from '../../template/type'
+import { extractDataWithMilkdown } from '../aiMilkdownInput/utils'
+import useChatIPCDispatcher from '../../useContext/ChatIPCContent/useDispatcher'
+import { getAIReActRequestParams } from '../../utils'
+import { AIInputEvent } from '@/pages/ai-re-act/hooks/grpcApi'
+import useAIAgentStore from '../../useContext/useStore'
 
 export const AITriageChatContent: React.FC<AITriageChatContentProps> = memo((props) => {
   const { isAnswer, content, contentClassName, chatClassName, extraValue } = props
+
+  const [edit, setEdit] = useState<boolean>(false)
 
   const renderContent = useMemoizedFn(() => {
     if (!!extraValue?.isForge) {
@@ -28,18 +46,155 @@ export const AITriageChatContent: React.FC<AITriageChatContentProps> = memo((pro
     }
     return <>{content}</>
   })
+  const defaultValue = useCreation(() => {
+    if (!!extraValue?.isForge) {
+      return `${extraValue?.showForgeQuestion}\n${extraValue?.forgeParams}`
+    }
+    if (!!extraValue?.showQS) {
+      return `${extraValue?.showQS}`
+    }
+    return content
+  }, [content, extraValue])
+
   return (
-    <div
-      className={classNames(
-        styles['triage-chat-content'],
-        {
-          [styles['triage-chat-question']]: !isAnswer,
-          [styles['triage-chat-answer']]: !!isAnswer,
-        },
-        chatClassName || '',
+    <div className={styles['triage-chat-content-wrapper']}>
+      {edit ? (
+        <AITriageChatContentEdit defaultValue={defaultValue} onCancel={() => setEdit(false)} />
+      ) : (
+        <>
+          <div
+            className={classNames(
+              styles['triage-chat-content'],
+              {
+                [styles['triage-chat-question']]: !isAnswer,
+                [styles['triage-chat-answer']]: !!isAnswer,
+              },
+              chatClassName || '',
+            )}
+          >
+            <div className={classNames(styles['content-wrapper'], contentClassName || '')}>{renderContent()}</div>
+          </div>
+          <div className={styles['triage-chat-content-footer']}>
+            <Tooltip title="复制">
+              <CopyComponents
+                copyText="123"
+                iconColor="var(--Colors-Use-Neutral-Text-3-Secondary)"
+                className={styles['copy-btn']}
+              />
+            </Tooltip>
+            <Tooltip title="编辑">
+              <YakitButton type="text2" icon={<OutlinePencilaltIcon />} onClick={() => setEdit(true)} />
+            </Tooltip>
+          </div>
+        </>
       )}
-    >
-      <div className={classNames(styles['content-wrapper'], contentClassName || '')}>{renderContent()}</div>
+    </div>
+  )
+})
+const AITriageChatContentEdit: React.FC<AITriageChatContentEditProps> = React.memo((props) => {
+  const { defaultValue, onCancel } = props
+  const { chatIPCEvents } = useChatIPCDispatcher()
+  const { activeChat } = useAIAgentStore()
+
+  const [disabled, setDisabled] = useState<boolean>(false)
+  const editorMilkdown = useRef<EditorMilkdownProps>()
+
+  const onUpdateEditor = useMemoizedFn((editor: EditorMilkdownProps) => {
+    if (!!editorMilkdown.current) {
+      editorMilkdown.current = editor
+    } else {
+      editorMilkdown.current = editor
+      handleSetTextareaFocus()
+    }
+  })
+  const onUpdateContent = useMemoizedFn((value: string) => {
+    setDisabled(!value.trim())
+  })
+  const handleSetTextareaFocus = useMemoizedFn(() => {
+    editorMilkdown.current?.action((ctx) => {
+      const view = ctx.get(editorViewCtx)
+      const { state } = view
+      const tr = state.tr.setSelection(TextSelection.create(state.doc, state.doc.content.size))
+      view.dispatch(tr)
+      view.focus()
+    })
+  })
+
+  const onClose = useMemoizedFn((e) => {
+    e.stopPropagation()
+    onCancel()
+  })
+  const onSend = useMemoizedFn(() => {
+    // 发送消息逻辑
+    if (!editorMilkdown.current || !activeChat) return
+    const qs = getMarkdownValue()
+    const { mentions } = extractDataWithMilkdown(editorMilkdown.current)
+    const value: AIChatTextareaSubmit = {
+      qs,
+      mentionList: mentions,
+      showQS: qs,
+      focusMode: '',
+    }
+    const { extra, attachedResourceInfo } = getAIReActRequestParams(value)
+
+    const chatMessage: AIInputEvent = {
+      IsFreeInput: true,
+      FreeInput: value.qs,
+      AttachedResourceInfo: attachedResourceInfo,
+      FocusModeLoop: value.focusMode,
+    }
+    chatIPCEvents.onSend({
+      token: activeChat.SessionID,
+      type: 'casual',
+      params: {
+        IsFreeInput: true,
+        ...chatMessage,
+      },
+      extraValue: extra,
+    })
+    onCancel()
+  })
+  const getMarkdownValue = useMemoizedFn(() => {
+    const value = editorMilkdown.current?.action(getMarkdown()) || ''
+    return value.replace(/\n+$/, '')
+  })
+  const handleTextareaKeyDown = useMemoizedFn((e) => {
+    const keys = convertKeyEventToKeyCombination(e)
+    if (!e.nativeEvent?.isComposing && keys?.join() === YakitKeyBoard.Enter) {
+      e.stopPropagation()
+      e.preventDefault()
+      onSend()
+    }
+  })
+  return (
+    <div className={styles['edit-content-wrapper']} onClick={handleSetTextareaFocus} onKeyDown={handleTextareaKeyDown}>
+      <div
+        onClick={(e) => {
+          e.stopPropagation()
+        }}
+        className={styles['edit-content']}
+      >
+        <AIMilkdownInput
+          filterMode={['focusMode']}
+          defaultValue={defaultValue}
+          onUpdateEditor={onUpdateEditor}
+          onUpdateContent={onUpdateContent}
+        />
+      </div>
+      <div className={styles['edit-footer']}>
+        <YakitButton type="outline2" onClick={onClose}>
+          取消
+        </YakitButton>
+        <YakitButton
+          disabled={disabled}
+          onClick={(e) => {
+            e.stopPropagation()
+            onSend()
+          }}
+        >
+          发送
+        </YakitButton>
+      </div>
     </div>
   )
 })
