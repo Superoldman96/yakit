@@ -8,10 +8,7 @@ const lastWebFuzzerAiAutoApplyContent = new Map<string, string>()
 /**
  * 由 `HTTPFuzzerPageCore` 在挂载时注册，用于从 AI 代码卡「应用」将请求原文写入当前页并同步会话存储。
  */
-export function registerWebFuzzerPageApplyRequestFromCard(
-  pageId: string,
-  handler: (raw: string) => void
-): () => void {
+export function registerWebFuzzerPageApplyRequestFromCard(pageId: string, handler: (raw: string) => void): () => void {
   pageApplyHandlers.set(pageId, handler)
   return () => {
     if (pageApplyHandlers.get(pageId) === handler) {
@@ -23,10 +20,7 @@ export function registerWebFuzzerPageApplyRequestFromCard(
 /**
  * 由 `HTTPFuzzerPageCore` 注册，供「对比」等能力读取当前页 `requestRef` 中的请求原文（与 Monaco 侧一致）。
  */
-export function registerWebFuzzerPageGetRequestString(
-  pageId: string,
-  getRequest: () => string
-): () => void {
+export function registerWebFuzzerPageGetRequestString(pageId: string, getRequest: () => string): () => void {
   pageGetRequestHandlers.set(pageId, getRequest)
   return () => {
     if (pageGetRequestHandlers.get(pageId) === getRequest) {
@@ -45,10 +39,7 @@ export function getWebFuzzerPageRequestString(pageId: string): string | null {
 /**
  * 由 `HTTPFuzzerPageCore` 注册：是否开启「AI 自动改包」（勾选项）。
  */
-export function registerWebFuzzerPageAiAutoApplyEnabled(
-  pageId: string,
-  getEnabled: () => boolean
-): () => void {
+export function registerWebFuzzerPageAiAutoApplyEnabled(pageId: string, getEnabled: () => boolean): () => void {
   pageAiAutoApplyGetEnabled.set(pageId, getEnabled)
   return () => {
     if (pageAiAutoApplyGetEnabled.get(pageId) === getEnabled) {

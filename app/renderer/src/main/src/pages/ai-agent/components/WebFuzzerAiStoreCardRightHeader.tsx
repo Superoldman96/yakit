@@ -13,10 +13,7 @@ import {
 import { yakitFailed, yakitNotify } from '@/utils/notification'
 import { showYakitModal } from '@/components/yakitUI/YakitModal/YakitModalConfirm'
 
-const WebFuzzerAiStoreCardRightHeader: FC<{ content?: string; fuzzerPageId: string }> = ({
-  content,
-  fuzzerPageId,
-}) => {
+const WebFuzzerAiStoreCardRightHeader: FC<{ content?: string; fuzzerPageId: string }> = ({ content, fuzzerPageId }) => {
   // 应用操作：将卡片中的请求/代码全文写入对应当前 Web Fuzzer 页并同步 `pageInfo` 会话
   const handleApplication = useMemoizedFn(() => {
     if (fuzzerPageId == null || fuzzerPageId === '') {

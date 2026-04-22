@@ -32,11 +32,7 @@ const ModalInfo: FC<ModalInfoProps> = ({ icon, title, time, trailing }) => {
         <span className={styles['modal-info-title-text']}>{title}</span>
         {time != null && time > 0 ? (
           <span
-            className={
-              trailing != null
-                ? styles['modal-info-title-time-squeeze']
-                : styles['modal-info-title-time']
-            }
+            className={trailing != null ? styles['modal-info-title-time-squeeze'] : styles['modal-info-title-time']}
           >
             {formatTimestamp(time)}
           </span>
