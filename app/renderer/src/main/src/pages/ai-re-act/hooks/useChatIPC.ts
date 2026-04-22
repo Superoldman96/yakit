@@ -68,35 +68,6 @@ function useChatIPC(params?: UseChatIPCParams) {
     onHttpFuzzRequestChange,
   } = params || {}
 
-  const lastHttpFuzzRequestChangeRef = useRef<AIAgentGrpcApi.HttpFuzzRequestChange | null>(null)
-  const userHttpFuzzRequestChangeHandlerRef = useRef<
-    null | ((data: AIAgentGrpcApi.HttpFuzzRequestChange) => void | unknown)
-  >(null)
-
-  const setHttpFuzzRequestChangeHandler = useMemoizedFn(
-    (handler: null | ((data: AIAgentGrpcApi.HttpFuzzRequestChange) => void | unknown)) => {
-      userHttpFuzzRequestChangeHandlerRef.current = handler
-    },
-  )
-
-  const runHttpFuzzRequestChange = useMemoizedFn((data: AIAgentGrpcApi.HttpFuzzRequestChange) => {
-    lastHttpFuzzRequestChangeRef.current = data
-    const fromUser = userHttpFuzzRequestChangeHandlerRef.current?.(data)
-    if (fromUser !== undefined) {
-      return fromUser
-    }
-    return onHttpFuzzRequestChange?.(data)
-  })
-
-  const invokeHttpFuzzRequestChange = useMemoizedFn((data?: AIAgentGrpcApi.HttpFuzzRequestChange) => {
-    const d = data ?? lastHttpFuzzRequestChangeRef.current
-    if (!d) {
-      yakitNotify('warning', '没有可应用的 http_fuzz_request 数据，请先让 AI 生成或传入数据')
-      return
-    }
-    return runHttpFuzzRequestChange(d)
-  })
-
   const { getLabelByParams } = useAINodeLabel()
 
   // #region 全局公共方法集合

@@ -20,6 +20,11 @@
     "concurrency": "组并发",
     "AI": "AI"
   },
+  "WebFuzzerAiRequestCompare": {
+    "title": "请求对比",
+    "leftTitle": "当前 Web Fuzzer 请求",
+    "rightTitle": "AI 内容"
+  },
   "PacketScanButton": {
     "packetScan": "扫描"
   },

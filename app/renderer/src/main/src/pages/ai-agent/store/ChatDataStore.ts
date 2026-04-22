@@ -187,8 +187,14 @@ export const knowledgeBaseDataStore = new ChatDataStore()
 export const histroyAiStore = new ChatDataStore()
 export const FlowAiStore = new ChatDataStore()
 
-/** Web Fuzzer 每页 `new WebFuzzerAiStore()`；与上方单例区分需用 `instanceof` */
-export class WebFuzzerAiStore extends ChatDataStore {}
+/** Web Fuzzer 每页 `new WebFuzzerAiStore(pageId)`；与上方单例区分需用 `instanceof` */
+export class WebFuzzerAiStore extends ChatDataStore {
+  public readonly fuzzerPageId: string
+  constructor(fuzzerPageId: string) {
+    super()
+    this.fuzzerPageId = fuzzerPageId
+  }
+}
 
 export type ChatDataStoreKey =
   | 'aiChatDataStore'

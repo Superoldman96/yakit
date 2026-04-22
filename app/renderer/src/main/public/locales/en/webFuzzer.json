@@ -20,6 +20,11 @@
     "concurrency": "Group Concurrency",
     "AI": "AI"
   },
+  "WebFuzzerAiRequestCompare": {
+    "title": "Request diff",
+    "leftTitle": "Current Web Fuzzer request",
+    "rightTitle": "AI content"
+  },
   "PacketScanButton": {
     "packetScan": "Scan"
   },

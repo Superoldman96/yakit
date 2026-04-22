@@ -69,6 +69,10 @@ export const AIYaklangCode: React.FC<AIYaklangCodeProps> = React.memo((props) =>
     }
   })
   const { chatIPCEvents } = useChatIPCDispatcher()
+  const webFuzzerAiStoreFuzzerPageId = useMemo((): string | undefined => {
+    const store = chatIPCEvents.fetchChatDataStore()
+    return store instanceof WebFuzzerAiStore ? store.fuzzerPageId : undefined
+  }, [chatIPCEvents])
   const chatDataStoreKey = useMemo((): ChatDataStoreKey => {
     const store = chatIPCEvents.fetchChatDataStore()
     switch (store) {
@@ -94,10 +98,14 @@ export const AIYaklangCode: React.FC<AIYaklangCodeProps> = React.memo((props) =>
       <ModalInfo
         {...modalInfo}
         timeHoverActive={isWebFuzzerAiStore && cardHover}
-        timeHoverReplacement={isWebFuzzerAiStore ? <WebFuzzerAiStoreCardRightHeader /> : undefined}
+        timeHoverReplacement={
+          isWebFuzzerAiStore && webFuzzerAiStoreFuzzerPageId ? (
+            <WebFuzzerAiStoreCardRightHeader content={content} fuzzerPageId={webFuzzerAiStoreFuzzerPageId} />
+          ) : undefined
+        }
       />
     )
-  }, [modalInfo, isWebFuzzerAiStore, cardHover])
+  }, [modalInfo, isWebFuzzerAiStore, cardHover, content, webFuzzerAiStoreFuzzerPageId])
 
   return (
     <div

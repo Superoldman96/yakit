@@ -107,6 +107,10 @@ import {
 import emiter from '@/utils/eventBus/eventBus'
 import { HistoryAIReActChatProvider, useHistoryAIReActChat } from '@/components/historyAIReActChat'
 import { WebFuzzerAiStore } from '@/pages/ai-agent/store/ChatDataStore'
+import {
+  registerWebFuzzerPageApplyRequestFromCard,
+  registerWebFuzzerPageGetRequestString,
+} from './webFuzzerAiRequestApplyBridge'
 import useChatIPCDispatcher from '@/pages/ai-agent/useContext/ChatIPCContent/useDispatcher'
 import { AIInputInnerFeatureEnum } from '@/pages/ai-agent/template/type'
 import { AIAgentGrpcApi } from '@/pages/ai-re-act/hooks/grpcApi'
@@ -1860,6 +1864,19 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
     requestRef.current = i
     sendFuzzerSettingInfo()
   })
+
+  useLayoutEffect(() => {
+    if (!props.id) return
+    const unregisterApply = registerWebFuzzerPageApplyRequestFromCard(props.id, (raw) => {
+      onSetRequest(raw)
+      refreshRequest()
+    })
+    const unregisterGet = registerWebFuzzerPageGetRequestString(props.id, () => requestRef.current)
+    return () => {
+      unregisterApply()
+      unregisterGet()
+    }
+  }, [props.id, onSetRequest, refreshRequest])
   const onInsertYakFuzzerFun = useMemoizedFn(() => {
     if (webFuzzerNewEditorRef.current) onInsertYakFuzzer(webFuzzerNewEditorRef.current.reqEditor)
   })
@@ -2952,7 +2969,7 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
 
 /** 每个 Web Fuzzer 页签独立 WebFuzzerAiStore，避免多开时共用内存缓存导致会话数据互相覆盖 */
 const HTTPFuzzerPage: React.FC<HTTPFuzzerPageProp> = (props) => {
-  const fuzzerAiChatDataStore = useCreation(() => new WebFuzzerAiStore(), [])
+  const fuzzerAiChatDataStore = useCreation(() => new WebFuzzerAiStore(props.id), [props.id])
   return (
     <HistoryAIReActChatProvider cacheDataStore={fuzzerAiChatDataStore} focusModeLoop="http_fuzztest">
       <HTTPFuzzerPageCore {...props} />
