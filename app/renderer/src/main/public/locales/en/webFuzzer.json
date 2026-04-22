@@ -80,6 +80,7 @@
     "webFuzzerDemo": "WebFuzzer Brute-Force Animation Demo",
     "bruteForceExample": "Brute-Force Example",
     "AI_new_conversation": "New conversation",
+    "ai_auto_patch_request": "AI auto-update request",
     "followRedirects": "Follow Redirects",
     "generatePathTemplate": "Generate as Path Template",
     "generateRawTemplate": "Generate as Raw Template",

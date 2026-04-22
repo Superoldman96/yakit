@@ -6,7 +6,8 @@ import { OutlinCompileTwoIcon } from '@/assets/icon/outline'
 import { YakitEditor } from '@/components/yakitUI/YakitEditor/YakitEditor'
 import ModalInfo from '../ModelInfo'
 import styles from './AIYaklangCode.module.scss'
-import { useCreation, useMemoizedFn, useThrottleEffect } from 'ahooks'
+import { useCreation, useMemoizedFn, useThrottleEffect, useUpdateEffect } from 'ahooks'
+import { tryWebFuzzerAutoApplyRequestFromAiYaklangCode } from '@/pages/fuzzer/webFuzzerAiRequestApplyBridge'
 import { NewHTTPPacketEditor } from '@/utils/editors'
 import useChatIPCDispatcher from '../../useContext/ChatIPCContent/useDispatcher'
 import {
@@ -91,6 +92,11 @@ export const AIYaklangCode: React.FC<AIYaklangCodeProps> = React.memo((props) =>
   useChatDataStoreKeyBranch(chatDataStoreKey)
 
   const isWebFuzzerAiStore = chatDataStoreKey === 'WebFuzzerAiStore'
+  useUpdateEffect(() => {
+    if (!isWebFuzzerAiStore || !webFuzzerAiStoreFuzzerPageId) return
+    tryWebFuzzerAutoApplyRequestFromAiYaklangCode(webFuzzerAiStoreFuzzerPageId, content)
+  }, [content, isWebFuzzerAiStore, webFuzzerAiStoreFuzzerPageId])
+
   const titleExtra = useMemo(() => {
     if (!modalInfo) return null
     return (
