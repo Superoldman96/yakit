@@ -16,6 +16,7 @@ import { AIChatQSDataTypeEnum, AIToolResult, type AIChatQSData, type AIChatQSDat
 import { genBaseAIChatData, isToolStderrStream, isToolStdoutStream } from './utils'
 import { convertNodeIdToVerbose, DefaultAIToolResult } from './defaultConstant'
 import cloneDeep from 'lodash/cloneDeep'
+import useGetSetState from '@/pages/pluginHub/hooks/useGetSetState'
 
 const DefaultHistoryPagination: PaginationSchema = { Page: 1, Limit: 200, OrderBy: 'created_at', Order: 'desc' }
 
@@ -41,13 +42,14 @@ function useHistoryChat(params?: UseHistoryChatParams) {
   })
 
   // #region 历史数据-时间线
-  const [timelinesLoading, setTimelinesLoading] = useState(false)
+  const [timelinesLoading, setTimelinesLoading, getTimelinesLoading] = useGetSetState(false)
   const hasMoreTimeline = useRef(true)
   const getTimelineBeforeID = useMemoizedFn(() => {
     return getChatDataStore?.()?.beforeID?.timelineID || undefined
   })
   const handleHistoryTimelines = useMemoizedFn(async (session: string) => {
     if (!hasMoreTimeline.current) return
+    if (getTimelinesLoading()) return
 
     if (!session) {
       yakitNotify('error', '会话ID不存在，无法获取历史聊天记录')

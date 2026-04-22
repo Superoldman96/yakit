@@ -120,7 +120,6 @@ const ToolStdoutCard: React.FC<ToolStdoutCardProps> = memo((props) => {
     }
     handleSend(params)
   })
-  console.log('stream:', stream?.reference)
   const referenceNode = useCreation(() => {
     return !!stream?.reference ? <AIReferenceNode referenceList={stream?.reference} /> : <></>
   }, [stream?.reference])
