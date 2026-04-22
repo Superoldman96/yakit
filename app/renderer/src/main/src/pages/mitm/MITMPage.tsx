@@ -1101,22 +1101,22 @@ export type LoadPluginMode = 'giturl' | 'local' | 'local-nuclei' | 'uploadId'
 const loadModeInfo = [
   {
     value: 'giturl',
-    label: 'MitmPage.ImportLocalPlugin.onlineNuclei',
+    label: 'ImportLocalPlugin.onlineNuclei',
     width: 680,
   },
   {
     value: 'local',
-    label: 'MitmPage.ImportLocalPlugin.localPlugin',
+    label: 'ImportLocalPlugin.localPlugin',
     width: 680,
   },
   {
     value: 'local-nuclei',
-    label: 'MitmPage.ImportLocalPlugin.localNuclei',
+    label: 'ImportLocalPlugin.localNuclei',
     width: 680,
   },
   {
     value: 'uploadId',
-    label: 'MitmPage.ImportLocalPlugin.pluginID',
+    label: 'ImportLocalPlugin.pluginID',
     width: 680,
   },
 ]
