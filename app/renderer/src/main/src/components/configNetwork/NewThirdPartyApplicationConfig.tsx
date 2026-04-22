@@ -32,8 +32,7 @@ import { YakitTag } from '../yakitUI/YakitTag/YakitTag'
 import { HTTPHeader } from '@/pages/mitm/MITMContentReplacerHeaderOperator'
 import YakitCollapse from '../yakitUI/YakitCollapse/YakitCollapse'
 import classNames from 'classnames'
-import i18n from '@/i18n/i18n'
-import { useI18nNamespaces } from '@/i18n/useI18nNamespaces'
+import { TFunction, useI18nNamespaces } from '@/i18n/useI18nNamespaces'
 const { ipcRenderer } = window.require('electron')
 
 export interface ThirdPartyAppConfigItemTemplate {
@@ -82,81 +81,59 @@ const defautFormValues = {
   ExtraParams: [] as KVPair[],
 }
 
-const defaultFormItems: ThirdPartyAppConfigItemTemplate[] = [
-  {
-    DefaultValue: '',
-    Desc: 'APIKey / Token',
-    Extra: '',
-    Name: 'api_key',
-    Required: true,
-    Type: 'string',
-    Verbose: 'ApiKey',
-  },
-  {
-    DefaultValue: '',
-    Desc: 'email / username',
-    Extra: '',
-    Name: 'user_identifier',
-    Required: false,
-    Type: 'string',
-    Verbose: i18n.language === 'zh' ? '用户信息' : 'User Info',
-  },
-]
-
-const aiModelTypeOptions: SelectOptionsProps[] = [
-  {
-    label: i18n.language === 'zh' ? '高质模型:执行复杂任务' : 'High quality model: executes complex tasks',
-    value: AIModelTypeEnum.TierIntelligent,
-  },
-  {
-    label:
-      i18n.language === 'zh'
-        ? '轻量模型:用于执行简单任务和会话'
-        : 'Lightweight model: executes simple tasks and conversations',
-    value: AIModelTypeEnum.TierLightweight,
-  },
-  {
-    label:
-      i18n.language === 'zh'
-        ? '视觉模式:用于识别图片等,生成知识库和任务执行都会用到'
-        : 'Vision model: used for image recognition and knowledge base/task execution',
-    value: AIModelTypeEnum.TierVision,
-  },
-]
-const aiAPITypeOptions: SelectOptionsProps[] = AI_API_TYPE_OPTIONS.map((item) => ({ label: item, value: item }))
-const aiModelTypeItem: ThirdPartyAppConfigItemTemplate = {
-  Name: 'model_type',
-  Required: true,
-  Type: 'list',
-  DefaultValue: AIModelTypeEnum.TierIntelligent,
-  Desc: '',
-  Extra: `${JSON.stringify({
-    options: aiModelTypeOptions,
-  })}`,
-  Verbose: i18n.language === 'zh' ? '模型类型' : 'Model Type',
+const defaultFormItems: (t: TFunction) => ThirdPartyAppConfigItemTemplate[] = (t) => {
+  return [
+    {
+      DefaultValue: '',
+      Desc: 'APIKey / Token',
+      Extra: '',
+      Name: 'api_key',
+      Required: true,
+      Type: 'string',
+      Verbose: 'ApiKey',
+    },
+    {
+      DefaultValue: '',
+      Desc: 'email / username',
+      Extra: '',
+      Name: 'user_identifier',
+      Required: false,
+      Type: 'string',
+      Verbose: t('ConfigNetworkPage.userInfo'),
+    },
+  ]
 }
 
-const defaultFormItemsOfAI: ThirdPartyAppConfigItemTemplate[] = [
-  cloneDeep(aiModelTypeItem),
-  {
-    DefaultValue: '',
-    Desc: 'APIKey / Token',
-    Extra: '',
-    Name: 'api_key',
+const aiModelTypeOptions: (t: TFunction) => SelectOptionsProps[] = (t) => {
+  return [
+    {
+      label: t('ConfigNetworkPage.highQualityModel'),
+      value: AIModelTypeEnum.TierIntelligent,
+    },
+    {
+      label: t('ConfigNetworkPage.lightweightModel'),
+      value: AIModelTypeEnum.TierLightweight,
+    },
+    {
+      label: t('ConfigNetworkPage.visionModel'),
+      value: AIModelTypeEnum.TierVision,
+    },
+  ]
+}
+const aiAPITypeOptions: SelectOptionsProps[] = AI_API_TYPE_OPTIONS.map((item) => ({ label: item, value: item }))
+const aiModelTypeItem: (t: TFunction) => ThirdPartyAppConfigItemTemplate = (t) => {
+  return {
+    Name: 'model_type',
     Required: true,
     Type: 'list',
-    Verbose: 'ApiKey',
-  },
-  {
-    DefaultValue: '',
-    Desc: 'email / username',
-    Extra: '',
-    Name: 'user_identifier',
-    Required: false,
-    Type: 'string',
-    Verbose: '用户信息',
-  },
-]
+    DefaultValue: AIModelTypeEnum.TierIntelligent,
+    Desc: '',
+    Extra: `${JSON.stringify({
+      options: aiModelTypeOptions(t),
+    })}`,
+    Verbose: t('ConfigNetworkPage.modelType'),
+  }
+}
 
 interface NewThirdPartyApplicationConfigBaseProps extends Omit<
   ThirdPartyApplicationConfigProp,
@@ -387,7 +364,7 @@ export const NewThirdPartyApplicationConfigBase: React.FC<NewThirdPartyApplicati
     }, [formValues])
 
     const defaultFormList = useCreation(() => {
-      return [...defaultFormItems]
+      return [...defaultFormItems(t)]
     }, [])
     return (
       <div className={styles['config-form-wrapper']}>
@@ -469,29 +446,31 @@ export const NewThirdPartyApplicationConfigBase: React.FC<NewThirdPartyApplicati
   }),
 )
 
-const defaultAIFormItemsOfAI: ThirdPartyAppConfigItemTemplate[] = [
-  cloneDeep(aiModelTypeItem),
-  {
-    Name: 'api_type',
-    Required: true,
-    Type: 'list',
-    DefaultValue: DEFAULT_AI_API_TYPE,
-    Desc: '可选值: chat_completions / responses',
-    Extra: `${JSON.stringify({
-      options: aiAPITypeOptions,
-    })}`,
-    Verbose: i18n.language === 'zh' ? 'API类型' : 'API type',
-  },
-  {
-    DefaultValue: 'memfit-light-free',
-    Desc: '',
-    Extra: '',
-    Name: 'model',
-    Required: true,
-    Type: 'list',
-    Verbose: i18n.language === 'zh' ? '模型名称' : 'Model name',
-  },
-]
+const defaultAIFormItemsOfAI: (t: TFunction) => ThirdPartyAppConfigItemTemplate[] = (t) => {
+  return [
+    cloneDeep(aiModelTypeItem(t)),
+    {
+      Name: 'api_type',
+      Required: true,
+      Type: 'list',
+      DefaultValue: DEFAULT_AI_API_TYPE,
+      Desc: '可选值: chat_completions / responses',
+      Extra: `${JSON.stringify({
+        options: aiAPITypeOptions,
+      })}`,
+      Verbose: t('ConfigNetworkPage.APItype'),
+    },
+    {
+      DefaultValue: 'memfit-light-free',
+      Desc: '',
+      Extra: '',
+      Name: 'model',
+      Required: true,
+      Type: 'list',
+      Verbose: t('ConfigNetworkPage.modelName'),
+    },
+  ]
+}
 
 const isShowRequiredApiKey = (typeVal: string) => {
   let Required = !['aibalance', 'comate'].includes(typeVal)
@@ -553,6 +532,7 @@ const optionalAIFormItemsOfAI: ThirdPartyAppConfigItemTemplate[] = [
 export const NewAIThirdPartyApplicationConfigBase: React.FC<NewThirdPartyApplicationConfigBaseProps> = React.memo(
   forwardRef((props, ref) => {
     const { formValues = defautFormValues, disabledType = false, canAddType = true, FormProps, footer } = props
+    const { t, i18n } = useI18nNamespaces(['configNetwork'])
     const [form] = Form.useForm()
     const typeVal = Form.useWatch('Type', form)
     const [options, setOptions] = useState<SelectOptionsProps[]>([])
@@ -633,13 +613,13 @@ export const NewAIThirdPartyApplicationConfigBase: React.FC<NewThirdPartyApplica
     )
 
     const newDefaultAIFormItemsOfAI = useCreation(() => {
-      let newAIFormItemsOfAI = cloneDeep(defaultAIFormItemsOfAI)
+      let newAIFormItemsOfAI = cloneDeep(defaultAIFormItemsOfAI(t))
       const { isRequired, data } = isShowRequiredApiKey(typeVal)
       if (isRequired) {
         newAIFormItemsOfAI.push(data)
       }
       return newAIFormItemsOfAI
-    }, [typeVal])
+    }, [typeVal, i18n.language])
 
     const newOptionalAIFormItemsOfAI = useCreation(() => {
       let newData = cloneDeep(optionalAIFormItemsOfAI)
