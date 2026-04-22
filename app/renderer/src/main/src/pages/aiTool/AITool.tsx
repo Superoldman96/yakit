@@ -157,10 +157,11 @@ const AIToolPage: React.FC<AIToolProps> = React.memo((props) => {
       setResponse((old) => {
         return {
           ...old,
-          Total: old.Total - 1,
+          Total: Math.max(0, old.Total - 1),
           Tools: old.Tools.filter((item) => item.ID !== data.ID),
         }
       })
+      setListTotal((v) => Math.max(0, v - 1))
       yakitNotify('success', '删除成功')
     })
   })

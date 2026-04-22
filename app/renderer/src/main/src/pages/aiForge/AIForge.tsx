@@ -181,14 +181,15 @@ const AIForgePage: React.FC<AIForgeProps> = React.memo((props) => {
       return Promise.reject('ID 异常')
     }
     return grpcDeleteAIForge({ Id: id }).then(() => {
-      yakitNotify('success', '删除Forge模板成功')
       setResponse((old) => {
         return {
           ...old,
-          Total: old.Total - 1,
+          Total: Math.max(0, old.Total - 1),
           Data: old.Data.filter((item) => item.Id !== info.Id),
         }
       })
+      setListTotal((v) => Math.max(0, v - 1))
+      yakitNotify('success', '删除Forge模板成功')
     })
   })
   return (
