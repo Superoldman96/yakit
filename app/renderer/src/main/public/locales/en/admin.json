@@ -37,7 +37,6 @@
     "uploadTime": "Upload Time",
     "deleteHoleConfirm": "Are you sure to delete this vulnerability?",
     "exportFailed": "Data export failed: {{error}}",
-    "riskAndVulnerability": "Risk & Vulnerability",
     "refreshTooltip": "Refresh will reset all search criteria",
     "deleteSelectedConfirm": "Are you sure to delete selected risks? It cannot be recovered",
     "deleteAllConfirm": "Are you sure to delete all risks? It cannot be recovered",

@@ -30,7 +30,6 @@
     "feedback_success": "Feedback successful",
     "vulnerability_not_scanned_by_plugin": "This vulnerability was not scanned by a plugin",
     "select_export_fields": "Select Export Fields",
-    "risk_and_vulnerabilities": "Risks and Vulnerabilities",
     "export_html_failed": "Export HTML failed:",
     "expand_filter": "Expand Filter",
     "all": "All",

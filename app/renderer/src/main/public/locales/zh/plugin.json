@@ -58,9 +58,6 @@
   "LocalPluginLog": {
     "no_log_information": "暂无日志信息"
   },
-  "VulnerabilitiesRisksTable": {
-    "risks_and_vulnerabilities": "风险与漏洞"
-  },
   "PluginExecutePortTable": {
     "portAssetManagement": "端口资产管理"
   },

@@ -37,7 +37,6 @@
     "uploadTime": "上传时间",
     "deleteHoleConfirm": "确定删除该漏洞吗？",
     "exportFailed": "数据导出失败：{{error}}",
-    "riskAndVulnerability": "风险与漏洞",
     "refreshTooltip": "刷新会重置所有查询条件",
     "deleteSelectedConfirm": "确定删除选择的风险与漏洞吗？不可恢复",
     "deleteAllConfirm": "确定删除所有风险与漏洞吗? 不可恢复",

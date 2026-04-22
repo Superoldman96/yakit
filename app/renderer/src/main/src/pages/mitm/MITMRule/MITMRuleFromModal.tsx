@@ -194,7 +194,7 @@ export const MITMRuleFromModal: React.FC<MITMRuleFromModalProps> = (props) => {
         onCancel={() => onClose()}
         closable
         okType="primary"
-        okText={isEdit ? t('YakitButton.edit') : t('MITMRuleFromModal.add_this_rule')}
+        okText={isEdit ? t('YakitButton.save') : t('MITMRuleFromModal.add_this_rule')}
         width={720}
         zIndex={1001}
         onOk={() => onOk()}

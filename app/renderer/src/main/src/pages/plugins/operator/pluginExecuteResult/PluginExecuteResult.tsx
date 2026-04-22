@@ -437,7 +437,7 @@ export const PluginExecuteLog: React.FC<PluginExecuteLogProps> = React.memo((pro
 /**风险与漏洞tab表 */
 export const VulnerabilitiesRisksTable: React.FC<VulnerabilitiesRisksTableProps> = React.memo((props) => {
   const { runtimeId, runTimeIDs, filterTagDom } = props
-  const { t, i18n } = useI18nNamespaces(['plugin', 'yakitUi'])
+  const { t, i18n } = useI18nNamespaces(['plugin', 'yakitUi', 'yakitRoute'])
   const [riskLoading, setRiskLoading] = useState<boolean>(false)
   const [allTotal, setAllTotal] = useControllableValue<number>(props, {
     defaultValue: 0,
@@ -475,7 +475,7 @@ export const VulnerabilitiesRisksTable: React.FC<VulnerabilitiesRisksTableProps>
           renderTitle={
             <div className={styles['table-renderTitle']}>
               <div className={styles['table-renderTitle-left']}>
-                <span>{t('VulnerabilitiesRisksTable.risks_and_vulnerabilities')}</span>
+                <span>{t('YakitRoute.riskAndVulnerability')}</span>
                 <TableTotalAndSelectNumber total={allTotal} />
                 {filterTagDom}
               </div>
@@ -503,7 +503,7 @@ export const VulnerabilitiesRisksTable: React.FC<VulnerabilitiesRisksTableProps>
 /**审计漏洞tab表 */
 export const AuditHoleTableOnTab: React.FC<AuditHoleTableOnTabProps> = React.memo((props) => {
   const { runtimeId } = props
-  const { t } = useI18nNamespaces(['plugin', 'yakitUi'])
+  const { t } = useI18nNamespaces(['plugin', 'yakitUi', 'yakitRoute'])
   const [allTotal, setAllTotal] = useState<number>(0)
 
   const onJumpAuditHole = useMemoizedFn(() => {
@@ -531,7 +531,7 @@ export const AuditHoleTableOnTab: React.FC<AuditHoleTableOnTabProps> = React.mem
         renderTitle={
           <div className={styles['table-renderTitle']}>
             <div className={styles['table-renderTitle-left']}>
-              <span>{t('VulnerabilitiesRisksTable.risks_and_vulnerabilities')}</span>
+              <span>{t('YakitRoute.riskAndVulnerability')}</span>
               <TableTotalAndSelectNumber total={allTotal} />
             </div>
             <YakitButton type="outline2" size="small" onClick={onJumpAuditHole}>
