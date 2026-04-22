@@ -5,7 +5,7 @@ import { DownloadingState, YakitSettingCallbackType, YakitStatusType, YaklangEng
 import { YakitButton } from '@/components/yakitUI/YakitButton/YakitButton'
 import { setLocalValue } from '@/utils/kv'
 import { failed, info, success } from '@/utils/notification'
-import { getReleaseEditionName, isEnterpriseEdition, isIRify, isMemfit } from '@/utils/envfile'
+import { getCurrentVersionSource, getReleaseEditionName, isEnterpriseEdition, isIRify, isMemfit } from '@/utils/envfile'
 import { UpdateContentProp } from '../FuncDomain'
 import { NetWorkApi } from '@/services/fetch'
 import { LocalGVS } from '@/enums/localGlobal'
@@ -64,7 +64,7 @@ export const UpdateYakitHint: React.FC<UpdateYakitHintProps> = React.memo((props
       method: 'get',
       url: 'yak/versions/info',
       params: {
-        source: isIRify() ? 'irify' : 'yakit',
+        source: getCurrentVersionSource(),
       },
     })
       .then((res: API.YakVersionsInfoResponse) => {

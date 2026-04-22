@@ -29,6 +29,8 @@ import { YakitButton } from '../yakitUI/YakitButton/YakitButton'
 import { YakitPopover } from '../yakitUI/YakitPopover/YakitPopover'
 import { YakitMenu, YakitMenuItemProps, YakitMenuItemType } from '../yakitUI/YakitMenu/YakitMenu'
 import {
+  getCurrentVersionSource,
+  VersionSource,
   getReleaseEditionName,
   getRemoteI18nGV,
   isCommunityEdition,
@@ -1935,7 +1937,7 @@ export interface UpdateEnpriTraceInfoProps {
 interface SetUpdateContentProp extends FetchUpdateContentProp {
   updateContent: string
   // 默认为yakit
-  source?: 'yakit' | 'irify'
+  source?: VersionSource
 }
 
 const UIOpNotice: React.FC<UIOpNoticeProp> = React.memo((props) => {
@@ -2005,7 +2007,7 @@ const UIOpNotice: React.FC<UIOpNoticeProp> = React.memo((props) => {
       method: 'get',
       url: 'yak/versions/info',
       params: {
-        source: isIRify() ? 'irify' : 'yakit',
+        source: getCurrentVersionSource(),
       },
     })
       .then((res: API.YakVersionsInfoResponse) => {
@@ -2278,7 +2280,7 @@ const UIOpNotice: React.FC<UIOpNoticeProp> = React.memo((props) => {
         version: editShow.type === 'yakit' ? yakitLastVersion : yaklangLastVersion,
         content: editInfo || '',
       }),
-      source: isIRify() ? 'irify' : 'yakit',
+      source: getCurrentVersionSource(),
     }
 
     NetWorkApi<SetUpdateContentProp, API.ActionSucceeded>({
