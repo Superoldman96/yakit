@@ -7,7 +7,7 @@
     "MenuCodec": {
       "decode": "解码",
       "encode": "编码",
-      "fuzztag": "fuzztag",
+      "fuzztag": "Fuzztag",
       "messageCodecInProgress": "请等待上次编解码执行完后再次尝试",
       "messageCodecNoContent": "请输入需要编解码的内容后再次尝试",
       "messageCodecEmptyType": "BUG: 空的编解码类型",
@@ -47,8 +47,8 @@
     "ExtraMenu": {
       "localPlugin": "本地插件",
       "pluginID": "插件 ID",
-      "online": "线上",
-      "local": "本地",
+      "onlineNuclei": "线上 Nuclei",
+      "localNuclei": "本地 Nuclei",
       "importSharedData": "导入分享数据",
       "importHARHistoryData": "导入HAR流量数据",
       "proxyManagement": "代理管理",
@@ -89,9 +89,58 @@
   },
   "MainOperatorContent": {
     "save_fuzzer_history_success": "保存fuzzer历史成功",
-    "SubTabs": {
-      "save_webfuzzer_history": "保存WebFuzzer历史数据"
-    }
+    "switchTab": "切换标签页",
+    "SelectFirstMenuTabKeyFailed": "SelectFirstMenuTabKey获取数据失败: {{error}}",
+    "noWFHistoryData": "暂无WF历史数据",
+    "restoreHistoryFailed": "WF历史数据恢复失败: {{error}}",
+    "switchMenuItemFailed": "切换一级菜单选中key失败: {{error}}",
+    "openWFFailed": "打开WF失败: {{error}}",
+    "fetchPluginGroupFailed": "获取插件组失败: {{error}}",
+    "fetchFuzzerListFailed": "fetchFuzzerList失败: {{error}}",
+    "webFuzzerParseFailed": "webFuzzer序列化获取缓存数据解析失败: {{error}}",
+    "maxTabsReached": "超过标签页数量限制",
+    "selectTypeAgain": "请选择类型后再次提交",
+    "max50Chars": "不能超过50个字符",
+    "moveToGroup": "将标签页移动到组",
+    "batchNewGroup": "批量新建组",
+    "removeFromGroup": "从组中移出",
+    "restoreTab": "恢复标签页",
+    "closeCurrentTab": "关闭当前标签页",
+    "closeAllTabs": "关闭所有标签页",
+    "closeOtherTabs": "关闭其他标签页",
+    "specialVulnType": "专项漏洞类型",
+    "manageNewGroupHint": "点击管理新建分组",
+    "manage": "管理",
+    "closeAll": "关闭所有",
+    "closeAllTabsTitle": "是否关闭所有标签页",
+    "closeOther": "关闭其他",
+    "closeGroup": "关闭组",
+    "closeOtherInGroup": "关闭组内其他",
+    "keepCurrentCloseOthers": "是否保留当前标签页，关闭其他标签页",
+    "keepCurrentCloseOthersInGroup": "是否仅保留当前标签页，关闭组内其他标签页",
+    "keepCurrentGroupCloseOthers": "是否保留当前组及其组内标签页，关闭其他组和标签页",
+    "importPlugin": "导入插件",
+    "createGroup": "创建新组",
+    "cancelGroup": "取消组合",
+    "editGroup": "编辑组合",
+    "closeGroupConfirm": "是否关闭当前组,关闭后,组内的页面也会关闭",
+    "save_webfuzzer_history": "保存WebFuzzer历史数据"
+  },
+  "BatchAddNewGroup": {
+    "groupName": "组名：",
+    "addTabsToGroup": "添加标签页到组：",
+    "groupNameRequired": "组名不能为空",
+    "groupNameTooLong": "组名不能超过50个字符",
+    "pleaseSelectTabs": "请勾选tab页"
+  },
+  "TabRenameModalContent": {
+    "restoreRecent": "恢复最近",
+    "restoreMode": "恢复模式",
+    "overwriteCurrentTab": "覆盖当前标签",
+    "addRestoreTab": "新增恢复标签页",
+    "restoreLimitExceeded": "恢复标签数超过上限",
+    "restoreTabs": "恢复 {{count}} 个标签页",
+    "tabPage": "个标签页"
   },
   "UILayout": {
     "entering": "即将进入...",
@@ -101,7 +150,40 @@
     "cannotExportProject": "当前项目无关键信息，无法导出!",
     "temporaryProject": "临时项目",
     "updateEngineTitle": "更新引擎，需关闭所有本地进程",
-    "updateEngineDesc": "关闭所有引擎，包括正在连接的本地引擎进程，同时页面将进入加载页。"
+    "updateEngineDesc": "关闭所有引擎，包括正在连接的本地引擎进程，同时页面将进入加载页。",
+    "detectedLocalEngineInstallDirectly": "已检测到本地存在对应版本引擎，直接进行安装",
+    "installSuccessRestart": "安装成功，如未生效，重启 {{edition}} 即可",
+    "unpackBuiltinEngineSuccess": "解压内置引擎成功",
+    "unpackBuiltinEngineNeedRestart": "引擎解压成功，需要重启",
+    "restartFailed": "重启失败：{{error}}",
+    "restartNow": "点此立即重启",
+    "initBuiltinEngineFailed": "初始化内置引擎失败：{{error}}",
+    "useOfficialEngineTitle": "使用官方引擎，需关闭所有本地进程",
+    "useOfficialEngineDownloadDesc": "确认下载并安装官方引擎，将会关闭所有引擎，包括正在连接的本地引擎进程，同时页面将进入加载页。",
+    "useOfficialEngineBuiltinDesc": "确认安装内置引擎，将会关闭所有引擎，包括正在连接的本地引擎进程，同时页面将进入加载页。",
+    "fetchEngineProcessError": "获取引擎进程错误：{{error}}",
+    "noConnectedEngineProcess": "未找到连接中的引擎进程",
+    "remoteControlConnecting": "远程控制连接中...",
+    "base64DecodeFailed": "Base64 解码失败：{{error}}",
+    "parseFailed": "解析失败：{{error}}",
+    "addThirdPartyApp": "添加第三方应用",
+    "selectAiTypeForApiKey": "请选择AI类型进行APIKey配置，如配置多个，可在全局配置中配置使用优先级",
+    "onFuzzerModalParamsError": "onFuzzerModal 参数错误",
+    "clickToOpenFolder": "点击打开所在目录",
+    "targetFileNoLongerExists": "目标文件已不存在!",
+    "samplingCompleted": "采样完成",
+    "remoteControlReconnecting": "远程控制重连中...",
+    "remoteControlAbnormalExit": "远程控制异常退出, 无法连接",
+    "remoteControlAbnormalExitFailed": "远程控制异常退出, 无法连接。",
+    "connectionTimeoutManualStart": "连接超时, 请手动启动引擎",
+    "remoteConnectionDisconnected": "远程连接已断开",
+    "newEngineVersionFound": "发现新引擎版本",
+    "newEngineVersionFoundContent": "发现本地引擎存在新版本待使用，是否关闭引擎使用新版本？",
+    "enterProjectManageConfirmTitle": "是否进入项目管理",
+    "enterProjectManageConfirmContent": "如果有正在进行中的任务，回到项目管理页则都会停止，确定回到项目管理页面吗?",
+    "samplingInProgress": "采样中",
+    "resample": "重新采样",
+    "recordingInProgress": "录屏中"
   },
   "GlobalState": {
     "autoReverseConfigSuccess": "自启-全局反连配置成功",
@@ -127,6 +209,7 @@
     "noLocalPlugin": "暂无本地插件",
     "noLocalPluginDesc": "可一键获取官方云端插件源",
     "reverseNotConfigured": "全局反连未配置",
+    "reverseNotConfiguredDesc": "可能会影响部分功能的使用",
     "enabled": "已启用",
     "notEnabled": "未启用",
     "configGlobalReverse": "配置全局反连",
@@ -136,7 +219,16 @@
     "chromePathDesc": "如无法启动 Chrome，请配置 Chrome 启动路径",
     "configured": "已配置",
     "systemProxy": "系统代理",
-    "statusRefreshInterval": "状态刷新间隔时间"
+    "statusRefreshInterval": "状态刷新间隔时间",
+    "promotePcapUserPermissionFailed": "提升 Pcap 用户权限失败：{{error}}",
+    "allConfigsNormal": "所有配置均正常",
+    "enabledNodes": "启用节点",
+    "noLocalRules": "暂无本地规则",
+    "localRuleLibraryNeedsUpdate": "本地规则库需要更新",
+    "resetRulesHint": "检测到本地规则库为空，请点击确定重置规则",
+    "updateRulesHint": "检测到需更新本地规则库，请点击更新规则",
+    "closeRunNodeConfirmTitle": "是否确认关闭节点",
+    "closeRunNodeConfirmContent": "确认后节点将会关闭，运行在节点上的任务也会停止"
   },
   "SetUserInfo": {
     "avatarUpdateFailed": "头像更换失败：{{error}}",
@@ -156,7 +248,16 @@
     "refuse": "拒绝",
     "migrateDataTitle": "迁移数据",
     "migrateDataDesc": "由于IRify功能进行重构，为不影响使用，需要点击确定将旧数据进行迁移，迁移数据不会造成任何数据丢失。",
-    "setPassword": "修改密码"
+    "setPassword": "修改密码",
+    "irifyTechPreviewWatermark": "IRify技术浏览版仅供技术交流使用",
+    "enpriTraceTrialWatermark": "EnpriTrace-试用版",
+    "enpriTraceAgentTrialWatermark": "EnpriTraceAgent-试用版"
+  },
+  "NewApp": {
+    "userClickEvent": "用户点击事件",
+    "fetchFailed": "获取失败: {{error}}",
+    "setPrivateDomainFailed": "设置私有域失败: {{error}}",
+    "remoteControlClosing": "远程控制关闭中..."
   },
   "FuncDomain": {
     "remoteInProgress": "远程中",
@@ -184,14 +285,25 @@
     "controlledSide": "受控端",
     "controlledSideDesc": "复制密钥，并分享给控制端用户",
     "controllerSide": "控制端",
-    "controllerSideDesc": "可通过受控端分享的密钥远程控制他的 客户端"
+    "controllerSideDesc": "可通过受控端分享的密钥远程控制他的 客户端",
+    "noYakitLatestVersion": "未获取{{edition}}最新版本",
+    "noYaklangLatestVersion": "未获取引擎最新版本",
+    "updateContentSuccess": "修改更新内容成功"
+  },
+  "HelpDoc": {
+    "officialWebsite": "官方网站",
+    "featureRequest": "功能建议",
+    "aboutUs": "关于我们"
+  },
+  "PageLoading": {
+    "loading": "页面正在加载中..."
   },
   "RunNodeModal": {
     "inputNodeParamsError": "请输入ip/域名、端口号、节点名",
     "duplicateNodeRunning": "相同节点正在运行",
     "startNodeSuccess": "成功开启运行节点",
     "runNode": "运行节点",
-    "runNodeDesc": "运行节点会占用引擎资源，建议运行节点的时候，适度使用Yakit，否则会造成节点运行任务缓慢，可以运行多个节点（运行在不同平台，或统一平台节点名称不同）。",
+    "runNodeDesc": "运行节点会占用引擎资源，建议运行节点的时候，适度使用{{edition}}，否则会造成节点运行任务缓慢，可以运行多个节点（运行在不同平台，或统一平台节点名称不同）。",
     "platformIpDomain": "平台IP/域名",
     "platformPort": "平台端口",
     "nodeName": "节点名称"
@@ -202,5 +314,116 @@
     "configGlobalReverse": "配置全局反连",
     "alreadyLocalMode": "已为本地连接",
     "modeAlreadySet": "当前模式已设置"
+  },
+  "YakitLoading": {
+    "slogans": [
+      "没有困难的工作，只有勇敢的打工人。",
+      "打工累吗？累！但我不能哭，因为骑电动车擦眼泪不安全。",
+      "打工不仅能致富，还能交友娶媳妇",
+      "今天搬砖不狠，明天地位不稳",
+      "打工可能会少活十年，不打工你一天也活不下去。",
+      "有人相爱，有人夜里看海，有人七八个闹钟起不来，早安打工人!",
+      "打工人，打工魂，打工人是人上人",
+      "@所有人，据说用了{{edition}}后就不必再卷了！",
+      "再不用{{edition}}，卷王就是别人的了",
+      "来用{{edition}}啦？安全圈还是你最成功",
+      "这届网安人，人手一个{{edition}}，香惨了！",
+      "webfuzzer时根目录插入字典，会有意想不到的收获 ——是果实菌啊",
+      "{{edition}}写监听参数时不必写socks的版本号 ——是果实菌啊",
+      "使用热标签，可以中间处理des aes等加密，无需再碰py ——是果实菌啊",
+      "{{edition}}，为您提供渗透问题的完美解决方案 ——酒零",
+      "热加载fuzz快速定位，轻松挖洞无压力 ——k1115h0t",
+      "别让无聊占据你的时间，来探索新世界吧！——Chelth",
+      "<script>alert('Hello {{edition}}!')</script> ——红炉点雪",
+      "你的鼠标，掌控世界！——Chelth"
+    ],
+    "backToLocal": "返回本地连接",
+    "remoteControlling": "远程控制中 ...",
+    "welcome": "欢迎使用 {{edition}}",
+    "openEngineFolder": "打开引擎所在文件",
+    "openEngineFolderTip": "打开文件夹后运行'start-engine-grpc'，命令行启动引擎查看具体问题"
+  },
+  "McpHook": {
+    "started": "MCP 服务已启动：{{serverUrl}}",
+    "error": "MCP 服务错误：{{message}}",
+    "stopped": "MCP 服务已停止：{{message}}",
+    "serviceStopped": "服务已停止",
+    "urlRequired": "启动地址不能为空",
+    "urlFormatError": "启动地址格式错误，例如：127.0.0.1:11432",
+    "portRangeError": "端口号必须在1~65535之间",
+    "enableFailed": "启用MCP失败：{{error}}"
+  },
+  "LayoutUtils": {
+    "apiSystemConfigFailed": "apiSystemConfig 失败：{{error}}",
+    "grpcExportProjectFailed": "grpcExportProject 失败：{{error}}",
+    "grpcCancelExportProjectFailed": "grpcCancelExportProject 失败：{{error}}",
+    "grpcGetProjectsFailed": "grpcGetProjects 失败：{{error}}",
+    "apiSplitUploadFailed": "apiSplitUpload 失败：{{error}}"
+  },
+  "DownloadYakit": {
+    "downloading": "{{edition}} 软件下载中...",
+    "officialDownloadLink": "Yakit 软件官网下载链接",
+    "officialDownloadHint": "如遇网络问题无法下载，可到官网下载安装：",
+    "website": "官网地址"
+  },
+  "DownloadYaklang": {
+    "downloadFailed": "引擎下载失败：{{error}}",
+    "installSuccess": "安装成功，如未生效，重启 {{edition}} 即可",
+    "installFailed": "安装失败：{{error}}",
+    "closeEngineRetry": "请关闭引擎后重试",
+    "downloading": "Yaklang 引擎下载中..."
+  },
+  "UpdateYakitAndYaklang": {
+    "detectedUpdate": "检测到 {{edition}} 版本升级",
+    "downloading": "{{edition}} 下载中...",
+    "downloadSuccess": "{{edition}} 下载成功",
+    "unexpectedError": "异常错误，请关闭!",
+    "updateNotesTitle": "{{edition}} {{latest}} 更新说明 :",
+    "noUpdateNotice": "管理员未编辑更新通知",
+    "installPrompt": "安装需关闭软件，双击安装包即可安装完成，是否立即安装？",
+    "enginePrompt": "引擎提示",
+    "switchToBuiltin": "当前核心引擎版本低于{{edition}}内置版本, 将自动切换为内置引擎版本",
+    "localVersion": "本地版本",
+    "builtinVersion": "内置版本(新)"
+  },
+  "UIOp": {
+    "closeNodesTitle": "是否确认关闭节点",
+    "closeNodesContent": "关闭{{edition}}会默认关掉所有启用的节点",
+    "closeEditionTitle": "关闭{{edition}}",
+    "closeTempProjectContent": "关闭{{edition}}会自动退出临时项目，临时项目所有数据都不会保存。退出前可在设置-项目管理中导出数据",
+    "exitTempProject": "退出临时项目",
+    "noPrompt": "下次不再提醒",
+    "exitTempProjectContent": "确认退出后，临时项目所有数据都不会保存，包括流量数据、端口数据、域名数据和漏洞数据等。",
+    "exportBeforeExit": "退出前可在设置-项目管理中导出数据"
+  },
+  "PerformanceDisplay": {
+    "localYakProcessManagement": "本地 Yak 进程管理",
+    "resetEngineVersionNotice": "重置引擎版本会恢复最初引擎出厂版本，同时强制重启",
+    "remoteControlClosing": "远程控制关闭中...",
+    "restoreEngineSuccess": "恢复引擎成功",
+    "restoreEngineFailed": "恢复引擎失败：{{error}}",
+    "resetEngineVersion": "重置引擎版本",
+    "fetching": "获取中",
+    "current": "(当前)",
+    "yakProcessDetails": "YakProcess 详情",
+    "details": "详情",
+    "switchEngineConfirm": "确定是否切换连接的引擎",
+    "switchCoreEngineSuccess": "切换核心引擎成功！",
+    "switchEngineFailed": "切换引擎失败，请尝试切换其他端口重连",
+    "switchEngine": "切换引擎",
+    "closeEngineConfirm1": "确定关闭将会强制关闭进程,",
+    "closeEngineConfirm2": "如为当前连接引擎,未关闭{{edition}}再次连接引擎,",
+    "closeEngineConfirm3": "则需在加载页点击\"其他连接模式-手动启动引擎\"",
+    "closeEngine": "关闭引擎",
+    "engineProcessesClosing": "引擎进程关闭中..."
+  },
+  "AllKillEngineConfirm": {
+    "title": "更新引擎，需关闭所有本地进程",
+    "content": "关闭所有引擎，包括正在连接的本地引擎进程，同时页面将进入加载页。",
+    "fetchPortError": "获取连接引擎端口错误：{{error}}",
+    "fetchProcessError": "获取引擎进程失败：{{error}}",
+    "noProcess": "未识别到已启动的引擎进程",
+    "killProcessFailed": "引擎进程(pid:{{pid}},port:{{port}})关闭失败 {{error}}",
+    "closing": "进程关闭中，请稍等 ..."
   }
 }

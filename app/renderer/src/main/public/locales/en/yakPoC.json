@@ -8,7 +8,7 @@
     "selectPrompt": "Please select keywords or plugin groups to scan"
   },
   "PluginGroupByKeyWord": {
-    "noDataDesc": "One-click to get default keywords and plugins. Please restart Yakit after downloading."
+    "noDataDesc": "One-click to get default keywords and plugins. Please restart {{edition}} after downloading."
   },
   "PluginGroupGrid": {
     "searchGroupNamePlaceholder": "Enter group name to search",

@@ -46,7 +46,7 @@
     "exportJson": "导出 JSON",
     "exportCsv": "导出 CSV",
     "outputToDirectory": "输出到目录",
-    "optionalDefaultYakitTempDir": "可为空，默认为 {{yakit}} 临时目录",
+    "optionalDefaultYakitTempDir": "可为空，默认为 {{edition}} 临时目录",
     "fileName": "文件名",
     "asteriskAsRandom": "'*' 可作为随机字符串填空，不需要填写后缀",
     "generateDataToLocalFile": "生成数据到本地文件",

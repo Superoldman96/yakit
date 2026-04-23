@@ -54,6 +54,7 @@
     "resetAll": "一键重置",
     "batchOperation": "批量操作",
     "clear": "清空",
+    "clearAll": "全部清空",
     "disable": "禁用",
     "disable_all": "全部禁用",
     "enable": "启用",
@@ -81,6 +82,7 @@
     "rename": "重命名",
     "copy": "复制",
     "advancedFilter": "高级筛选",
+    "collapseFilter": "收起筛选",
     "newFolder": "新建文件夹",
     "newFile": "新建文件",
     "remove": "移除",
@@ -92,7 +94,17 @@
     "locate": "定位",
     "ignore": "忽略",
     "update": "更新",
-    "modify": "修改"
+    "modify": "修改",
+    "closeAll": "全部关闭",
+    "oneClickUpdate": "一键更新",
+    "skip": "跳过",
+    "login": "登录",
+    "loginNow": "立即登录",
+    "retry": "重试",
+    "updateNow": "立即更新",
+    "closeNow": "立即关闭",
+    "collapse": "收起",
+    "expand": "展开"
   },
   "YakitNotification": {
     "unknown_error": "未知错误",
@@ -147,7 +159,9 @@
     "addFailed": "添加失败：{{error}}",
     "copyFailedNoError": "复制失败",
     "pasteFailed": "粘贴失败 {{error}}",
-    "modalCrashRetry": "弹框内逻辑性崩溃，请关闭重试！"
+    "modalCrashRetry": "弹框内逻辑性崩溃，请关闭重试！",
+    "installFailed": "安装失败：{{error}}",
+    "updateContentFailed": "修改错误：{{error}}"
   },
   "YakitFormDragger": {
     "filePath": "文件路径",
@@ -203,7 +217,8 @@
     "noData": "暂无数据",
     "noMoreData": "暂无更多数据",
     "end_of_list": "已经到底啦～",
-    "searchEmpty": "搜索结果“空”"
+    "searchEmpty": "搜索结果“空”",
+    "noImage": "暂无图片"
   },
   "YakitDatePicker": {
     "oneMinute": "1分钟",
@@ -244,8 +259,12 @@
     "loadMore": "加载更多..."
   },
   "YakitProgress": {
+    "progress": "进度 {{percent}}%",
     "uploadedPercent": "已上传 {{percent}}%",
-    "downloadedPercent": "已下载 {{percent}}%"
+    "downloadedPercent": "已下载 {{percent}}%",
+    "remainingTime": "剩余时间：{{time}}s",
+    "elapsedTime": "耗时：{{time}}s",
+    "downloadSpeed": "下载速度：{{speed}}M/s"
   },
   "YakitSelect": {
     "pleaseSelect": "请选择...",
@@ -257,6 +276,7 @@
   "YakitCheckbox": {
     "selectAll": "全选",
     "dontRemindAgain": "下次不再提醒",
+    "dontAskAgain": "不再提示",
     "confirmDeleteSelected": "确定删除勾选数据吗？",
     "confirmClearList": "确定清空列表数据吗?"
   },
@@ -356,17 +376,11 @@
     "on": "开",
     "off": "关"
   },
-  "YakitResizeBox": {
-    "collapse": "收起"
-  },
-  "YakitCollapseText": {
-    "collapse": "收起",
-    "expand": "展开"
-  },
-  "YakitUploadModal": {
-    "progress": "进度",
-    "remainingTime": "剩余时间 :",
-    "elapsedTime": "耗时 :",
-    "downloadSpeed": "下载速度 :"
+  "YakitWindow": {
+    "dockPosition": "停靠方位",
+    "floatWindow": "浮窗",
+    "dockBottom": "向下",
+    "dockLeft": "向左",
+    "dockRight": "向右"
   }
 }

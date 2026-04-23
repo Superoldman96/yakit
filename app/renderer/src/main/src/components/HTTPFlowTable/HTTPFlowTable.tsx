@@ -122,7 +122,7 @@ import useShortcutKeyTrigger from '@/utils/globalShortcutKey/events/useShortcutK
 import useGetSetState from '@/pages/pluginHub/hooks/useGetSetState'
 import { DebouncedFunc, isEqual, toArray } from 'lodash'
 import { defalutColumnsOrder } from '@/pages/hTTPHistoryAnalysis/HTTPHistory/HTTPHistoryFilter'
-import { isEnpriTrace } from '@/utils/envfile'
+import { getReleaseEditionName, isEnpriTrace } from '@/utils/envfile'
 import { HTTPFlowsToOnlineRequest } from '@/utils/login'
 import { NowProjectDescription } from '@/pages/globalVariable'
 import { useStore } from '@/store'
@@ -538,7 +538,7 @@ const defSort: SortProps = {
 }
 
 export const SourceType = [
-  { text: (t) => t('YakitRoute.MITM'), value: 'mitm' },
+  { text: (t) => 'MITM', value: 'mitm' },
   { text: (t) => t('HTTPFlowTable.plugin'), value: 'scan' },
   {
     text: (t) => t('HTTPFlowTable.crawler'),
@@ -5191,7 +5191,7 @@ export const HistorySearch = React.memo<HistorySearchProps>((props) => {
         searchNode()
       )}
       {hint ? (
-        <Tooltip title={t('HistorySearch.fuzzSearchExplanation')}>
+        <Tooltip title={t('HistorySearch.fuzzSearchExplanation', { edition: getReleaseEditionName() })}>
           <OutlineQuestionmarkcircleIcon className={style['http-history-search-question-icon']} />
         </Tooltip>
       ) : null}

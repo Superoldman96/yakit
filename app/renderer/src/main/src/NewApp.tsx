@@ -23,6 +23,7 @@ import emiter from './utils/eventBus/eventBus'
 import { JSONParseLog } from './utils/tool'
 import { debugToPrintLogs } from './utils/logCollection'
 import { yakitApp, yakitProfile, yakitSocket } from './services/electronBridge'
+import { useI18nNamespaces } from './i18n/useI18nNamespaces'
 
 /** 部分页面懒加载 */
 const Main = lazy(() => import('./pages/MainOperator'))
@@ -34,6 +35,7 @@ interface OnlineProfileProps {
 }
 
 function NewApp() {
+  const { t } = useI18nNamespaces(['layout'])
   const { userInfo } = useStore()
   const { setGoogleChromePluginPath } = useGoogleChromePluginPath()
 
@@ -49,7 +51,7 @@ function NewApp() {
       }
       debugToPrintLogs({
         status: 'INFO',
-        title: '用户点击事件',
+        title: t('NewApp.userClickEvent'),
         content: JSON.stringify(log),
       })
     } catch (error) {}
@@ -156,7 +158,7 @@ function NewApp() {
             }, 200)
           })
           .catch((e) => {
-            failed(`获取失败:${e}`)
+            failed(t('NewApp.fetchFailed', { error: String(e) }))
           })
       } else {
         const values = JSONParseLog(setting, { page: 'NewApp', fun: 'testYak' })
@@ -173,7 +175,7 @@ function NewApp() {
               if (timeRef.current) clearTimeout(timeRef.current)
             }, 200)
           })
-          .catch((e: any) => failed('设置私有域失败:' + e))
+          .catch((e: any) => failed(t('NewApp.setPrivateDomainFailed', { error: String(e) })))
       }
     })
   }
@@ -255,7 +257,7 @@ function NewApp() {
       } catch (error) {}
       // 通知应用退出
       if (dynamicStatus.isDynamicStatus) {
-        warn('远程控制关闭中...')
+        warn(t('NewApp.remoteControlClosing'))
         await remoteOperation(false, dynamicStatus)
         yakitApp.exitApp({ showCloseMessageBox, isIRify: isIRify(), isMemfit: isMemfit() })
       } else {

@@ -172,7 +172,7 @@ const Home: React.FC<HomeProp> = (props) => {
       {
         label: t('Home.targetRangeVulinbox'),
         icon: <PublicToolVulinboxIcon />,
-        desc: t('Home.built-inYakTargetRange', { name: t('YakitRoute.Yak') }),
+        desc: t('Home.built-inYakTargetRange'),
         rightIcon: <OutlineArrowrightIcon />,
         onClick: () => onMenu({ route: YakitRoute.Beta_VulinboxManager }),
       },
@@ -201,7 +201,7 @@ const Home: React.FC<HomeProp> = (props) => {
         label: t('YakitRoute.pluginHub'),
         icon: <PublicToolPluginHubIcon />,
         iconStyle: { backgroundColor: '#F4736B', padding: 1 },
-        desc: t('YakitRoute.massiveYakitPluginsOne-ClickDownload'),
+        desc: t('YakitRoute.massiveYakitPluginsOne-ClickDownload', { edition: getReleaseEditionName() }),
         rightIcon: <OutlineArrowrightIcon />,
         onClick: () => onMenu({ route: YakitRoute.Plugin_Hub }),
       },
@@ -529,7 +529,7 @@ const Home: React.FC<HomeProp> = (props) => {
           <br />
           {t('Home.cert.manualInstallSafeHint')}
           <br />
-          {t('Home.cert.manualInstallReadyHint', { name: t('YakitRoute.MITM') })}
+          {t('Home.cert.manualInstallReadyHint')}
           <br />
           <br />
           {t('Home.cert.contactForHelp')}
@@ -628,7 +628,7 @@ const Home: React.FC<HomeProp> = (props) => {
   const handleBlastingExample = (animationType: string) => {
     const m = showYakitModal({
       type: 'white',
-      title: t('Home.webFuzzerDemo', { name: t('YakitRoute.WebFuzzer') }),
+      title: t('Home.webFuzzerDemo'),
       width: 650,
       content: (
         <BlastingAnimationAemonstration
@@ -650,7 +650,7 @@ const Home: React.FC<HomeProp> = (props) => {
       type: 'white',
       title: (
         <div className={styles['sequence-animation-pop-title']}>
-          {t('Home.webFuzzerSequenceDemo', { name: t('YakitRoute.WebFuzzer') })}
+          {t('Home.webFuzzerSequenceDemo')}
           <div
             className={styles['subtitle-help-wrapper']}
             onClick={() => ipcRenderer.invoke('open-url', WebsiteGV.WebFuzzerAddress)}
@@ -1319,7 +1319,7 @@ const Home: React.FC<HomeProp> = (props) => {
                     <div className={styles['home-card-header']}>
                       <div className={styles['home-card-header-title']}>
                         <PublicWebFuzzerIcon className={styles['title-icon']} />
-                        <span className={styles['title-text']}>{t('YakitRoute.WebFuzzer')}</span>
+                        <span className={styles['title-text']}>WebFuzzer</span>
                       </div>
                       <div className={styles['home-card-header-desc']}>{t('YakitRoute.fuzzBurpIntegration')}</div>
                     </div>
@@ -1363,9 +1363,7 @@ const Home: React.FC<HomeProp> = (props) => {
                         <PublicSequenceAnimationIcon className={styles['sequence-animation-icon']} />
                         <span className={styles['title-text']}>{t('Home.fuzzSequenceDemo')}</span>
                       </div>
-                      <div className={styles['sequence-animation-desc']}>
-                        {t('Home.fuzzWebNodeChain', { name: t('YakitRoute.WebFuzzer') })}
-                      </div>
+                      <div className={styles['sequence-animation-desc']}>{t('Home.fuzzWebNodeChain')}</div>
                       <div className={styles['sequence-animation-btn-wrapper']}>
                         <YakitButton
                           icon={<SolidPlayIcon className={styles['animation-play-icon']} />}

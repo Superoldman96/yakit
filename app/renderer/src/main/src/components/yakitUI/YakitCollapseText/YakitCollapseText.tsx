@@ -61,7 +61,7 @@ export const YakitCollapseText: React.FC<YakitCollapseTextProps> = memo((props) 
       </div>
       {showExpand && (
         <div className={styles['expand-btn']} onClick={onExpand} title={content}>
-          {isExpand ? t('YakitCollapseText.collapse') : t('YakitCollapseText.expand')}
+          {isExpand ? t('YakitButton.collapse') : t('YakitButton.expand')}
         </div>
       )}
     </div>

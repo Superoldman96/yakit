@@ -46,7 +46,7 @@
     "exportJson": "Export JSON",
     "exportCsv": "Export CSV",
     "outputToDirectory": "Output to Directory",
-    "optionalDefaultYakitTempDir": "Optional, defaults to {{yakit}} temp directory",
+    "optionalDefaultYakitTempDir": "Optional, defaults to {{edition}} temp directory",
     "fileName": "File Name",
     "asteriskAsRandom": "'*' can be used as a random string placeholder. Do not include the file extension.",
     "generateDataToLocalFile": "Generate Data to Local File",

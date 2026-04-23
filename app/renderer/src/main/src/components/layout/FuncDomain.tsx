@@ -895,7 +895,9 @@ const RunNodeModal: React.FC<RunNodeContProp> = (props) => {
       onOk={onOKFun}
     >
       <div>
-        <div style={{ fontSize: 12, color: '#85899e', marginBottom: 10 }}>{t('RunNodeModal.runNodeDesc')}</div>
+        <div style={{ fontSize: 12, color: '#85899e', marginBottom: 10 }}>
+          {t('RunNodeModal.runNodeDesc', { edition: getReleaseEditionName() })}
+        </div>
         <Form
           form={form}
           colon={false}
@@ -1938,6 +1940,7 @@ interface SetUpdateContentProp extends FetchUpdateContentProp {
 
 const UIOpNotice: React.FC<UIOpNoticeProp> = React.memo((props) => {
   const { isEngineLink, isRemoteMode, onLogin } = props
+  const { t } = useI18nNamespaces(['layout', 'yakitUi'])
 
   const { userInfo } = useStore()
 
@@ -2261,11 +2264,11 @@ const UIOpNotice: React.FC<UIOpNoticeProp> = React.memo((props) => {
   })
   const onSubmitEdit = useMemoizedFn(() => {
     if (editShow.type === 'yakit' && yakitLastVersion.length === 0) {
-      warn(`未获取${getReleaseEditionName()}最新版本`)
+      warn(t('FuncDomain.noYakitLatestVersion', { edition: getReleaseEditionName() }))
       return
     }
     if (editShow.type !== 'yakit' && yaklangLastVersion.length === 0) {
-      warn(`未获取引擎最新版本`)
+      warn(t('FuncDomain.noYaklangLatestVersion'))
       return
     }
     setEditLoading(true)
@@ -2284,13 +2287,13 @@ const UIOpNotice: React.FC<UIOpNoticeProp> = React.memo((props) => {
       data: params,
     })
       .then((res) => {
-        info('修改更新内容成功')
+        info(t('FuncDomain.updateContentSuccess'))
         fetchYakitAndYaklangVersionInfo()
         if (editShow.type === 'yakit') fetchYakitLastVersion()
         else fetchYaklangLastVersion()
         setTimeout(() => setEditShow({ visible: false, type: 'yakit' }), 100)
       })
-      .catch((e) => failed(`修改错误 ${e}`))
+      .catch((e) => failed(t('YakitNotification.updateContentFailed', { error: e })))
       .finally(() => {
         setTimeout(() => setEditLoading(false), 300)
       })

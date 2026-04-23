@@ -1,7 +1,5 @@
 {
   "YakitRoute": {
-    "Yakit": "Yakit",
-    "Nuclei": "Nuclei",
     "YakRunner": "Yak Runner",
     "yaklangProgramming": "Program using the unique Yaklang, directly invoking the engine's core capabilities for POC types.",
     "Codec": "Codec",
@@ -20,7 +18,6 @@
     "fuzzBurpIntegration": "By leveraging the core fuzzing tag syntax, seamless integration with Burp Suite’s Repeater and Intruder is achieved.",
     "Yso-Java Hack": "Yso-Java Hack",
     "fuzzPayLoadDeserialization": "Configure serialized payloads or malicious classes to test deserialization, class loading, JNDI exploitation, and related vulnerabilities.",
-    "Yak": "Yak",
     "Vulinbox": "Vulinbox",
     "Websocket Fuzzer": "Websocket Fuzzer",
     "fuzzTestingForWebSocketPackets": "Fuzz Testing for WebSocket Packets",

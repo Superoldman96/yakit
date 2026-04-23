@@ -8,6 +8,7 @@ import { OutlineLoadingIcon } from '@/assets/icon/outline'
 import { yakitEngine } from '@/services/electronBridge'
 
 import styles from './AllKillEngineConfirm.module.scss'
+import { useI18nNamespaces } from '@/i18n/useI18nNamespaces'
 
 export interface AllKillEngineConfirmProps {
   title?: string
@@ -19,9 +20,10 @@ export interface AllKillEngineConfirmProps {
 }
 /** 更新引擎-确认二次弹窗和kill操作 */
 export const AllKillEngineConfirm: React.FC<AllKillEngineConfirmProps> = React.memo((props) => {
+  const { t } = useI18nNamespaces(['layout', 'yakitUi'])
   const {
-    title = '更新引擎，需关闭所有本地进程',
-    content = '关闭所有引擎，包括正在连接的本地引擎进程，同时页面将进入加载页。',
+    title = t('AllKillEngineConfirm.title'),
+    content = t('AllKillEngineConfirm.content'),
     visible,
     setVisible,
     onSuccess,
@@ -50,7 +52,7 @@ export const AllKillEngineConfirm: React.FC<AllKillEngineConfirmProps> = React.m
         if (+hosts[1]) setCurrentPort(+hosts[1] || 0)
       })
       .catch((e) => {
-        failed(`获取连接引擎端口错误 ${e}`)
+        failed(t('AllKillEngineConfirm.fetchPortError', { error: e + '' }))
       })
       .finally(() => {
         yakitEngine
@@ -81,7 +83,7 @@ export const AllKillEngineConfirm: React.FC<AllKillEngineConfirmProps> = React.m
 
   const onExecute = useMemoizedFn(async () => {
     if (process.length === 0) {
-      warn('未识别到已启动的引擎进程')
+      warn(t('AllKillEngineConfirm.noProcess'))
       onLoadingToFalse()
       return
     }
@@ -97,7 +99,7 @@ export const AllKillEngineConfirm: React.FC<AllKillEngineConfirmProps> = React.m
           killFlag = await yakitEngine.killYakGrpc(i.pid)
         } catch (error) {}
         if (!!killFlag) {
-          failed(`引擎进程(pid:${i.pid},port:${i.port})关闭失败 ${killFlag}`)
+          failed(t('AllKillEngineConfirm.killProcessFailed', { pid: i.pid, port: i.port, error: killFlag }))
           onLoadingToFalse()
           return
         } else {
@@ -111,7 +113,13 @@ export const AllKillEngineConfirm: React.FC<AllKillEngineConfirmProps> = React.m
         killFlag = await yakitEngine.killYakGrpc(currentPS.pid)
       } catch (error) {}
       if (!!killFlag) {
-        failed(`引擎进程(pid:${currentPS.pid},port:${currentPS.port})关闭失败 ${killFlag}`)
+        failed(
+          t('AllKillEngineConfirm.killProcessFailed', {
+            pid: currentPS.pid,
+            port: currentPS.port,
+            error: killFlag,
+          }),
+        )
         onLoadingToFalse()
         return
       }
@@ -142,12 +150,12 @@ export const AllKillEngineConfirm: React.FC<AllKillEngineConfirmProps> = React.m
     <YakitHint
       visible={visible}
       heardIcon={loading ? <OutlineLoadingIcon className={styles['icon-rotate-animation']} /> : undefined}
-      title={loading ? '进程关闭中，请稍等 ...' : title}
+      title={loading ? t('AllKillEngineConfirm.closing') : title}
       content={content}
-      okButtonText="立即关闭"
+      okButtonText={t('YakitButton.closeNow')}
       okButtonProps={{ loading: loading }}
       onOk={onOK}
-      cancelButtonText="稍后再说"
+      cancelButtonText={t('YakitButton.remindMeLater')}
       cancelButtonProps={{ loading: loading }}
       onCancel={onCancel}
     />

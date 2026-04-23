@@ -30,7 +30,7 @@
     "randomDelayHelp": "随机延迟范围（秒），0 表示无延迟",
     "retryTimes": "重试次数",
     "scanVerification": "扫描验证",
-    "scanVerificationHelp": "开启扫描后会用 Yakit 的端口扫描进行验证",
+    "scanVerificationHelp": "开启扫描后会用 {{edition}} 的端口扫描进行验证",
     "zone": "零零测绘"
   },
   "ZoomeyeHelp": {
