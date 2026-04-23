@@ -1,6 +1,6 @@
-import { type FC } from 'react'
+import { type FC, useState } from 'react'
 
-import { OutlineCheckCheckIcon, OutlineDataComparisonIcon } from '@/assets/icon/outline'
+import { OutlineCheckCheckIcon } from '@/assets/icon/outline'
 
 import styles from './WebFuzzerAiStoreCardRightHeader.module.scss'
 import { useMemoizedFn } from 'ahooks'
@@ -12,8 +12,11 @@ import {
 } from '@/pages/fuzzer/webFuzzerAiRequestApplyBridge'
 import { yakitFailed, yakitNotify } from '@/utils/notification'
 import { showYakitModal } from '@/components/yakitUI/YakitModal/YakitModalConfirm'
+import { ColorsPreViewMDIcon, ColorsSourceCodeIcon } from '@/assets/icon/colors'
+import { YakitButton } from '@/components/yakitUI/YakitButton/YakitButton'
 
 const WebFuzzerAiStoreCardRightHeader: FC<{ content?: string; fuzzerPageId: string }> = ({ content, fuzzerPageId }) => {
+  const [contrastHover, setContrastHover] = useState(false)
   // 应用操作：将卡片中的请求/代码全文写入对应当前 Web Fuzzer 页并同步 `pageInfo` 会话
   const handleApplication = useMemoizedFn(() => {
     if (fuzzerPageId == null || fuzzerPageId === '') {
@@ -27,7 +30,6 @@ const WebFuzzerAiStoreCardRightHeader: FC<{ content?: string; fuzzerPageId: stri
     applyRequestContentToWebFuzzerPage(fuzzerPageId, content)
   })
 
-  // 对比：弹窗中 Diff 当前 Web Fuzzer 请求与卡片 content（`footer` 为空，顶栏 取消/应用）
   const handleContrast = useMemoizedFn(() => {
     if (fuzzerPageId == null || fuzzerPageId === '') {
       yakitNotify('error', '未绑定 Web Fuzzer 页签。')
@@ -69,10 +71,20 @@ const WebFuzzerAiStoreCardRightHeader: FC<{ content?: string; fuzzerPageId: stri
   return (
     <div className={styles['container']}>
       <Tooltip title="应用">
-        <OutlineCheckCheckIcon onClick={handleApplication} />
+        <YakitButton type="text2" size="small">
+          <OutlineCheckCheckIcon onClick={handleApplication} />
+        </YakitButton>
       </Tooltip>
       <Tooltip title="对比">
-        <OutlineDataComparisonIcon onClick={handleContrast} />
+        <YakitButton
+          type="text2"
+          size="small"
+          onClick={handleContrast}
+          onMouseEnter={() => setContrastHover(true)}
+          onMouseLeave={() => setContrastHover(false)}
+        >
+          {contrastHover ? <ColorsSourceCodeIcon /> : <ColorsPreViewMDIcon />}
+        </YakitButton>
       </Tooltip>
     </div>
   )

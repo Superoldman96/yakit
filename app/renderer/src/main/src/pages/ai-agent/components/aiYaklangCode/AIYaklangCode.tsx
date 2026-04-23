@@ -19,32 +19,6 @@ import {
   type ChatDataStoreKey,
 } from '@/pages/ai-agent/store/ChatDataStore'
 
-/** 按当前挂载的 `cacheDataStore` 来源分支（副作用或后续可改为派生 state） */
-function useChatDataStoreKeyBranch(key: ChatDataStoreKey) {
-  useEffect(() => {
-    switch (key) {
-      case 'WebFuzzerAiStore':
-        // 当前为 Web Fuzzer 页签注入的 WebFuzzerAiStore
-        break
-      case 'histroyAiStore':
-        // HTTP 历史等：HistoryAIReActChatProvider + histroyAiStore
-        break
-      case 'FlowAiStore':
-        // 流量分析等
-        break
-      case 'aiChatDataStore':
-        // 独立 AI Agent 主流程
-        break
-      case 'knowledgeBaseDataStore':
-        // 知识库
-        break
-      default:
-        // 未匹配的单例或尚未挂载 cacheDataStore
-        break
-    }
-  }, [key])
-}
-
 export const AIYaklangCode: React.FC<AIYaklangCodeProps> = React.memo((props) => {
   const {
     content: defContent,
@@ -70,7 +44,7 @@ export const AIYaklangCode: React.FC<AIYaklangCodeProps> = React.memo((props) =>
   const renderCode = useMemoizedFn(() => {
     switch (type) {
       case 'http-request':
-        return <NewHTTPPacketEditor originValue={content} readOnly={true} />
+        return <NewHTTPPacketEditor originValue={content} readOnly={true} onlyBasicMenu={false} noMinimap={true} />
       default:
         // case AIStreamContentType.CODE_YAKLANG:
         // case AIStreamContentType.CODE_PYTHON:
@@ -98,9 +72,11 @@ export const AIYaklangCode: React.FC<AIYaklangCodeProps> = React.memo((props) =>
         return 'unknown'
     }
   }, [chatIPCEvents])
-  useChatDataStoreKeyBranch(chatDataStoreKey)
 
-  const isWebFuzzerAiStore = chatDataStoreKey === 'WebFuzzerAiStore'
+  const isWebFuzzerAiStore = useMemo(() => {
+    return chatDataStoreKey === 'WebFuzzerAiStore'
+  }, [chatDataStoreKey])
+
   useEffect(() => {
     if (!isWebFuzzerAiStore || !webFuzzerAiStoreFuzzerPageId) return
     tryWebFuzzerAutoApplyRequestFromAiYaklangCode(

@@ -6237,76 +6237,11 @@ export const OutlineNotebookIcon = (props: Partial<IconProps>) => {
   return <Icon component={OutlineNotebook} {...props} />
 }
 
-const OutlineDataComparison = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-    <path
-      d="M3 6C3 4.89543 3.89543 4 5 4H12V20H5C3.89543 20 3 19.1046 3 18V6Z"
-      stroke="var(--Colors-Use-Neutral-Text-1-Title)"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M11 8H8"
-      stroke="var(--Colors-Use-Neutral-Text-1-Title)"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M11 12H7"
-      stroke="var(--Colors-Use-Neutral-Text-1-Title)"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M11 16H7"
-      stroke="var(--Colors-Use-Neutral-Text-1-Title)"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M12 21C11.4477 21 11 20.5523 11 20V4C11 3.44772 11.4477 3 12 3V21ZM19 3C20.6569 3 22 4.34315 22 6V18C22 19.6569 20.6569 21 19 21H14V19H19C19.5523 19 20 18.5523 20 18V6C20 5.44772 19.5523 5 19 5H14V3H19Z"
-      fill="var(--Colors-Use-Neutral-Disable)"
-    />
-    <path
-      d="M18 8H15"
-      stroke="var(--Colors-Use-Neutral-Disable)"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M16 12H15"
-      stroke="var(--Colors-Use-Neutral-Disable)"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M17 16H15"
-      stroke="var(--Colors-Use-Neutral-Disable)"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path d="M12 2V22" stroke="var(--Colors-Use-Neutral-Text-1-Title)" strokeWidth="2" strokeLinecap="round" />
-  </svg>
-)
-/*
- * @description Outline/数据对比
- */
-export const OutlineDataComparisonIcon = (props: Partial<IconProps>) => {
-  return <Icon component={OutlineDataComparison} {...props} />
-}
-
 const OutlineCheckCheck = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
     <path
       d="M18 6L7 17L2 12M22 10L14.5 17.5L13 16"
-      stroke="var(--Colors-Use-Neutral-Text-1-Title)"
+      stroke="currentColor"
       strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
