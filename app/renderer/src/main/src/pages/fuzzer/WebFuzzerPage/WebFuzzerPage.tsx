@@ -62,7 +62,7 @@ export const webFuzzerTabs = (t: TFunction) => {
     },
   ]
 }
-/**包裹 配置和规则，不包裹序列 */
+/**包裹 配置\规则\热加载\AI，不包裹序列 */
 const WebFuzzerPage: React.FC<WebFuzzerPageProps> = React.memo((props) => {
   const { id } = props
   const { t, i18n } = useI18nNamespaces(['webFuzzer', 'yakitUi'])
@@ -192,11 +192,11 @@ const WebFuzzerPage: React.FC<WebFuzzerPageProps> = React.memo((props) => {
   })
   /**通用事件发送 包括切换tab和设置高级配置的显示 */
   const generalEventSend = useMemoizedFn((key: WebFuzzerType, open?: boolean) => {
-    // 设置MainOperatorContent层type变化用来控制是否展示【配置】/【规则】/【热加载】
+    // 设置MainOperatorContent层type变化用来控制是否展示【配置】/【规则】/【热加载】/【AI】
     emiter.emit('sendSwitchSequenceToMainOperatorContent', JSON.stringify({ type: key }))
-    // 发送到HTTPFuzzerPage组件中 切换【配置】/【规则】/【热加载】tab 得选中type
+    // 发送到HTTPFuzzerPage组件中 切换【配置】/【规则】/【热加载】/【AI】tab 得选中type
     emiter.emit('onSwitchTypeWebFuzzerPage', JSON.stringify({ type: key }))
-    // 设置【配置】/【规则】/【热加载】的高级配置的隐藏或显示
+    // 设置【配置】/【规则】/【热加载】/【AI】的高级配置的隐藏或显示
     emiter.emit('onSetAdvancedConfigShow', JSON.stringify({ type: key, open }))
     // 当前页面在fuzzer页面
     emiter.emit('onCurrentFuzzerPage', true)
