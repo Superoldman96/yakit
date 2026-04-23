@@ -291,10 +291,10 @@ const AIToolPageItem: React.FC<AIToolPageItemProps> = React.memo((props) => {
       tags={data?.Keywords?.join(',')}
       help={data.Description || ''}
       img={''}
-      user={data?.Author}
+      user={!!data?.IsBuiltin ? 'yaklang.io' : ''}
       time={data?.UpdatedAt || 0}
-      isCorePlugin={true}
-      official={true}
+      isCorePlugin={!!data?.IsBuiltin}
+      official={!!data?.IsBuiltin}
       isShowCheck={false}
       extraFooter={() => (
         <div className={styles['extra-footer']}>

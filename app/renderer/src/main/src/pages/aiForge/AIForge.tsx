@@ -314,10 +314,10 @@ const AIForgePageItem: React.FC<AIForgePageItemProps> = React.memo((props) => {
       tags={data.Tag?.join(',') || ''}
       help={data.Description || ''}
       img={''}
-      user={data?.Author || ''}
+      user={!!data?.IsBuiltin ? 'yaklang.io' : ''}
       time={data?.UpdatedAt || 0}
-      isCorePlugin={true}
-      official={true}
+      isCorePlugin={!!data?.IsBuiltin}
+      official={!!data?.IsBuiltin}
       extraFooter={() => (
         <div className={styles['extra-footer']}>
           <YakitButton

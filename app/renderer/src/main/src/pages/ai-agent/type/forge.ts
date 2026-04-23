@@ -44,7 +44,8 @@ export interface AIForge {
   SkillPath?: string
   CreatedAt?: number
   UpdatedAt?: number
-  Author?: string
+  /** 是否为内置插件 */
+  IsBuiltin?: boolean
 }
 
 /** forge 相关的过滤条件 */

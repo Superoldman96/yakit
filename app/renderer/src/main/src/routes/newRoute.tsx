@@ -1115,6 +1115,8 @@ export const getPublicRouteMenu = (softMode: SoftMode) => {
       },
       { page: YakitRoute.AI_REPOSITORY, ...YakitRouteToPageInfo[YakitRoute.AI_REPOSITORY] },
       { page: YakitRoute.AI_Memory, ...YakitRouteToPageInfo[YakitRoute.AI_Memory] },
+      { page: YakitRoute.AI_Tool, ...YakitRouteToPageInfo[YakitRoute.AI_Tool] },
+      { page: YakitRoute.AI_Forge, ...YakitRouteToPageInfo[YakitRoute.AI_Forge] },
       {
         page: YakitRoute.Plugin_Hub,
         ...YakitRouteToPageInfo[YakitRoute.Plugin_Hub],
@@ -1136,8 +1138,6 @@ export const getPublicRouteMenu = (softMode: SoftMode) => {
           { page: YakitRoute.DB_CVE, ...YakitRouteToPageInfo[YakitRoute.DB_CVE] },
         ],
       },
-      { page: YakitRoute.AI_Tool, ...YakitRouteToPageInfo[YakitRoute.AI_Tool] },
-      { page: YakitRoute.AI_Forge, ...YakitRouteToPageInfo[YakitRoute.AI_Forge] },
     ]
   if (isYakit()) {
     if (isCommunityYakit()) {
