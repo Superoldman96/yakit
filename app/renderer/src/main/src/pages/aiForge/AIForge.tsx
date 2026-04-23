@@ -303,6 +303,10 @@ const AIForgePageItem: React.FC<AIForgePageItemProps> = React.memo((props) => {
       }, 200)
     })
   })
+  const isBuiltin = useCreation(() => {
+    return !!data?.IsBuiltin
+  }, [data?.IsBuiltin])
+
   return (
     <HubGridOpt
       order={index}
@@ -314,10 +318,10 @@ const AIForgePageItem: React.FC<AIForgePageItemProps> = React.memo((props) => {
       tags={data.Tag?.join(',') || ''}
       help={data.Description || ''}
       img={''}
-      user={!!data?.IsBuiltin ? 'yaklang.io' : ''}
+      user={isBuiltin ? 'yaklang.io' : ''}
       time={data?.UpdatedAt || 0}
-      isCorePlugin={!!data?.IsBuiltin}
-      official={!!data?.IsBuiltin}
+      isCorePlugin={isBuiltin}
+      official={isBuiltin}
       extraFooter={() => (
         <div className={styles['extra-footer']}>
           <YakitButton
@@ -338,26 +342,30 @@ const AIForgePageItem: React.FC<AIForgePageItemProps> = React.memo((props) => {
               handleModifyAIForge(data, YakitRoute.AI_Forge)
             }}
           />
-          <div className={styles['diver-style']} />
-          <YakitPopconfirm
-            title={'是否删除该 Forge 模板?'}
-            onConfirm={(e) => {
-              e?.stopPropagation()
-              handleDeleteAIForge(data)
-            }}
-            onCancel={(e) => {
-              e?.stopPropagation()
-            }}
-          >
-            <YakitButton
-              loading={loading}
-              type="text2"
-              icon={<OutlineTrashIcon className={styles['del-icon']} />}
-              onClick={(e) => {
-                e.stopPropagation()
-              }}
-            />
-          </YakitPopconfirm>
+          {!isBuiltin && (
+            <>
+              <div className={styles['diver-style']} />
+              <YakitPopconfirm
+                title={'是否删除该 Forge 模板?'}
+                onConfirm={(e) => {
+                  e?.stopPropagation()
+                  handleDeleteAIForge(data)
+                }}
+                onCancel={(e) => {
+                  e?.stopPropagation()
+                }}
+              >
+                <YakitButton
+                  loading={loading}
+                  type="text2"
+                  icon={<OutlineTrashIcon className={styles['del-icon']} />}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                  }}
+                />
+              </YakitPopconfirm>
+            </>
+          )}
         </div>
       )}
     />

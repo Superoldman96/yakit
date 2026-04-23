@@ -30,6 +30,7 @@ import { SolidStarIcon } from '@/assets/icon/solid'
 import { YakitDropdownMenu } from '@/components/yakitUI/YakitDropdownMenu/YakitDropdownMenu'
 import { setClipboardText } from '@/utils/clipboard'
 import { yakitNotify } from '@/utils/notification'
+import { YakitMenuItemProps } from '@/components/yakitUI/YakitMenu/YakitMenu'
 
 const AIToolPage: React.FC<AIToolProps> = React.memo((props) => {
   const [toolQueryType, setToolQueryType] = useState<ToolQueryType>('all')
@@ -280,6 +281,18 @@ const AIToolPageItem: React.FC<AIToolPageItemProps> = React.memo((props) => {
     }
   })
 
+  const isBuiltin = useCreation(() => {
+    return !!data?.IsBuiltin
+  }, [data?.IsBuiltin])
+
+  const toolMenuData = useCreation(() => {
+    let baseMenu = toolMenu
+    if (isBuiltin) {
+      baseMenu = toolMenu.filter((item) => (item as YakitMenuItemProps).key !== 'delete')
+    }
+    return baseMenu
+  }, [isBuiltin])
+
   return (
     <HubGridOpt
       order={index}
@@ -291,10 +304,10 @@ const AIToolPageItem: React.FC<AIToolPageItemProps> = React.memo((props) => {
       tags={data?.Keywords?.join(',')}
       help={data.Description || ''}
       img={''}
-      user={!!data?.IsBuiltin ? 'yaklang.io' : ''}
+      user={isBuiltin ? 'yaklang.io' : ''}
       time={data?.UpdatedAt || 0}
-      isCorePlugin={!!data?.IsBuiltin}
-      official={!!data?.IsBuiltin}
+      isCorePlugin={isBuiltin}
+      official={isBuiltin}
       isShowCheck={false}
       extraFooter={() => (
         <div className={styles['extra-footer']}>
@@ -315,7 +328,7 @@ const AIToolPageItem: React.FC<AIToolPageItemProps> = React.memo((props) => {
           <div className={styles['diver-style']} />
           <YakitDropdownMenu
             menu={{
-              data: toolMenu,
+              data: toolMenuData,
               onClick: ({ key }) => menuSelect(key),
             }}
             dropdown={{
