@@ -6,7 +6,7 @@ import { OutlinCompileTwoIcon } from '@/assets/icon/outline'
 import { YakitEditor } from '@/components/yakitUI/YakitEditor/YakitEditor'
 import ModalInfo from '../ModelInfo'
 import styles from './AIYaklangCode.module.scss'
-import { useCreation, useMemoizedFn, useThrottleEffect, useUpdateEffect } from 'ahooks'
+import { useCreation, useMemoizedFn, useThrottleEffect } from 'ahooks'
 import { tryWebFuzzerAutoApplyRequestFromAiYaklangCode } from '@/pages/fuzzer/webFuzzerAiRequestApplyBridge'
 import { NewHTTPPacketEditor } from '@/utils/editors'
 import useChatIPCDispatcher from '../../useContext/ChatIPCContent/useDispatcher'
@@ -46,7 +46,16 @@ function useChatDataStoreKeyBranch(key: ChatDataStoreKey) {
 }
 
 export const AIYaklangCode: React.FC<AIYaklangCodeProps> = React.memo((props) => {
-  const { content: defContent, nodeLabel, modalInfo, contentType, referenceNode } = props
+  const {
+    content: defContent,
+    autoApplyStreamId,
+    autoApplyChatSessionId,
+    listItemIndex,
+    nodeLabel,
+    modalInfo,
+    contentType,
+    referenceNode,
+  } = props
   const [content, setContent] = useState(defContent)
   useThrottleEffect(
     () => {
@@ -92,10 +101,23 @@ export const AIYaklangCode: React.FC<AIYaklangCodeProps> = React.memo((props) =>
   useChatDataStoreKeyBranch(chatDataStoreKey)
 
   const isWebFuzzerAiStore = chatDataStoreKey === 'WebFuzzerAiStore'
-  useUpdateEffect(() => {
+  useEffect(() => {
     if (!isWebFuzzerAiStore || !webFuzzerAiStoreFuzzerPageId) return
-    tryWebFuzzerAutoApplyRequestFromAiYaklangCode(webFuzzerAiStoreFuzzerPageId, content)
-  }, [content, isWebFuzzerAiStore, webFuzzerAiStoreFuzzerPageId])
+    tryWebFuzzerAutoApplyRequestFromAiYaklangCode(
+      webFuzzerAiStoreFuzzerPageId,
+      defContent,
+      autoApplyStreamId,
+      autoApplyChatSessionId,
+      listItemIndex,
+    )
+  }, [
+    defContent,
+    isWebFuzzerAiStore,
+    webFuzzerAiStoreFuzzerPageId,
+    autoApplyStreamId,
+    autoApplyChatSessionId,
+    listItemIndex,
+  ])
 
   const titleExtra = useMemo(() => {
     if (!modalInfo) return null

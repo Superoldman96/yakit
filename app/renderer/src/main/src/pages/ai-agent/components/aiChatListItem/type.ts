@@ -7,4 +7,5 @@ export interface AIChatListItemProps {
     type: "re-act" | "task-agent"
     tasksProps?: {tasks: AIAgentGrpcApi.PlanTask[]; yakExecResult: UseYakExecResultState}
     hasNext?: boolean
+    itemIndex?: number
 }

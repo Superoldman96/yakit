@@ -788,15 +788,12 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
   // 切换【配置】/【规则】高级内容显示 type
   const [advancedConfigShowType, setAdvancedConfigShowType] = useState<WebFuzzerType>('config')
   const [aiAutoApplyRequest, setAiAutoApplyRequest] = useState(false)
-  /** 勾选 + 当前子页为 AI，才允许从 AIYaklangCode 自动写回请求 */
-  const aiAutoApplyContextRef = useRef({ want: false, isAiTab: false })
+  /** 仅看勾选态：选项只在 AI 子页展示，但勾选后切到「配置/规则」时仍应自动写回，避免漏应用 */
+  const aiAutoApplyWantRef = useRef(false)
   const [hotPatchSidebarVisible, setHotPatchSidebarVisible] = useState<boolean>(false)
   useEffect(() => {
-    aiAutoApplyContextRef.current = {
-      want: aiAutoApplyRequest,
-      isAiTab: advancedConfigShowType === 'ai',
-    }
-  }, [aiAutoApplyRequest, advancedConfigShowType])
+    aiAutoApplyWantRef.current = aiAutoApplyRequest
+  }, [aiAutoApplyRequest])
   const [currentFuzzerPage, setCurrentFuzzerPage] = useGetSetState<boolean>(true)
   const [redirectedResponse, setRedirectedResponse] = useState<FuzzerResponse>()
   const [affixSearch, setAffixSearch] = useState('')
@@ -1885,7 +1882,7 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
     const unregisterGet = registerWebFuzzerPageGetRequestString(props.id, () => requestRef.current)
     const unregisterAuto = registerWebFuzzerPageAiAutoApplyEnabled(
       props.id,
-      () => aiAutoApplyContextRef.current.want && aiAutoApplyContextRef.current.isAiTab,
+      () => aiAutoApplyWantRef.current,
     )
     return () => {
       unregisterApply()
@@ -3009,7 +3006,11 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
 const HTTPFuzzerPage: React.FC<HTTPFuzzerPageProp> = (props) => {
   const fuzzerAiChatDataStore = useCreation(() => new WebFuzzerAiStore(props.id), [props.id])
   return (
-    <HistoryAIReActChatProvider cacheDataStore={fuzzerAiChatDataStore} focusModeLoop="http_fuzztest">
+    <HistoryAIReActChatProvider
+      cacheDataStore={fuzzerAiChatDataStore}
+      focusModeLoop="http_fuzztest"
+      httpFuzzTabPageId={props.id}
+    >
       <HTTPFuzzerPageCore {...props} />
     </HistoryAIReActChatProvider>
   )

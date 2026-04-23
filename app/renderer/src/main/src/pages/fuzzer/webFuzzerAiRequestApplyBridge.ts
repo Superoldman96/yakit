@@ -3,7 +3,10 @@ import { yakitFailed } from '@/utils/notification'
 const pageApplyHandlers = new Map<string, (raw: string) => void>()
 const pageGetRequestHandlers = new Map<string, () => string>()
 const pageAiAutoApplyGetEnabled = new Map<string, () => boolean>()
-const lastWebFuzzerAiAutoApplyContent = new Map<string, string>()
+type WebFuzzerAiAutoApplyLast = { streamId: string | null; content: string }
+
+const lastWebFuzzerAiAutoApply = new Map<string, WebFuzzerAiAutoApplyLast>()
+const maxAutoApplyListItemIndex = new Map<string, Map<string, number>>()
 
 /**
  * 由 `HTTPFuzzerPageCore` 在挂载时注册，用于从 AI 代码卡「应用」将请求原文写入当前页并同步会话存储。
@@ -49,19 +52,56 @@ export function registerWebFuzzerPageAiAutoApplyEnabled(pageId: string, getEnabl
 }
 
 export function clearWebFuzzerLastAiAutoApplySnapshot(pageId: string) {
-  lastWebFuzzerAiAutoApplyContent.delete(pageId)
+  lastWebFuzzerAiAutoApply.delete(pageId)
+  maxAutoApplyListItemIndex.delete(pageId)
 }
 
 /**
  * `AIYaklangCode` 的 `content` 更新时调用：在已勾选自动改包且内容相对上次有变化时，等同「应用」写入请求盒并落盘（无 yakit 失败弹窗）
+ * @param autoApplyStreamId 单条流/卡片的 `stream.id`：不同回复即使报文字符串与上一条终稿相同也应再次应用
+ * @param autoApplyChatSessionId 当前 ReAct 会话，换会话时列表下标会重置
+ * @param listItemIndex 在 `chats.elements` 中的下标，用于拒绝虚拟列表中更早条目重挂载时的越权覆盖
  */
-export function tryWebFuzzerAutoApplyRequestFromAiYaklangCode(pageId: string, content: string | undefined): void {
+export function tryWebFuzzerAutoApplyRequestFromAiYaklangCode(
+  pageId: string,
+  content: string | undefined,
+  autoApplyStreamId?: string,
+  autoApplyChatSessionId?: string,
+  listItemIndex?: number,
+): void {
   if (content === undefined) return
+  if (content.trim() === '') return
   if (!pageAiAutoApplyGetEnabled.get(pageId)?.()) return
-  if (lastWebFuzzerAiAutoApplyContent.get(pageId) === content) return
+  const sessionId = (autoApplyChatSessionId || '').trim()
+  if (sessionId && listItemIndex !== undefined) {
+    const bySess = maxAutoApplyListItemIndex.get(pageId)
+    const maxIdx = bySess?.get(sessionId) ?? -1
+    if (listItemIndex < maxIdx) {
+      return
+    }
+  }
+  const last = lastWebFuzzerAiAutoApply.get(pageId)
+  const id = (autoApplyStreamId || '').trim() || null
+  if (last) {
+    if (id) {
+      if (last.streamId === id && last.content === content) return
+    } else if (last.content === content) {
+      // 无 stream id 时与旧版一致：全串相同时跳过
+      return
+    }
+  }
   const apply = pageApplyHandlers.get(pageId)
   if (!apply) return
-  lastWebFuzzerAiAutoApplyContent.set(pageId, content)
+  if (sessionId && listItemIndex !== undefined) {
+    let m = maxAutoApplyListItemIndex.get(pageId)
+    if (!m) {
+      m = new Map()
+      maxAutoApplyListItemIndex.set(pageId, m)
+    }
+    const maxIdx = m.get(sessionId) ?? -1
+    m.set(sessionId, Math.max(maxIdx, listItemIndex))
+  }
+  lastWebFuzzerAiAutoApply.set(pageId, { streamId: id, content })
   apply(content)
 }
 

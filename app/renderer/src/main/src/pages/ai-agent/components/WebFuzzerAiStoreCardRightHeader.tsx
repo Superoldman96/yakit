@@ -69,10 +69,10 @@ const WebFuzzerAiStoreCardRightHeader: FC<{ content?: string; fuzzerPageId: stri
   return (
     <div className={styles['container']}>
       <Tooltip title="应用">
-        <OutlineDataComparisonIcon onClick={handleApplication} />
+        <OutlineCheckCheckIcon onClick={handleApplication} />
       </Tooltip>
       <Tooltip title="对比">
-        <OutlineCheckCheckIcon onClick={handleContrast} />
+        <OutlineDataComparisonIcon onClick={handleContrast} />
       </Tooltip>
     </div>
   )
