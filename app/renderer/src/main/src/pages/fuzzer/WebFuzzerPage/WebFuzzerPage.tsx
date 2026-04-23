@@ -93,7 +93,8 @@ const WebFuzzerPage: React.FC<WebFuzzerPageProps> = React.memo((props) => {
   const [advancedConfigShow, setAdvancedConfigShow] = useState<AdvancedConfigShowProps>({
     config: false,
     rule: true,
-    ai: false,
+    'hot-patch': true,
+    ai: true,
   })
 
   const { fuzzerSequenceList, addFuzzerSequenceList } = useFuzzerSequence(
@@ -106,10 +107,10 @@ const WebFuzzerPage: React.FC<WebFuzzerPageProps> = React.memo((props) => {
 
   useEffect(() => {
     emiter.on('onGetFuzzerAdvancedConfigShow', debounceGetFuzzerAdvancedConfigShow)
-    emiter.on('sequenceSendSwitchTypeToFuzzer', onSwitchType)
+    emiter.on('sequenceOrCodeSendSwitchTypeToFuzzer', onSwitchType)
     return () => {
       emiter.off('onGetFuzzerAdvancedConfigShow', debounceGetFuzzerAdvancedConfigShow)
-      emiter.off('sequenceSendSwitchTypeToFuzzer', onSwitchType)
+      emiter.off('sequenceOrCodeSendSwitchTypeToFuzzer', onSwitchType)
     }
   }, [])
 
@@ -157,17 +158,7 @@ const WebFuzzerPage: React.FC<WebFuzzerPageProps> = React.memo((props) => {
         emiter.emit('onCurrentFuzzerPage', false)
         break
       default:
-        // 设置MainOperatorContent层type变化用来控制是否展示【配置】/【规则】
-        emiter.emit('sendSwitchSequenceToMainOperatorContent', JSON.stringify({ type: key }))
-        // 发送到HTTPFuzzerPage组件中 选中【配置】/【规则】 type
-        emiter.emit('onSwitchTypeWebFuzzerPage', JSON.stringify({ type: key }))
-        if (type === key) {
-          // 设置【配置】/【规则】的高级配置的隐藏或显示
-          emiter.emit('onSetAdvancedConfigShow', JSON.stringify({ type: key }))
-        }
-        // 当前页面在fuzzer页面
-        emiter.emit('onCurrentFuzzerPage', true)
-        // 设置【配置】/【规则】选中
+        generalEventSend(key)
         setType(key)
         break
     }
@@ -188,17 +179,27 @@ const WebFuzzerPage: React.FC<WebFuzzerPageProps> = React.memo((props) => {
       } catch (error) {}
     }
   })
-  /**FuzzerSequenceWrapper组件中发送的信号，切换【配置】/【规则】包裹层的type */
+  /**FuzzerSequenceWrapper组件中发送的信号或者代码层面发送，切换【配置】/【规则】/【热加载】/【AI】 */
   const onSwitchType = useMemoizedFn((data) => {
     if (!inViewport) return
     try {
       const value = JSONParseLog(data, { page: 'WebFuzzerPage', fun: 'onSwitchType' })
       const type = value.type as WebFuzzerType
       if (['sequence', 'concurrency'].includes(type)) return
+      generalEventSend(type, true)
       setType(type)
-      // 发送到HTTPFuzzerPage组件中 切换【配置】/【规则】tab 得选中type
-      emiter.emit('onSwitchTypeWebFuzzerPage', JSON.stringify({ type }))
     } catch (error) {}
+  })
+  /**通用事件发送 包括切换tab和设置高级配置的显示 */
+  const generalEventSend = useMemoizedFn((key: WebFuzzerType, open?: boolean) => {
+    // 设置MainOperatorContent层type变化用来控制是否展示【配置】/【规则】/【热加载】
+    emiter.emit('sendSwitchSequenceToMainOperatorContent', JSON.stringify({ type: key }))
+    // 发送到HTTPFuzzerPage组件中 切换【配置】/【规则】/【热加载】tab 得选中type
+    emiter.emit('onSwitchTypeWebFuzzerPage', JSON.stringify({ type: key }))
+    // 设置【配置】/【规则】/【热加载】的高级配置的隐藏或显示
+    emiter.emit('onSetAdvancedConfigShow', JSON.stringify({ type: key, open }))
+    // 当前页面在fuzzer页面
+    emiter.emit('onCurrentFuzzerPage', true)
   })
   const isUnShow = useCreation(() => {
     switch (type) {
@@ -206,12 +207,14 @@ const WebFuzzerPage: React.FC<WebFuzzerPageProps> = React.memo((props) => {
         return !advancedConfigShow.config
       case 'rule':
         return !advancedConfigShow.rule
+      case 'hot-patch':
+        return !advancedConfigShow['hot-patch']
       case 'ai':
         return !advancedConfigShow.ai
       default:
         return false
     }
-  }, [type, advancedConfigShow, advancedConfigShow])
+  }, [type, advancedConfigShow])
 
   return (
     <ShortcutKeyFocusHook
@@ -233,8 +236,8 @@ const WebFuzzerPage: React.FC<WebFuzzerPageProps> = React.memo((props) => {
               onSetType(keyType)
             }}
           >
-            <span className={styles['web-fuzzer-tab-label']}>{item.label}</span>
             {item.icon}
+            <span className={styles['web-fuzzer-tab-label']}>{item.label}</span>
           </div>
         ))}
       </div>
