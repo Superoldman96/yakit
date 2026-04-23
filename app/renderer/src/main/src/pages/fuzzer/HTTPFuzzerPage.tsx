@@ -1880,10 +1880,7 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
       refreshRequest()
     })
     const unregisterGet = registerWebFuzzerPageGetRequestString(props.id, () => requestRef.current)
-    const unregisterAuto = registerWebFuzzerPageAiAutoApplyEnabled(
-      props.id,
-      () => aiAutoApplyWantRef.current,
-    )
+    const unregisterAuto = registerWebFuzzerPageAiAutoApplyEnabled(props.id, () => aiAutoApplyWantRef.current)
     return () => {
       unregisterApply()
       unregisterGet()
