@@ -64,7 +64,7 @@ const isExtraShow = (extraValue: HandleStartParams['extraValue']) => {
   )
 }
 export const AIChatListItem: React.FC<AIChatListItemProps> = React.memo((props) => {
-  const { item, type, hasNext } = props
+  const { item, type, hasNext, itemIndex } = props
 
   const { handleSendCasual } = useChatIPCDispatcher()
   const { taskChat, yakExecResult } = useChatIPCStore().chatIPCData
@@ -188,6 +188,7 @@ export const AIChatListItem: React.FC<AIChatListItemProps> = React.memo((props) 
       return (
         <StreamingChatContent
           {...item}
+          itemIndex={itemIndex}
           session={activeChat?.SessionID}
           hasNext={hasNext}
           streamClassName={aiStreamNodeProps}

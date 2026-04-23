@@ -131,6 +131,7 @@ import { apiFetchQueryYakScriptGroupLocal } from '@/pages/plugins/utils'
 import { ExpandAndRetractExcessiveState } from '@/pages/plugins/operator/expandAndRetract/ExpandAndRetract'
 import {
   DefFuzzerTableMaxData,
+  defaultAdvancedConfigShow,
   defaultAdvancedConfigValue,
   defaultPostTemplate,
 } from '@/defaultConstants/HTTPFuzzerPage'
@@ -1571,6 +1572,7 @@ export const MainOperatorContent: React.FC<MainOperatorContentProps> = React.mem
         if (shareContent.hasOwnProperty('advancedConfig')) {
           // 兼容只有【配置】的时候的高级配置显隐,低版本分享给高版本
           newAdvancedConfigShow = {
+            ...defaultAdvancedConfigShow,
             config: shareContent['advancedConfig'],
             rule: true,
           }

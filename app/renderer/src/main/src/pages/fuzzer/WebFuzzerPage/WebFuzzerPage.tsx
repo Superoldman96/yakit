@@ -3,6 +3,7 @@ import { WebFuzzerPageProps, WebFuzzerType } from './WebFuzzerPageType'
 import styles from './WebFuzzerPage.module.scss'
 import {
   OutlineAdjustmentsIcon,
+  OutlineBotIcon,
   OutlineClipboardlistIcon,
   OutlineCollectionIcon,
   OutlineLightningboltIcon,
@@ -19,7 +20,7 @@ import { getRemoteValue } from '@/utils/kv'
 import { AdvancedConfigShowProps } from '../HTTPFuzzerPage'
 
 import cloneDeep from 'lodash/cloneDeep'
-import { defaultWebFuzzerPageInfo } from '@/defaultConstants/HTTPFuzzerPage'
+import { defaultWebFuzzerPageInfo, defaultAdvancedConfigShow } from '@/defaultConstants/HTTPFuzzerPage'
 import { FuzzerRemoteGV } from '@/enums/fuzzer'
 import ShortcutKeyFocusHook from '@/utils/globalShortcutKey/shortcutKeyFocusHook/ShortcutKeyFocusHook'
 import { TFunction, useI18nNamespaces } from '@/i18n/useI18nNamespaces'
@@ -43,6 +44,11 @@ export const webFuzzerTabs = (t: TFunction) => {
       key: 'hot-patch',
       label: t('HTTPFuzzerPage.hotReload'),
       icon: <OutlineLightningboltIcon />,
+    },
+    {
+      key: 'ai',
+      label: t('WebFuzzerPage.AI'),
+      icon: <OutlineBotIcon />,
     },
     {
       key: 'sequence',
@@ -87,6 +93,7 @@ const WebFuzzerPage: React.FC<WebFuzzerPageProps> = React.memo((props) => {
   const [advancedConfigShow, setAdvancedConfigShow] = useState<AdvancedConfigShowProps>({
     config: false,
     rule: true,
+    ai: false,
   })
 
   const { fuzzerSequenceList, addFuzzerSequenceList } = useFuzzerSequence(
@@ -112,10 +119,11 @@ const WebFuzzerPage: React.FC<WebFuzzerPageProps> = React.memo((props) => {
       try {
         const newAdvancedConfigShow = initWebFuzzerPageInfo().advancedConfigShow
         if (newAdvancedConfigShow) {
-          setAdvancedConfigShow({ ...newAdvancedConfigShow })
+          setAdvancedConfigShow({ ...defaultAdvancedConfigShow, ...newAdvancedConfigShow })
         } else {
           const value = JSONParseLog(c, { page: 'WebFuzzerPage', fun: 'WebFuzzerAdvancedConfigShow' })
           setAdvancedConfigShow({
+            ...defaultAdvancedConfigShow,
             ...value,
           })
         }
@@ -198,6 +206,8 @@ const WebFuzzerPage: React.FC<WebFuzzerPageProps> = React.memo((props) => {
         return !advancedConfigShow.config
       case 'rule':
         return !advancedConfigShow.rule
+      case 'ai':
+        return !advancedConfigShow.ai
       default:
         return false
     }

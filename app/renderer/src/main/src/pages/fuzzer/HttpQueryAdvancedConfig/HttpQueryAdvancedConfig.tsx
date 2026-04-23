@@ -62,6 +62,7 @@ import { TFunction, useI18nNamespaces } from '@/i18n/useI18nNamespaces'
 import ProxyRulesConfig, { ProxyTest } from '@/components/configNetwork/ProxyRulesConfig'
 import { checkProxyVersion, isValidUrlWithProtocol } from '@/utils/proxyConfigUtil'
 import { useProxy } from '@/hook/useProxy'
+import i18n from '@/i18n/i18n'
 
 const { ipcRenderer } = window.require('electron')
 const { YakitPanel } = YakitCollapse
@@ -132,6 +133,7 @@ export const HttpQueryAdvancedConfig: React.FC<HttpQueryAdvancedConfigProps> = R
     id,
     matchSubmitFun,
     showFormContentType,
+    fuzzerAiSlot,
     proxyListRef,
     isbuttonIsSendReqStatus,
     cachedTotal,
@@ -173,6 +175,26 @@ export const HttpQueryAdvancedConfig: React.FC<HttpQueryAdvancedConfigProps> = R
     () => advancedConfigValue.batchTarget || new Uint8Array(),
     [advancedConfigValue.batchTarget],
   )
+
+  /** AI 模式需随外层 YakitResizeBox 分栏变宽；配置/规则仍用固定 300/460 宽 */
+  const advancedConfigRootStyle = useMemo((): React.CSSProperties => {
+    if (!visible) {
+      return { display: 'none' }
+    }
+    const minW = i18n.language === 'zh' ? 300 : 460
+    if (showFormContentType === 'ai') {
+      return {
+        width: '100%',
+        minWidth: minW,
+        maxWidth: 'none',
+      }
+    }
+    return {
+      width: minW,
+      minWidth: minW,
+      maxWidth: minW,
+    }
+  }, [visible, showFormContentType, i18n.language])
 
   useEffect(() => {
     setHttpResponse(defaultHttpResponse)
@@ -768,7 +790,7 @@ export const HttpQueryAdvancedConfig: React.FC<HttpQueryAdvancedConfigProps> = R
                     icon={
                       JSON.stringify(advancedConfigValue.batchTarget) !== '{}' ? (
                         Uint8ArrayToString(advancedConfigValue.batchTarget || new Uint8Array()) ? (
-                          <OutlineBadgecheckIcon style={{ color: '#56C991' }} />
+                          <OutlineBadgecheckIcon style={{ color: 'var(--Colors-Use-Green-Primary)' }} />
                         ) : (
                           <PlusSmIcon />
                         )
@@ -779,7 +801,9 @@ export const HttpQueryAdvancedConfig: React.FC<HttpQueryAdvancedConfigProps> = R
                   >
                     {JSON.stringify(advancedConfigValue.batchTarget) !== '{}' ? (
                       Uint8ArrayToString(advancedConfigValue.batchTarget || new Uint8Array()) ? (
-                        <div style={{ color: '#56C991' }}>{t('HttpQueryAdvancedConfig.configured')}</div>
+                        <div style={{ color: 'var(--Colors-Use-Green-Primary)' }}>
+                          {t('HttpQueryAdvancedConfig.configured')}
+                        </div>
                       ) : (
                         t('HttpQueryAdvancedConfig.configure_batch_target')
                       )
@@ -1330,38 +1354,35 @@ export const HttpQueryAdvancedConfig: React.FC<HttpQueryAdvancedConfigProps> = R
             </YakitCollapse>
           </>
         )
+      case 'ai':
+        return null
       default:
         return <></>
     }
   })
   return (
-    <div
-      className={classNames(styles['http-query-advanced-config'])}
-      style={{
-        display: visible ? '' : 'none',
-        width: i18n.language === 'zh' ? 300 : 460,
-        minWidth: i18n.language === 'zh' ? 300 : 460,
-        maxWidth: i18n.language === 'zh' ? 300 : 460,
-      }}
-      ref={queryRef}
-    >
-      <Form
-        form={form}
-        colon={false}
-        onValuesChange={(changedFields, allFields) => {
-          onSetValue(allFields)
-        }}
-        size="small"
-        labelCol={{ span: 10 }}
-        wrapperCol={{ span: 14 }}
-        style={{ overflowY: 'auto' }}
-        initialValues={{
-          ...advancedConfigValue,
-        }}
-      >
-        {renderContent()}
-        <div className={styles['to-end']}>{t('YakitEmpty.end_of_list')}</div>
-      </Form>
+    <div className={classNames(styles['http-query-advanced-config'])} style={advancedConfigRootStyle} ref={queryRef}>
+      {showFormContentType === 'ai' ? (
+        <div className={styles['fuzzer-ai-slot-wrap']}>{fuzzerAiSlot}</div>
+      ) : (
+        <Form
+          form={form}
+          colon={false}
+          onValuesChange={(changedFields, allFields) => {
+            onSetValue(allFields)
+          }}
+          size="small"
+          labelCol={{ span: 10 }}
+          wrapperCol={{ span: 14 }}
+          style={{ overflowY: 'auto', flex: 1, minHeight: 0 }}
+          initialValues={{
+            ...advancedConfigValue,
+          }}
+        >
+          {renderContent()}
+          <div className={styles['to-end']}>{t('YakitEmpty.end_of_list')}</div>
+        </Form>
+      )}
       <MatcherAndExtractionDrawer
         visibleDrawer={visibleDrawer}
         defActiveType={type}

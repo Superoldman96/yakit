@@ -65,6 +65,7 @@ function useChatIPC(params?: UseChatIPCParams) {
     onEnd,
     onSyncIDChange,
     getSetting,
+    onHttpFuzzRequestChange,
   } = params || {}
 
   const { getLabelByParams } = useAINodeLabel()
@@ -644,6 +645,13 @@ function useChatIPC(params?: UseChatIPCParams) {
             if (old.includes(riskNotice.runtime_id)) return old
             return [...old, riskNotice.runtime_id]
           })
+        }
+
+        if (res.Type === 'http_fuzz_request_change') {
+          // http_fuzz_request_change
+          const httpFuzzRequest = JSON.parse(ipcContent) as AIAgentGrpcApi.HttpFuzzRequestChange
+          onHttpFuzzRequestChange?.(httpFuzzRequest)
+          return
         }
 
         if (res.Type === 'structured' && res.NodeId === 'session_title') {

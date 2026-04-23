@@ -37,7 +37,7 @@ const getAIReferenceNodeByType = (contentType?: string) => {
   }
 }
 export const AIStreamNode: React.FC<AIStreamNodeProps> = React.memo((props) => {
-  const { stream, aiMarkdownProps } = props
+  const { stream, aiMarkdownProps, listItemIndex, streamChatSessionId } = props
   const { reference } = stream
   const { NodeId, content, NodeIdVerbose, CallToolID, ContentType } = stream.data
   const { yakExecResult } = useChatIPCStore().chatIPCData
@@ -59,6 +59,9 @@ export const AIStreamNode: React.FC<AIStreamNodeProps> = React.memo((props) => {
       <AIYaklangCode
         contentType={ContentType}
         content={content}
+        autoApplyStreamId={stream.id}
+        autoApplyChatSessionId={streamChatSessionId}
+        listItemIndex={listItemIndex}
         nodeLabel={nodeLabel}
         modalInfo={modalInfo}
         referenceNode={referenceNode}
@@ -108,7 +111,7 @@ export const AIReActChatContents: React.FC<AIReActChatContentsPProps> = React.me
     (index: number, item?: ReActChatRenderItem) => {
       if (!item?.token) return null
       const hasNext = chats.elements.length - index > 1
-      return <AIChatListItem key={item.token} hasNext={hasNext} item={item} type="re-act" />
+      return <AIChatListItem key={item.token} hasNext={hasNext} itemIndex={index} item={item} type="re-act" />
     },
     [chats.elements.length],
   )

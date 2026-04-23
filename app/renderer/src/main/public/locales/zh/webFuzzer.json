@@ -17,7 +17,13 @@
     "config": "配置",
     "rule": "规则",
     "sequence": "序列",
-    "concurrency": "组并发"
+    "concurrency": "组并发",
+    "AI": "AI"
+  },
+  "WebFuzzerAiRequestCompare": {
+    "title": "请求对比",
+    "leftTitle": "当前 Web Fuzzer 请求",
+    "rightTitle": "AI 内容"
   },
   "PacketScanButton": {
     "packetScan": "扫描"
@@ -73,6 +79,8 @@
     "performAction": "进行操作",
     "webFuzzerDemo": "WebFuzzer 爆破动画演示",
     "bruteForceExample": "爆破示例",
+    "AI_new_conversation": "新建对话",
+    "ai_auto_patch_request": "AI 自动改包",
     "followRedirects": "跟随重定向",
     "generatePathTemplate": "生成为 Path 模板",
     "generateRawTemplate": "生成为 Raw 模板",

@@ -94,6 +94,7 @@ import {
   OutlineBeakerIcon,
   OutlineExportIcon,
   OutlinePayloadIcon,
+  OutlinePlusIcon,
   OutlineXIcon,
   OutlineCodeIcon,
   OutlinePlugsIcon,
@@ -104,6 +105,17 @@ import {
   OutlineDotsverticalIcon,
 } from '@/assets/icon/outline'
 import emiter from '@/utils/eventBus/eventBus'
+import { HistoryAIReActChatProvider, useHistoryAIReActChat } from '@/components/historyAIReActChat'
+import { WebFuzzerAiStore } from '@/pages/ai-agent/store/ChatDataStore'
+import {
+  clearWebFuzzerLastAiAutoApplySnapshot,
+  registerWebFuzzerPageAiAutoApplyEnabled,
+  registerWebFuzzerPageApplyRequestFromCard,
+  registerWebFuzzerPageGetRequestString,
+} from './webFuzzerAiRequestApplyBridge'
+import useChatIPCDispatcher from '@/pages/ai-agent/useContext/ChatIPCContent/useDispatcher'
+import { AIInputInnerFeatureEnum } from '@/pages/ai-agent/template/type'
+import { AIAgentGrpcApi } from '@/pages/ai-re-act/hooks/grpcApi'
 import { shallow } from 'zustand/shallow'
 import { usePageInfo, PageNodeItemProps, WebFuzzerPageInfoProps, getFuzzerProcessedCacheData } from '@/store/pageInfo'
 import { YakitCopyText } from '@/components/yakitUI/YakitCopyText/YakitCopyText'
@@ -744,7 +756,7 @@ export interface SelectOptionProps {
 }
 /*LINK - app\renderer\src\main\src\defaultConstants\HTTPFuzzerPage.ts*/
 /*为避免文件相互引用造成数据问题,请将 HTTPFuzzerPage 页面的常用变量放在 app\renderer\src\main\src\defaultConstants\HTTPFuzzerPage.ts */
-const HTTPFuzzerPage: React.FC<HTTPFuzzerPageProp> = (props) => {
+const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
   const { queryPagesDataById, updatePagesDataCacheById } = usePageInfo(
     (s) => ({
       queryPagesDataById: s.queryPagesDataById,
@@ -753,6 +765,7 @@ const HTTPFuzzerPage: React.FC<HTTPFuzzerPageProp> = (props) => {
     shallow,
   )
   const { t, i18n } = useI18nNamespaces(['webFuzzer', 'yakitUi', 'yakitRoute'])
+  const { renderHistoryAIReActChat, setShowFreeChat, historyAIReActChatBridge, focusModeLoop } = useHistoryAIReActChat()
   const { checkProxyEndpoints, getProxyValue } = useProxy()
   const initWebFuzzerPageInfo = useMemoizedFn(() => {
     const currentItem: PageNodeItemProps | undefined = queryPagesDataById(YakitRoute.HTTPFuzzer, props.id)
@@ -768,12 +781,19 @@ const HTTPFuzzerPage: React.FC<HTTPFuzzerPageProp> = (props) => {
 
   // 高级配置的隐藏/显示
   const [advancedConfigShow, setAdvancedConfigShow] = useState<AdvancedConfigShowProps>({
-    ...(initWebFuzzerPageInfo().advancedConfigShow || defaultAdvancedConfigShow),
+    ...defaultAdvancedConfigShow,
+    ...(initWebFuzzerPageInfo().advancedConfigShow || {}),
   })
 
   // 切换【配置】/【规则】高级内容显示 type
   const [advancedConfigShowType, setAdvancedConfigShowType] = useState<WebFuzzerType>('config')
+  const [aiAutoApplyRequest, setAiAutoApplyRequest] = useState(false)
+  /** 仅看勾选态：选项只在 AI 子页展示，但勾选后切到「配置/规则」时仍应自动写回，避免漏应用 */
+  const aiAutoApplyWantRef = useRef(false)
   const [hotPatchSidebarVisible, setHotPatchSidebarVisible] = useState<boolean>(false)
+  useEffect(() => {
+    aiAutoApplyWantRef.current = aiAutoApplyRequest
+  }, [aiAutoApplyRequest])
   const [currentFuzzerPage, setCurrentFuzzerPage] = useGetSetState<boolean>(true)
   const [redirectedResponse, setRedirectedResponse] = useState<FuzzerResponse>()
   const [affixSearch, setAffixSearch] = useState('')
@@ -1852,6 +1872,21 @@ const HTTPFuzzerPage: React.FC<HTTPFuzzerPageProp> = (props) => {
     requestRef.current = i
     sendFuzzerSettingInfo()
   })
+
+  useLayoutEffect(() => {
+    if (!props.id) return
+    const unregisterApply = registerWebFuzzerPageApplyRequestFromCard(props.id, (raw) => {
+      onSetRequest(raw)
+      refreshRequest()
+    })
+    const unregisterGet = registerWebFuzzerPageGetRequestString(props.id, () => requestRef.current)
+    const unregisterAuto = registerWebFuzzerPageAiAutoApplyEnabled(props.id, () => aiAutoApplyWantRef.current)
+    return () => {
+      unregisterApply()
+      unregisterGet()
+      unregisterAuto()
+    }
+  }, [props.id, onSetRequest, refreshRequest])
   const onInsertYakFuzzerFun = useMemoizedFn(() => {
     if (webFuzzerNewEditorRef.current) onInsertYakFuzzer(webFuzzerNewEditorRef.current.reqEditor)
   })
@@ -2213,13 +2248,26 @@ const HTTPFuzzerPage: React.FC<HTTPFuzzerPageProp> = (props) => {
         return advancedConfigShow.config
       case 'rule':
         return advancedConfigShow.rule
+      case 'ai':
+        return advancedConfigShow.ai
       default:
         return false
     }
   }, [advancedConfigShowType, advancedConfigShow])
+
+  useEffect(() => {
+    if (advancedConfigShowType === 'ai') {
+      setShowFreeChat(true)
+    }
+  }, [advancedConfigShowType, setShowFreeChat])
   const hotPatchVisible = useCreation(
     () => advancedConfigShowType === 'hot-patch' && hotPatchSidebarVisible,
     [advancedConfigShowType, hotPatchSidebarVisible],
+  )
+  /** AI 侧栏展示时，与热加载一样允许拖动顶部分栏宽度 */
+  const aiTopPanelResizable = useCreation(
+    () => advancedConfigShowType === 'ai' && advancedConfigShow.ai,
+    [advancedConfigShowType, advancedConfigShow],
   )
   const topPanelVisible = useCreation(
     () => advancedConfigVisible || hotPatchVisible,
@@ -2227,16 +2275,22 @@ const HTTPFuzzerPage: React.FC<HTTPFuzzerPageProp> = (props) => {
   )
   const defaultTopPanelFirstRatio = useMemo(() => (i18n.language === 'zh' ? '300px' : '460px'), [i18n.language])
   const [hotPatchTopPanelFirstRatio, setHotPatchTopPanelFirstRatio] = useState<string>(defaultTopPanelFirstRatio)
-  const topPanelDraggable = useCreation(() => topPanelVisible && hotPatchVisible, [topPanelVisible, hotPatchVisible])
+  const topPanelDraggable = useCreation(
+    () => topPanelVisible && (hotPatchVisible || aiTopPanelResizable),
+    [topPanelVisible, hotPatchVisible, aiTopPanelResizable],
+  )
   const topPanelFirstRatio = useCreation(() => {
     if (!topPanelVisible) {
       return '0px'
     }
-    return hotPatchVisible ? hotPatchTopPanelFirstRatio : defaultTopPanelFirstRatio
-  }, [topPanelVisible, hotPatchVisible, hotPatchTopPanelFirstRatio, defaultTopPanelFirstRatio])
+    if (hotPatchVisible || aiTopPanelResizable) {
+      return hotPatchTopPanelFirstRatio
+    }
+    return defaultTopPanelFirstRatio
+  }, [topPanelVisible, hotPatchVisible, aiTopPanelResizable, hotPatchTopPanelFirstRatio, defaultTopPanelFirstRatio])
 
   const onTopPanelResize = useMemoizedFn(({ firstSizeNum }) => {
-    if (!hotPatchVisible) return
+    if (!hotPatchVisible && !aiTopPanelResizable) return
     setHotPatchTopPanelFirstRatio(`${firstSizeNum}px`)
   })
 
@@ -2452,6 +2506,48 @@ const HTTPFuzzerPage: React.FC<HTTPFuzzerPageProp> = (props) => {
                 id={props.id}
                 matchSubmitFun={matchSubmitFun}
                 showFormContentType={advancedConfigShowType}
+                fuzzerAiSlot={renderHistoryAIReActChat({
+                  externalParameters: {
+                    isOpen: false,
+                    rightIcon: (
+                      <>
+                        <Tooltip title={t('HTTPFuzzerPage.AI_new_conversation')}>
+                          <YakitButton
+                            type="text2"
+                            icon={<OutlinePlusIcon />}
+                            onClick={() => {
+                              const { activeID, events, onStop, onChatFromHistory, setActiveChat } =
+                                historyAIReActChatBridge
+                              if (activeID) {
+                                onStop()
+                                events.onReset()
+                                onChatFromHistory(activeID)
+                                setActiveChat(undefined)
+                              }
+                            }}
+                          />
+                        </Tooltip>
+                        <YakitButton
+                          type="text2"
+                          icon={<OutlineXIcon />}
+                          onClick={() => emiter.emit('onSetAdvancedConfigShow', JSON.stringify({ type: 'ai' }))}
+                        />
+                      </>
+                    ),
+                    footerLeftTypes: [
+                      AIInputInnerFeatureEnum.AIModelSelect,
+                      {
+                        type: AIInputInnerFeatureEnum.AIFocusMode,
+                        props: {
+                          value: focusModeLoop,
+                          onChange: () => {},
+                          disabled: true,
+                        },
+                      },
+                    ],
+                    filterMentionType: ['focusMode'],
+                  },
+                })}
                 proxyListRef={proxyListRef}
                 isbuttonIsSendReqStatus={isbuttonIsSendReqStatus}
                 cachedTotal={cachedTotal}
@@ -2541,6 +2637,24 @@ const HTTPFuzzerPage: React.FC<HTTPFuzzerPageProp> = (props) => {
                         })
                       }}
                     />
+                    {advancedConfigShowType === 'ai' && (
+                      <>
+                        <Divider type="vertical" style={{ marginRight: 0, top: 1 }} />
+                        <span className={styles['fuzzer-heard-https']} style={{ marginLeft: 8, whiteSpace: 'nowrap' }}>
+                          {t('HTTPFuzzerPage.ai_auto_patch_request')}
+                        </span>
+                        <YakitCheckbox
+                          checked={aiAutoApplyRequest}
+                          onChange={(e) => {
+                            const v = e.target.checked
+                            setAiAutoApplyRequest(v)
+                            if (!v && props.id) {
+                              clearWebFuzzerLastAiAutoApplySnapshot(props.id)
+                            }
+                          }}
+                        />
+                      </>
+                    )}
                   </div>
                   <Divider type="vertical" style={{ margin: 0, top: 1 }} />
                   <div className={styles['display-flex']}>
@@ -2683,9 +2797,13 @@ const HTTPFuzzerPage: React.FC<HTTPFuzzerPageProp> = (props) => {
                       placement: 'bottom',
                     }}
                   >
-                    <YakitButton type="primary" icon={<OutlineCodeIcon />}>
-                      {t('HTTPFuzzerPage.generateYamlTemplate')}
-                    </YakitButton>
+                    <FuncBtn
+                      maxWidth={1600}
+                      type="primary"
+                      icon={<OutlineCodeIcon />}
+                      name={t('HTTPFuzzerPage.generateYamlTemplate')}
+                      tooltipPlacement="topRight"
+                    />
                   </YakitDropdownMenu>
                 </div>
               </div>
@@ -2880,6 +2998,21 @@ const HTTPFuzzerPage: React.FC<HTTPFuzzerPageProp> = (props) => {
     </>
   )
 }
+
+/** 每个 Web Fuzzer 页签独立 WebFuzzerAiStore，避免多开时共用内存缓存导致会话数据互相覆盖 */
+const HTTPFuzzerPage: React.FC<HTTPFuzzerPageProp> = (props) => {
+  const fuzzerAiChatDataStore = useCreation(() => new WebFuzzerAiStore(props.id), [props.id])
+  return (
+    <HistoryAIReActChatProvider
+      cacheDataStore={fuzzerAiChatDataStore}
+      focusModeLoop="http_fuzztest"
+      httpFuzzTabPageId={props.id}
+    >
+      <HTTPFuzzerPageCore {...props} />
+    </HistoryAIReActChatProvider>
+  )
+}
+
 export default HTTPFuzzerPage
 
 export interface ContextMenuProp {
