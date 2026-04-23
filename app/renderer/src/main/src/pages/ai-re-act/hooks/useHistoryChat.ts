@@ -66,7 +66,7 @@ function useHistoryChat(params?: UseHistoryChatParams) {
     setTimelinesLoading(true)
     try {
       const { Events, Total } = await grpcQueryAIEvent(request, true)
-      if (Total === 0) {
+      if (Number(Total) === 0) {
         hasMoreTimeline.current = false
         return
       }

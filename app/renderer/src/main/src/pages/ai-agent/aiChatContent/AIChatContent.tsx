@@ -58,6 +58,10 @@ export const AIChatContent: React.FC<AIChatContentProps> = React.memo(
     const [exportModalVisible, setExportModalVisible] = useState(false)
     const [exportLoading, setExportLoading] = useState(false)
 
+    const RelatedRuntimeIDs = useMemo(() => {
+      return activeChat?.RelatedRuntimeIDs ?? []
+    }, [activeChat?.RelatedRuntimeIDs])
+
     const aiReActChatRef = useRef<AIReActChatRefProps>({
       handleStart: () => {},
       setMention: () => {},
@@ -158,10 +162,11 @@ export const AIChatContent: React.FC<AIChatContentProps> = React.memo(
     })
     const yakitTabs = useCreation(() => {
       let tab: YakitSideTabProps['yakitTabs'] = [AITabs[AITabsEnum.Task_Content], AITabs[AITabsEnum.File_System]]
-      if (httpRunTimeIDs.length > 0) {
+
+      if ((httpRunTimeIDs.length || RelatedRuntimeIDs.length) > 0) {
         tab.push(AITabs[AITabsEnum.HTTP])
       }
-      if (riskRunTimeIDs.length > 0) {
+      if ((riskRunTimeIDs.length || RelatedRuntimeIDs.length) > 0) {
         tab.push(AITabs[AITabsEnum.Risk])
       }
       if (yakExecResult.execFileRecord.size > 0) {
@@ -223,8 +228,8 @@ export const AIChatContent: React.FC<AIChatContentProps> = React.memo(
     }, [yakExecResult.execFileRecord])
 
     const renderTabContent = useMemoizedFn((key: AITabsEnumType) => {
-      const runTimeIds = !!runTimeId ? [runTimeId] : httpRunTimeIDs
-      const riskRunTimeIds = !!runTimeId ? [runTimeId] : riskRunTimeIDs
+      const runTimeIds = [...new Set(!!runTimeId ? [runTimeId] : httpRunTimeIDs.concat(RelatedRuntimeIDs))]
+      const riskRunTimeIds = [...new Set(!!runTimeId ? [runTimeId] : riskRunTimeIDs.concat(RelatedRuntimeIDs))]
       switch (key) {
         case AITabsEnum.Task_Content:
           return <AIReActTaskChat setTimeLine={setTimeLine} setShowFreeChat={setShowFreeChat} />
