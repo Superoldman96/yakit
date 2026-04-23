@@ -1692,7 +1692,6 @@ message SaveAIToolRequest {
   string Content = 3;
   string ToolPath = 4;
   repeated string Keywords = 5;
-  string Author = 6;
 }
 
 message SaveAIToolV2Response{
@@ -1738,6 +1737,7 @@ message AITool {
   string Author = 9;
   int64 CreatedAt = 10;
   int64 UpdatedAt = 11;
+  bool IsBuiltin = 12;
 }
 
 message GetAIToolListResponse {
@@ -2079,6 +2079,7 @@ message AIForge {
   string SkillPath = 19; // local path used to import/export serialized skill filesystem
   int64 CreatedAt = 20;
   int64 UpdatedAt = 21;
+  bool IsBuiltin = 22;
 }
 
 message QueryAIForgeRequest {
