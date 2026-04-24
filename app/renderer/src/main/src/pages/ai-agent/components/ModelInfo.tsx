@@ -18,8 +18,9 @@ export interface ModalInfoProps {
 
 const ModalInfo: FC<ModalInfoProps> = ({ icon, title, time, trailing }) => {
   const iconSvg = useCreation(() => {
+    if (!icon) return null
     return (
-      (AIOnlineModelIconMap[icon || ''] && (
+      (AIOnlineModelIconMap[icon] && (
         <div className={styles['title-icon']}>{AIOnlineModelIconMap[icon || '']}</div>
       )) || <OutlineAtomIconByStatus iconClassName={styles['icon-small']} />
     )
@@ -29,7 +30,7 @@ const ModalInfo: FC<ModalInfoProps> = ({ icon, title, time, trailing }) => {
     <div className={styles['modal-info']}>
       <div className={styles['modal-info-title']}>
         {iconSvg}
-        <span className={styles['modal-info-title-text']}>{title}</span>
+        {title && <span className={styles['modal-info-title-text']}>{title}</span>}
         {time != null && time > 0 ? (
           <span
             className={trailing != null ? styles['modal-info-title-time-squeeze'] : styles['modal-info-title-time']}
