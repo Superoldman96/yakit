@@ -24,6 +24,8 @@ export enum PRODUCT_RELEASE_EDITION {
   MEMFIT = 6,
 }
 
+export type VersionSource = 'yakit' | 'irify' | 'memfit'
+
 export const getReleaseEditionName = () => {
   switch (GetReleaseEdition()) {
     case PRODUCT_RELEASE_EDITION.EnpriTrace:
@@ -102,6 +104,18 @@ export const isCommunityMemfit = () => {
 /** Memfit 独立于Yakit企业版社区版之外  */
 export const isMemfit = () => {
   return GetReleaseEdition() === PRODUCT_RELEASE_EDITION.MEMFIT
+}
+
+export const getCurrentVersionSource = (): VersionSource => {
+  if (isIRify()) {
+    return 'irify'
+  }
+
+  if (isMemfit()) {
+    return 'memfit'
+  }
+
+  return 'yakit'
 }
 
 /** CE Yakit  */
