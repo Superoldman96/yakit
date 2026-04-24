@@ -12,6 +12,7 @@ export interface AITool {
   UpdatedAt: number
   CreatedAt: number
   IsBuiltin: boolean
+  Author: string
 }
 export interface GetAIToolListRequest {
   Query: string

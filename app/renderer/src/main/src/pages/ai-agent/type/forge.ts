@@ -46,6 +46,7 @@ export interface AIForge {
   UpdatedAt?: number
   /** 是否为内置插件 */
   IsBuiltin?: boolean
+  Author?: string
 }
 
 /** forge 相关的过滤条件 */

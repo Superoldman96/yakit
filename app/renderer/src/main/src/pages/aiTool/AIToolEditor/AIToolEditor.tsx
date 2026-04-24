@@ -221,10 +221,19 @@ const AIToolEditor: React.FC<AIToolEditorProps> = React.memo((props) => {
   })
 
   // #region 注册关闭页面时的触发事件
+  // 销毁保存弹窗
+  const destroySaveModal = useMemoizedFn(() => {
+    if (modalRef.current) {
+      modalRef.current.destroy()
+      modalRef.current = {
+        destroy: () => {},
+      }
+    }
+  })
   // 保存并退出
   const handleSaveAndExit = useMemoizedFn(() => {
     handleSave().then(() => {
-      if (modalRef.current) modalRef.current.destroy()
+      destroySaveModal()
       emiter.emit(
         'closePage',
         JSON.stringify({
@@ -238,7 +247,7 @@ const AIToolEditor: React.FC<AIToolEditorProps> = React.memo((props) => {
   const handleSaveAndOpen = useMemoizedFn(async (isSave?: boolean) => {
     try {
       if (isSave) await handleSave()
-      if (modalRef.current) modalRef.current.destroy()
+      destroySaveModal()
       handleModifyInit()
     } catch (error) {}
   })
@@ -261,6 +270,7 @@ const AIToolEditor: React.FC<AIToolEditorProps> = React.memo((props) => {
               handleSaveAndExit()
             },
             onCancel: () => {
+              destroySaveModal()
               emiter.emit(
                 'closePage',
                 JSON.stringify({ route: YakitRoute.ModifyAITool, source: getModifyAIToolSource() }),
@@ -279,6 +289,7 @@ const AIToolEditor: React.FC<AIToolEditorProps> = React.memo((props) => {
               handleSaveAndOpen(true)
             },
             onCancel: () => {
+              destroySaveModal()
               handleSaveAndOpen()
             },
           }
@@ -301,6 +312,7 @@ const AIToolEditor: React.FC<AIToolEditorProps> = React.memo((props) => {
               handleSaveAndExit()
             },
             onCancel: () => {
+              destroySaveModal()
               emiter.emit('closePage', JSON.stringify({ route: YakitRoute.AddAITool, source: getAddAIToolSource() }))
             },
           }
