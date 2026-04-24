@@ -135,7 +135,6 @@ const ForgeEditor: React.FC<ForgeEditorProps> = memo((props) => {
   // #region forge模板全局数据和全局功能 全局数据和全局功能方法
   /** 储存着已有ID的数据(包括编辑获取和新建保存后的数据) */
   const forgeData = useRef<AIForge>()
-
   const [fetchDataLoading, setFetchDataLoading] = useState(false)
   const setDelayCancelFetchDataLoading = useMemoizedFn(() => {
     setTimeout(() => {
@@ -152,19 +151,15 @@ const ForgeEditor: React.FC<ForgeEditorProps> = memo((props) => {
     )
     if (currentItem && currentItem.pageParamsInfo.modifyAIForgePageInfo) {
       const id = currentItem.pageParamsInfo.modifyAIForgePageInfo?.id
-      const newCurrentItem: PageNodeItemProps = {
-        ...currentItem,
-        pageParamsInfo: {
-          ...currentItem.pageParamsInfo,
-          modifyAIForgePageInfo: undefined,
-        },
-      }
-      updatePagesDataCacheById(YakitRoute.ModifyAIForge, { ...newCurrentItem })
       if (!id) {
         yakitNotify('error', `尝试编辑的模板异常(ID: ${id}), 请关闭页面重试`)
         return
       }
-
+      // 如果当前 ID 已经初始化过，不再重复拉取
+      if (forgeData.current?.Id && forgeData.current?.Id === id) {
+        setDelayCancelFetchDataLoading()
+        return
+      }
       try {
         const res = await grpcGetAIForge({ ID: id, InflateSkillPath: true })
 
@@ -459,7 +454,10 @@ const ForgeEditor: React.FC<ForgeEditorProps> = memo((props) => {
         destroySaveModal()
         emiter.emit(
           'closePage',
-          JSON.stringify({ route: !!isModify ? YakitRoute.ModifyAIForge : YakitRoute.AddAIForge }),
+          JSON.stringify({
+            route: !!isModify ? YakitRoute.ModifyAIForge : YakitRoute.AddAIForge,
+            source: !!isModify ? getModifyAIForgeSource() : getAddAIForgeSource(),
+          }),
         )
       })
       .catch(() => {})
@@ -471,6 +469,21 @@ const ForgeEditor: React.FC<ForgeEditorProps> = memo((props) => {
       destroySaveModal()
       handleModifyInit()
     } catch (error) {}
+  })
+
+  /** 获取编辑页面的打开的来源 */
+  const getModifyAIForgeSource = useMemoizedFn(() => {
+    const currentItem: PageNodeItemProps | undefined = queryPagesDataById(
+      YakitRoute.ModifyAIForge,
+      YakitRoute.ModifyAIForge,
+    )
+    return currentItem?.pageParamsInfo.modifyAIForgePageInfo?.source
+  })
+
+  /** 获取新建页面的打开的来源 */
+  const getAddAIForgeSource = useMemoizedFn(() => {
+    const currentItem: PageNodeItemProps | undefined = queryPagesDataById(YakitRoute.AddAIForge, YakitRoute.AddAIForge)
+    return currentItem?.pageParamsInfo.addAIForgePageInfo?.source
   })
   const { setSubscribeClose, removeSubscribeClose } = useSubscribeClose()
   // 二次提示框的实例
@@ -496,7 +509,10 @@ const ForgeEditor: React.FC<ForgeEditorProps> = memo((props) => {
             },
             onCancel: (m) => {
               destroySaveModal()
-              emiter.emit('closePage', JSON.stringify({ route: YakitRoute.ModifyAIForge }))
+              emiter.emit(
+                'closePage',
+                JSON.stringify({ route: YakitRoute.ModifyAIForge, source: getModifyAIForgeSource() }),
+              )
             },
             getModal: (m) => {
               modalRef.current = m
@@ -552,7 +568,7 @@ const ForgeEditor: React.FC<ForgeEditorProps> = memo((props) => {
             },
             onCancel: () => {
               destroySaveModal()
-              emiter.emit('closePage', JSON.stringify({ route: YakitRoute.AddAIForge }))
+              emiter.emit('closePage', JSON.stringify({ route: YakitRoute.AddAIForge, source: getAddAIForgeSource() }))
             },
             getModal: (m) => {
               modalRef.current = m

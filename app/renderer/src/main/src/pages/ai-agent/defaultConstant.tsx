@@ -183,7 +183,7 @@ export const AITabs = {
 /** AI-Forge 列表查询条件里的页码默认条件 */
 export const AIForgeListDefaultPagination: PaginationSchema = {
   ...genDefaultPagination(20),
-  OrderBy: 'id',
+  OrderBy: 'updated_at',
 }
 
 export const tagColors: YakitTagColor[] = [

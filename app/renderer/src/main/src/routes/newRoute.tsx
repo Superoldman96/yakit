@@ -25,7 +25,6 @@ import { CVEViewer } from '@/pages/cve/CVEViewer'
 import { YakJavaDecompiler } from '@/pages/yakJavaDecompiler/YakJavaDecompiler'
 import { PageLoading } from './PageLoading'
 import {
-  PrivateOutlineAIAgentIcon,
   PrivateOutlineAuditCodeIcon,
   PrivateOutlineAuditHoleIcon,
   PrivateOutlineBasicCrawlerIcon,
@@ -59,7 +58,6 @@ import {
   PrivateOutlineTCPPortLogIcon,
   PrivateOutlineWebFuzzerIcon,
   PrivateOutlineWebsocketFuzzerIcon,
-  PrivateSolidAIAgentIcon,
   PrivateSolidAuditCodeIcon,
   PrivateSolidAuditHoleIcon,
   PrivateSolidBasicCrawlerIcon,
@@ -173,14 +171,12 @@ import { Misstatement } from '@/pages/misstatement/Misstatement'
 import { SystemConfig } from '@/pages/systemConfig/SystemConfig'
 import { HTTPHistoryAnalysis } from '@/pages/hTTPHistoryAnalysis/HTTPHistoryAnalysis'
 import { ShortcutKeyPageName } from '@/utils/globalShortcutKey/events/pageMaps'
-import { ShortcutKey } from '@/pages/shortcutKey/ShortcutKey'
 import { getNotepadNameByEdition } from '@/pages/layout/NotepadMenu/utils'
 import { ShortcutKeyList } from '@/pages/shortcutKey/ShortcutKey'
 import { AIAgent } from '@/pages/ai-agent/AIAgent'
-import { SolidClipboardlistIcon, SolidCodecIcon, SolidPayloadIcon, SolidTerminalIcon } from '@/assets/icon/solid'
+import { SolidClipboardlistIcon, SolidCodecIcon, SolidTerminalIcon } from '@/assets/icon/solid'
 import { PublicToolDataCompareIcon, PublicToolVulinboxIcon } from './publicIcon'
 import { SoftMode, YakitModeEnum } from '@/store/softMode'
-import { AIMentionCommandParams } from '@/pages/ai-agent/components/aiMilkdownInput/aiMilkdownMention/aiMentionPlugin'
 
 const HTTPHacker = React.lazy(() => import('../pages/hacker/httpHacker'))
 const MITMHacker = React.lazy(() => import('@/pages/mitm/MITMHacker/MITMHacker'))
@@ -199,6 +195,8 @@ const YakRunnerScanHistory = React.lazy(() => import('@/pages/yakRunnerScanHisto
 const SSACompileHistory = React.lazy(() => import('@/pages/ssaCompileHistory/SSACompileHistory'))
 const MemoryBase = React.lazy(() => import('@/pages/memoryBase/MemoryBase'))
 const ConfigManagement = React.lazy(() => import('@/pages/configManagement/ConfigManagement'))
+const AITool = React.lazy(() => import('@/pages/aiTool/AITool'))
+const AIForge = React.lazy(() => import('@/pages/aiForge/AIForge'))
 
 /**
  * @description 页面路由对应的页面信息
@@ -403,6 +401,8 @@ export const YakitRouteToPageInfo: Record<
     describeUi: 'YakitRoute.unifiedConfigurationManagementForPayloadProxyAndHotPatch',
   },
   'ai-memory': { label: '记忆库', labelUi: 'YakitRoute.ai-memory' },
+  'ai-tool': { label: '工具库', labelUi: 'YakitRoute.ai-tool' },
+  'ai-forge': { label: '技能库', labelUi: 'YakitRoute.ai-forge' },
 }
 /** 页面路由(无法多开的页面) */
 export const SingletonPageRoute: YakitRoute[] = [
@@ -457,6 +457,8 @@ export const SingletonPageRoute: YakitRoute[] = [
   YakitRoute.ModifyAITool,
   YakitRoute.AI_REPOSITORY,
   YakitRoute.AI_Memory,
+  YakitRoute.AI_Tool,
+  YakitRoute.AI_Forge,
 ]
 /** 不需要软件安全边距的页面路由 */
 export const NoPaddingRoute: YakitRoute[] = [
@@ -511,6 +513,8 @@ export const NoPaddingRoute: YakitRoute[] = [
   YakitRoute.ModifyAITool,
   YakitRoute.AI_REPOSITORY,
   YakitRoute.AI_Memory,
+  YakitRoute.AI_Tool,
+  YakitRoute.AI_Forge,
 ]
 /** 无滚动条的页面路由 */
 export const NoScrollRoutes: YakitRoute[] = [
@@ -665,9 +669,13 @@ export interface ComponentParams {
 
   /** 编辑 forge 模板 */
   modifyAIForgePageInfo?: AIForgeEditorPageInfoProps
-
+  /** 新增 ai-forge 模板页面 */
+  addAIForgePageInfo?: AIForgeEditorPageInfoProps
   /** 编辑 ai tool 页面 */
   modifyAIToolPageInfo?: AIToolEditorPageInfoProps
+
+  /** 新增 ai tool 页面 */
+  addAIToolPageInfo?: AIToolEditorPageInfoProps
   /** 扫描历史页面 */
   yakRunnerScanHistoryPageInfo?: YakRunnerScanHistoryPageInfoProps
   /** 规则管理页面 */
@@ -935,6 +943,10 @@ export const RouteToPage: (props: PageItemProps) => ReactNode = (props) => {
       return <AIToolEditor pageId={params?.id || ''} isModify={true} />
     case YakitRoute.AI_Memory:
       return <MemoryBase pageId={params?.id || ''} />
+    case YakitRoute.AI_Tool:
+      return <AITool pageId={params?.id || ''} />
+    case YakitRoute.AI_Forge:
+      return <AIForge pageId={params?.id || ''} />
     default:
       return <div />
   }
@@ -1103,6 +1115,8 @@ export const getPublicRouteMenu = (softMode: SoftMode) => {
       },
       { page: YakitRoute.AI_REPOSITORY, ...YakitRouteToPageInfo[YakitRoute.AI_REPOSITORY] },
       { page: YakitRoute.AI_Memory, ...YakitRouteToPageInfo[YakitRoute.AI_Memory] },
+      { page: YakitRoute.AI_Tool, ...YakitRouteToPageInfo[YakitRoute.AI_Tool] },
+      { page: YakitRoute.AI_Forge, ...YakitRouteToPageInfo[YakitRoute.AI_Forge] },
       {
         page: YakitRoute.Plugin_Hub,
         ...YakitRouteToPageInfo[YakitRoute.Plugin_Hub],

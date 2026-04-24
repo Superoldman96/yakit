@@ -588,6 +588,10 @@ interface HubGridOptProps {
   extraFooter?: (data: any) => ReactNode
   /** 点击该展示项的回调 */
   onClick?: (data: any, index: number, value: boolean) => any
+  /**
+   * 是否显示选中框，默认为显示
+   */
+  isShowCheck?: boolean
 }
 /** @name 插件网格单项 */
 export const HubGridOpt: React.FC<HubGridOptProps> = memo((props) => {
@@ -609,6 +613,7 @@ export const HubGridOpt: React.FC<HubGridOptProps> = memo((props) => {
     subTitle,
     extraFooter,
     onClick,
+    isShowCheck,
   } = props
 
   // 副标题组件
@@ -666,16 +671,17 @@ export const HubGridOpt: React.FC<HubGridOptProps> = memo((props) => {
 
   return (
     <div className={styles['hub-grid-opt']} onClick={onclick}>
-      <div
-        className={classNames(styles['opt-check-wrapper'], { [styles['opt-check-active']]: checked })}
-        onClick={(e) => {
-          e.stopPropagation()
-          onCheck(info, !checked)
-        }}
-      >
-        <PluginsGridCheckIcon />
-      </div>
-
+      {isShowCheck !== false && (
+        <div
+          className={classNames(styles['opt-check-wrapper'], { [styles['opt-check-active']]: checked })}
+          onClick={(e) => {
+            e.stopPropagation()
+            onCheck(info, !checked)
+          }}
+        >
+          <PluginsGridCheckIcon />
+        </div>
+      )}
       <div className={classNames(styles['opt-body'], { [styles['opt-active-body']]: checked })}>
         <div className={styles['opt-content']}>
           <div className={styles['title-wrapper']}>
