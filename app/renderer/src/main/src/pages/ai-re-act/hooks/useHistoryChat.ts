@@ -282,7 +282,7 @@ function useHistoryChat(params?: UseHistoryChatParams) {
     for (let item of chats) {
       try {
         let ipcContent = Uint8ArrayToString(item.Content) || ''
-        console.log('历史聊天记录数据-单条', item, ipcContent)
+        // console.log('历史聊天记录数据-单条', item, ipcContent)
 
         if (item.Type === 'thought') {
           const { thought } = (JSON.parse(ipcContent) as AIAgentGrpcApi.AIChatThought) || {}
@@ -499,7 +499,7 @@ function useHistoryChat(params?: UseHistoryChatParams) {
         hasMoreChats.current = false
         return
       }
-      console.log('历史聊天记录数据', request, Events, Total)
+      // console.log('历史聊天记录数据', request, Events, Total)
 
       updateBeforeID('chatID', `${Events[Events.length - 1].ID}`)
     } catch {}
