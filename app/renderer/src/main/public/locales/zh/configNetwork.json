@@ -114,6 +114,13 @@
     "codeType": "代码类型",
     "selectTypeDefinition": "请选择类型定义",
     "description": "描述",
-    "snippetDescMax": "代码片段描述最多200个字"
+    "snippetDescMax": "代码片段描述最多200个字",
+    "APItype": "API类型",
+    "modelName": "模型名称",
+    "modelType": "模型类型",
+    "highQualityModel": "高质模型:执行复杂任务",
+    "lightweightModel": "轻量模型:用于执行简单任务和会话",
+    "visionModel": "视觉模式:用于识别图片等,生成知识库和任务执行都会用到",
+    "userInfo": "用户信息"
   }
 }
