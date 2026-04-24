@@ -1573,7 +1573,7 @@ export const MainOperatorContent: React.FC<MainOperatorContentProps> = React.mem
           // 兼容只有【配置】的时候的高级配置显隐,低版本分享给高版本
           newAdvancedConfigShow = {
             ...defaultAdvancedConfigShow,
-            config: shareContent['advancedConfig']
+            config: shareContent['advancedConfig'],
           }
         }
       }
