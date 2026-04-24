@@ -23,9 +23,6 @@ function useCasualChat(params?: UseCasualChatParams) {
   })
 
   const [elements, setElements, getElements] = useGetSetState<ReActChatRenderItem[]>([])
-  const handleSetElements = useMemoizedFn((newElements: ReActChatRenderItem[]) => {
-    setElements(newElements)
-  })
 
   const getContentMap = useMemoizedFn((mapKey: string) => {
     const contentMap = getChatDataStore?.()?.casualChat?.contents
@@ -402,7 +399,14 @@ function useCasualChat(params?: UseCasualChatParams) {
   }, [elements])
 
   const events: UseCasualChatEvents = useCreation(() => {
-    return { handleSetData, handleResetData, handleSend, handleSetElements, handleUserManualIntervention }
+    return {
+      handleSetData,
+      handleResetData,
+      handleSend,
+      setElements: setElements,
+      getElements: getElements,
+      handleUserManualIntervention,
+    }
   }, [])
 
   return [state, events] as const

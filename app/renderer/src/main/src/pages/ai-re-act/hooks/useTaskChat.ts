@@ -35,9 +35,6 @@ function useTaskChat(params?: UseTaskChatParams) {
   })
 
   const [elements, setElements, getElements] = useGetSetState<ReActChatRenderItem[]>([])
-  const handleSetElements = useMemoizedFn((newElements: ReActChatRenderItem[]) => {
-    setElements(newElements)
-  })
 
   const getContentMap = useMemoizedFn((mapKey: string) => {
     const contentMap = getChatDataStore?.()?.taskChat?.contents
@@ -645,7 +642,8 @@ function useTaskChat(params?: UseTaskChatParams) {
       handleSend,
       handleCloseGrpc,
       handlePlanExecEnd,
-      handleSetElements,
+      setElements: setElements,
+      getElements: getElements,
       handleUserManualIntervention,
       handleResetPlanTree,
     }

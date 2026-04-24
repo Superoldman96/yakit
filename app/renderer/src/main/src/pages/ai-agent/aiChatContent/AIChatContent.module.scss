@@ -11,6 +11,7 @@
 }
 .ai-chat-content-wrapper {
   @extend %display-column-center;
+  position: relative;
   flex: 1;
   overflow: hidden;
   .expand-retract-wrapper {

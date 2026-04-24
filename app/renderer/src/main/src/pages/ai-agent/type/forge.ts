@@ -1,5 +1,5 @@
 import { PaginationSchema } from '@/pages/invoker/schema'
-import { AIChatInfo } from './aiChat'
+import { AISession } from './aiChat'
 
 export interface GrpcPageResponse<T = unknown> {
   Pagination: PaginationSchema
@@ -90,7 +90,7 @@ export interface QueryAIFocusResponse {
   Data: AIFocus[]
 }
 
-export type QueryAISessionResponse = GrpcPageResponse<AIChatInfo[]>
+export type QueryAISessionResponse = GrpcPageResponse<AISession[]>
 
 export interface DeleteAISessionFilter {
   /**

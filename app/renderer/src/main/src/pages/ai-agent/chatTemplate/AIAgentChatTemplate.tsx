@@ -199,9 +199,10 @@ export const AIChatLeftSide: React.FC<AIChatLeftSideProps> = memo((props) => {
 export const AIAgentChatStream: React.FC<AIAgentChatStreamProps> = memo((props) => {
   const { streams, scrollToBottom, taskStatus, session } = props
   const { virtuosoRef, setIsAtBottomRef, setScrollerRef, scrollToIndex, handleTotalListHeightChanged } =
-    useVirtuosoAutoScroll()
+    useVirtuosoAutoScroll({ total: streams.length })
   const [highlightedItem, setHighlightedItem] = useState<{ index: number; token: number } | null>(null)
-  const highlightStartTimerRef = useRef<number | null>(null)
+  const highlightRafRef = useRef<number>(0)
+  const highlightObserverRef = useRef<IntersectionObserver | null>(null)
   useUpdateEffect(() => {
     scrollToIndex('LAST')
   }, [scrollToBottom])
@@ -222,12 +223,49 @@ export const AIAgentChatStream: React.FC<AIAgentChatStreamProps> = memo((props) 
     }
   }, [highlightedItem])
 
+  const cleanupHighlightWatcher = useMemoizedFn(() => {
+    if (highlightRafRef.current) {
+      cancelAnimationFrame(highlightRafRef.current)
+      highlightRafRef.current = 0
+    }
+    highlightObserverRef.current?.disconnect()
+    highlightObserverRef.current = null
+  })
+
+  /** 等元素进入可视区域后再设置高亮，避免动画在不可见时播放完毕 */
+  const waitAndHighlight = useMemoizedFn((targetIndex: number) => {
+    cleanupHighlightWatcher()
+    setHighlightedItem(null)
+
+    let attempts = 0
+    const tryObserve = () => {
+      if (++attempts > 120) return
+      const el = document.querySelector(`[data-index="${targetIndex}"]`)
+      if (!el) {
+        highlightRafRef.current = requestAnimationFrame(tryObserve)
+        return
+      }
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((e) => e.isIntersecting)) {
+            setHighlightedItem({ index: targetIndex, token: Date.now() })
+            observer.disconnect()
+            highlightObserverRef.current = null
+          }
+        },
+        { threshold: 0.1 },
+      )
+      observer.observe(el)
+      highlightObserverRef.current = observer
+    }
+    highlightRafRef.current = requestAnimationFrame(tryObserve)
+  })
+
   useEffect(() => {
     return () => {
-      if (highlightStartTimerRef.current) {
-        window.clearTimeout(highlightStartTimerRef.current)
-      }
+      cleanupHighlightWatcher()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const renderItem = (index: number, stream: ReActChatRenderItem) => {
@@ -281,13 +319,7 @@ export const AIAgentChatStream: React.FC<AIAgentChatStreamProps> = memo((props) 
     })
     if (index !== -1) {
       scrollToIndex(index, 'auto')
-      setHighlightedItem(null)
-      if (highlightStartTimerRef.current) {
-        window.clearTimeout(highlightStartTimerRef.current)
-      }
-      highlightStartTimerRef.current = window.setTimeout(() => {
-        setHighlightedItem({ index, token: Date.now() })
-      }, 80)
+      waitAndHighlight(index)
     }
   })
   useMount(() => {
@@ -311,6 +343,7 @@ export const AIAgentChatStream: React.FC<AIAgentChatStreamProps> = memo((props) 
         atBottomThreshold={100}
         initialTopMostItemIndex={streams.length > 1 ? streams.length - 1 : 0}
         skipAnimationFrameInResizeObserver
+        overscan={20}
         // increaseViewportBy={{top: 160, bottom: 160}}
         components={components}
       />

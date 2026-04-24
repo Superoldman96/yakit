@@ -16,7 +16,7 @@ import {
   DefaultToolResultSummary,
 } from './defaultConstant'
 import { AIAgentGrpcApi, AIOutputEvent } from './grpcApi'
-import { AIChatQSData, AIChatQSDataTypeEnum, AIToolResult, ReActChatGroupElement } from './aiRender'
+import { AIChatQSData, AIChatQSDataType, AIChatQSDataTypeEnum, AIToolResult, ReActChatGroupElement } from './aiRender'
 import cloneDeep from 'lodash/cloneDeep'
 
 function useChatContent(params: UseChatContentParams): UseChatContentEvents
@@ -27,7 +27,7 @@ function useChatContent(params: UseChatContentParams) {
 
   /** 更新触发渲染的UI数据项 */
   const updateElements = useMemoizedFn(
-    (main: { mapKey: string; type: AIChatQSDataTypeEnum }, sub?: { mapKey: string; type: AIChatQSDataTypeEnum }) => {
+    (main: { mapKey: string; type: AIChatQSDataType }, sub?: { mapKey: string; type: AIChatQSDataType }) => {
       // 先判断该项是否存在
       const target = getElements().findIndex(
         (item) => item.token === main.mapKey && item.type === main.type && (sub ? item.isGroup : true),
@@ -85,7 +85,7 @@ function useChatContent(params: UseChatContentParams) {
     },
   )
   /** 删除触发渲染的UI数据项 */
-  // const deleteElements = useMemoizedFn((token: string, type: AIChatQSDataTypeEnum) => {
+  // const deleteElements = useMemoizedFn((token: string, type: AIChatQSDataType) => {
   //     // 先判断该项是否存在
   //     const target = getElements().findIndex((item) => item.token === token && item.type === type)
   //     if (target >= 0) {
@@ -124,7 +124,7 @@ function useChatContent(params: UseChatContentParams) {
   const handleIsGroupDisplay = useMemoizedFn(
     (params: {
       mapKey: string
-      type: AIChatQSDataTypeEnum
+      type: AIChatQSDataType
       nodeID: AIOutputEvent['NodeId']
       contentType: AIOutputEvent['ContentType']
     }) => {

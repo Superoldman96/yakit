@@ -32,6 +32,11 @@ export type handleSendFunc = (params: {
   cb?: () => void
 }) => void
 
+interface UseHookStateFunc {
+  setElements: Dispatch<SetStateAction<ReActChatRenderItem[]>>
+  getElements: () => ReActChatRenderItem[]
+}
+
 // #region useAIPerfData相关定义
 export interface UseAIPerfDataParams extends UseHookBaseParams {}
 
@@ -65,10 +70,8 @@ export interface UseCasualChatParams extends UseHookBaseParams {
 export interface UseCasualChatState {
   elements: ReActChatRenderItem[]
 }
-export interface UseCasualChatEvents extends UseHookBaseEvents {
+export interface UseCasualChatEvents extends UseHookBaseEvents, UseHookStateFunc {
   handleSend: handleSendFunc
-  /** 设置UI展示的列表数据 */
-  handleSetElements: (newElements: ReActChatRenderItem[]) => void
   /** 用户手动介入逻辑 */
   handleUserManualIntervention: (chatInfo: AIChatQSData) => void
 }
@@ -99,14 +102,12 @@ export interface UseTaskChatState {
   plan: CurrentExecTaskTree
   elements: ReActChatRenderItem[]
 }
-export interface UseTaskChatEvents extends UseHookBaseEvents {
+export interface UseTaskChatEvents extends UseHookBaseEvents, UseHookStateFunc {
   handleSend: handleSendFunc
   /** grpc接口关闭后的后续处理逻辑 */
   handleCloseGrpc: () => void
   /** 当前任务规划结束-触发UI展示结束标识 */
   handlePlanExecEnd: (res: AIOutputEvent) => void
-  /** 设置UI展示的列表数据 */
-  handleSetElements: (newElements: ReActChatRenderItem[]) => void
   /** 用户手动介入逻辑 */
   handleUserManualIntervention: (chatInfo: AIChatQSData) => void
   /** 清空当前任务树 */
@@ -222,6 +223,8 @@ export interface UseChatIPCState {
   cancelCasualLoading: boolean
   /** 用户主动取消问题的loading状态(任务规划) */
   cancelTaskLoading: boolean
+  /** 历史数据获取的状态 */
+  historyState: UseHistoryChatState
 }
 
 /** 开始启动流接口的唯一token、请求参数和额外参数 */
@@ -248,7 +251,7 @@ export interface TaskChatTaskInfo {
   coordinatorId: AIOutputEvent['CoordinatorId']
 }
 
-export interface UseChatIPCEvents {
+export interface UseChatIPCEvents extends Omit<UseHistoryChatEvents, 'loadInit'> {
   /** 获取当前执行接口流的唯一标识符 */
   fetchToken: () => string
   /** 获取当前执行接口流的请求参数 */
@@ -312,13 +315,11 @@ export interface UseAIChatLogEvents {
 // #endregion
 
 // #region useChatContent相关定义
-export interface UseChatContentParams {
+export interface UseChatContentParams extends UseHookStateFunc {
   chatType: ReActChatRenderItem['chatType']
   getContentMap: (token: string) => AIChatQSData | undefined
   setContentMap: (token: string, content: AIChatQSData) => void
   deleteContentMap: (token: string) => void
-  setElements: Dispatch<SetStateAction<ReActChatRenderItem[]>>
-  getElements: () => ReActChatRenderItem[]
   /** 获取当前执行接口流的唯一标识符 */
   pushLog: (log: AIChatLogData) => void
   /** 未识别的类型数据, 由外界自主识别处理 */
@@ -329,7 +330,26 @@ export interface UseChatContentEvents extends UseHookBaseEvents {}
 // #endregion
 
 // #region useHistoryChat相关定义
-export interface UseHistoryChatParams {}
+export interface UseHistoryChatParams {
+  getChatDataStore: UseHookBaseParams['getChatDataStore']
+  setTimelines: Dispatch<SetStateAction<AIAgentGrpcApi.TimelineItem[]>>
+  setGrpcFiles: Dispatch<SetStateAction<AIFileSystemPin[]>>
+  setCasualElements: UseHookStateFunc['setElements']
+  getCasualElements: UseHookStateFunc['getElements']
+  setTaskElements: UseHookStateFunc['setElements']
+  getTaskElements: UseHookStateFunc['getElements']
+}
 
-export interface UseHistoryChatEvents {}
+export interface UseHistoryChatState {
+  initLoading: boolean
+  timelinesLoading: boolean
+  chatsLoading: boolean
+}
+
+export type loadMoreType = keyof AIChatData['beforeID']
+export interface UseHistoryChatEvents {
+  fetchHasMore: (type: loadMoreType) => boolean
+  loadInit: (session: string) => void
+  loadMore: (type: loadMoreType, session: string) => void
+}
 // #endregion

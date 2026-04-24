@@ -19,7 +19,7 @@ import { HandleStartParams } from '@/pages/ai-agent/aiAgentChat/type'
 import { formatAIAgentSetting, getAIReActRequestParams } from '@/pages/ai-agent/utils'
 import { YakitTag } from '@/components/yakitUI/YakitTag/YakitTag'
 import { v4 as uuidv4 } from 'uuid'
-import { AIChatInfo } from '@/pages/ai-agent/type/aiChat'
+import { AISession } from '@/pages/ai-agent/type/aiChat'
 import useAIAgentDispatcher from '@/pages/ai-agent/useContext/useDispatcher'
 import { randomString } from '@/utils/randomUtil'
 
@@ -113,7 +113,7 @@ export const AIReActChat: React.FC<AIReActChatProps> = React.memo(
         const { params, extraParams, onChat, onChatFromHistory } = res
         if (!sessionID) {
           // 创建新的聊天记录
-          const newChat: AIChatInfo = {
+          const newChat: AISession = {
             Id: extraParams?.chatId || session,
             Title: qs || `AI Agent - ${new Date().toLocaleString()}`,
             question: qs,
