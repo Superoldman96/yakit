@@ -104,7 +104,13 @@
     "updateNow": "Update now",
     "closeNow": "Close now",
     "collapse": "Collapse",
-    "expand": "Expand"
+    "expand": "Expand",
+    "start": "Start",
+    "uninstall": "Uninstall",
+    "install": "Install",
+    "viewDetail": "View detail",
+    "send": "Send",
+    "stopTask": "Stop task"
   },
   "YakitNotification": {
     "unknown_error": "Unknown Error",
@@ -161,7 +167,9 @@
     "pasteFailed": "Paste failed: {{error}}",
     "modalCrashRetry": "The modal logic crashed. Please close and try again!",
     "installFailed": "Installation failed: {{error}}",
-    "updateContentFailed": "Update failed: {{error}}"
+    "updateContentFailed": "Update failed: {{error}}",
+    "uninstallFailed": "Uninstall failed: {{error}}",
+    "startFailed": "Start failed: {{error}}"
   },
   "YakitFormDragger": {
     "filePath": "File Path",
@@ -210,6 +218,7 @@
   "YakitInput": {
     "please_enter": "Please enter...",
     "searchKeyWordPlaceholder": "Please enter keywords to search",
+    "enterKeyword": "Please enter a keyword",
     "supportInputFormat": "Supports input in formats like 200, 200-204, multiple values separated by commas",
     "search": "search"
   },
@@ -218,7 +227,8 @@
     "noMoreData": "No More Data",
     "end_of_list": "You've reached the end~",
     "searchEmpty": "Search result is empty",
-    "noImage": "No image"
+    "noImage": "No image",
+    "noDescription": "No description"
   },
   "YakitDatePicker": {
     "oneMinute": "1 Minute",
@@ -264,7 +274,8 @@
     "downloadedPercent": "Downloaded {{percent}}%",
     "remainingTime": "Remaining time: {{time}}s",
     "elapsedTime": "Elapsed: {{time}}s",
-    "downloadSpeed": "Download speed: {{speed}}M/s"
+    "downloadSpeed": "Download speed: {{speed}}M/s",
+    "completedPercent": "Completed {{percent}}%"
   },
   "YakitSelect": {
     "pleaseSelect": "Please select...",
