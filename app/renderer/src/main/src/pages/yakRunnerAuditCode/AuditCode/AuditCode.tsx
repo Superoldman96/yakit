@@ -2649,7 +2649,7 @@ export const AuditHistoryTable: React.FC<AuditHistoryTableProps> = memo((props) 
                 onClick={async (e) => {
                   e.stopPropagation()
                   try {
-                    const selectTotal = await getGroupNamesTotal([record.Language])
+                    const selectTotal = await getGroupNamesTotal({ GroupNames: [record.Language] })
                     emiter.emit(
                       'openPage',
                       JSON.stringify({

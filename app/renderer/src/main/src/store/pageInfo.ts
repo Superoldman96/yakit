@@ -297,6 +297,8 @@ export interface CodeScanPageInfoProps {
   FilterLibRuleKind?: FilterLibRuleKind
   // 所选规则总数(PS：在页面跳转时如若存在GroupNames则需要查询其total进行展示)
   selectTotal?: number
+  // 是否排除合规检测
+  Purpose?: string[]
 }
 
 export interface ModifyNotepadPageInfoProps {
