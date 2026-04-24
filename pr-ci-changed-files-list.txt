@@ -1,7 +1,0 @@
-app/renderer/src/main/src/pages/ai-agent/aiModelList/icon.tsx
-app/renderer/src/main/src/pages/ai-agent/aiToolList/AIToolList.tsx
-app/renderer/src/main/src/pages/ai-agent/components/ModelInfo.tsx
-app/renderer/src/main/src/pages/ai-agent/type/aiTool.ts
-app/renderer/src/main/src/pages/ai-agent/type/forge.ts
-app/renderer/src/main/src/pages/aiTool/AIToolEditor/AIToolEditor.tsx
-app/renderer/src/main/src/pages/layout/mainOperatorContent/MainOperatorContent.tsx
