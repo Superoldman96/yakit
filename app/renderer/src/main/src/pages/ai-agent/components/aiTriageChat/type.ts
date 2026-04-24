@@ -9,6 +9,7 @@ export interface AITriageChatContentProps {
 }
 
 export interface AITriageChatContentEditProps {
-  defaultValue: string
   onCancel: () => void
+  content: AITriageChatContentProps['content']
+  extraValue?: AITriageChatContentProps['extraValue']
 }

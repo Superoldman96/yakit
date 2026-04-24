@@ -1,9 +1,8 @@
-import React, { memo, useEffect, useRef, useState } from 'react'
+import React, { memo, useRef, useState } from 'react'
 import { AITriageChatContentEditProps, AITriageChatContentProps } from './type'
 
 import classNames from 'classnames'
 import styles from './AITriageChat.module.scss'
-import { PreWrapper } from '../ToolInvokerCard'
 import { useCreation, useMemoizedFn } from 'ahooks'
 import { AIMilkdownInput } from '../aiMilkdownInput/AIMilkdownInput'
 import { YakitButton } from '@/components/yakitUI/YakitButton/YakitButton'
@@ -16,12 +15,12 @@ import { convertKeyEventToKeyCombination } from '@/utils/globalShortcutKey/utils
 import { YakitKeyBoard } from '@/utils/globalShortcutKey/keyboard'
 import { TextSelection } from '@milkdown/kit/prose/state'
 import { getMarkdown } from '@milkdown/kit/utils'
+import useAIAgentStore from '../../useContext/useStore'
+import { AIInputEvent } from '@/pages/ai-re-act/hooks/grpcApi'
 import { AIChatTextareaSubmit } from '../../template/type'
+import { getAIReActRequestParams } from '../../utils'
 import { extractDataWithMilkdown } from '../aiMilkdownInput/utils'
 import useChatIPCDispatcher from '../../useContext/ChatIPCContent/useDispatcher'
-import { getAIReActRequestParams } from '../../utils'
-import { AIInputEvent } from '@/pages/ai-re-act/hooks/grpcApi'
-import useAIAgentStore from '../../useContext/useStore'
 
 export const AITriageChatContent: React.FC<AITriageChatContentProps> = memo((props) => {
   const { isAnswer, content, contentClassName, chatClassName, extraValue } = props
@@ -29,14 +28,6 @@ export const AITriageChatContent: React.FC<AITriageChatContentProps> = memo((pro
   const [edit, setEdit] = useState<boolean>(false)
 
   const renderContent = useMemoizedFn(() => {
-    if (!!extraValue?.isForge) {
-      return (
-        <>
-          {extraValue?.showForgeQuestion}
-          <PreWrapper code={`${extraValue?.forgeParams}`} />
-        </>
-      )
-    }
     if (!!extraValue?.showQS) {
       return (
         <>
@@ -46,20 +37,11 @@ export const AITriageChatContent: React.FC<AITriageChatContentProps> = memo((pro
     }
     return <>{content}</>
   })
-  const defaultValue = useCreation(() => {
-    if (!!extraValue?.isForge) {
-      return `${extraValue?.showForgeQuestion}\n${extraValue?.forgeParams}`
-    }
-    if (!!extraValue?.showQS) {
-      return `${extraValue?.showQS}`
-    }
-    return content
-  }, [content, extraValue])
 
   return (
     <div className={styles['triage-chat-content-wrapper']}>
       {edit ? (
-        <AITriageChatContentEdit defaultValue={defaultValue} onCancel={() => setEdit(false)} />
+        <AITriageChatContentEdit content={content} extraValue={extraValue} onCancel={() => setEdit(false)} />
       ) : (
         <>
           <div
@@ -77,7 +59,7 @@ export const AITriageChatContent: React.FC<AITriageChatContentProps> = memo((pro
           <div className={styles['triage-chat-content-footer']}>
             <Tooltip title="复制">
               <CopyComponents
-                copyText="123"
+                copyText={`${extraValue?.showQS}` || content || ''}
                 iconColor="var(--Colors-Use-Neutral-Text-3-Secondary)"
                 className={styles['copy-btn']}
               />
@@ -92,9 +74,9 @@ export const AITriageChatContent: React.FC<AITriageChatContentProps> = memo((pro
   )
 })
 const AITriageChatContentEdit: React.FC<AITriageChatContentEditProps> = React.memo((props) => {
-  const { defaultValue, onCancel } = props
-  const { chatIPCEvents } = useChatIPCDispatcher()
+  const { extraValue, content, onCancel } = props
   const { activeChat } = useAIAgentStore()
+  const { chatIPCEvents } = useChatIPCDispatcher()
 
   const [disabled, setDisabled] = useState<boolean>(false)
   const editorMilkdown = useRef<EditorMilkdownProps>()
@@ -115,7 +97,7 @@ const AITriageChatContentEdit: React.FC<AITriageChatContentEditProps> = React.me
       const view = ctx.get(editorViewCtx)
       const { state } = view
       const tr = state.tr.setSelection(TextSelection.create(state.doc, state.doc.content.size))
-      view.dispatch(tr)
+      view.dispatch(tr.scrollIntoView())
       view.focus()
     })
   })
@@ -166,6 +148,13 @@ const AITriageChatContentEdit: React.FC<AITriageChatContentEditProps> = React.me
       onSend()
     }
   })
+  const defaultValue = useCreation(() => {
+    if (!!extraValue?.showQS) {
+      return `${extraValue?.showQS}`
+    }
+    return content
+  }, [content, extraValue])
+
   return (
     <div className={styles['edit-content-wrapper']} onClick={handleSetTextareaFocus} onKeyDown={handleTextareaKeyDown}>
       <div

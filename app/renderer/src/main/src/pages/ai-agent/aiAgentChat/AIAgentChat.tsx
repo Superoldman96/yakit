@@ -49,6 +49,7 @@ import { AIChatContentRefProps } from '../aiChatContent/type'
 import { PageNodeItemProps } from '@/store/pageInfo'
 import { isForcedSetAIModal } from '../aiModelList/utils'
 import { Trans } from 'react-i18next'
+import { AIInputWithParamsTemplate, aiInputWithParamsTemplate } from '../components/aiMilkdownInput/utils'
 
 const AIChatWelcome = React.lazy(() => import('../aiChatWelcome/AIChatWelcome'))
 
@@ -452,18 +453,17 @@ export const AIAgentChat: React.FC<AIAgentChatProps> = memo((props) => {
 
   const handleSubmitForge = useMemoizedFn((request: AIStartParams, formValue: AIChatIPCStartParams['extraValue']) => {
     setMode('re-act')
-    const userQuery = formValue?.UserQuery || ''
-    const qs = `${t('AIAgentChat.useForgeTask', { name: request.ForgeName || '' })}${
-      !!request.ForgeParams
-        ? `${t('AIAgentChat.params')}${JSON.stringify(request.ForgeParams)}`
-        : `${!!userQuery ? `${t('AIAgentChat.input')}${userQuery!}` : ''}`
-    }`
+    const description = `${t('AIAgentChat.useForgeTask', { name: request.ForgeName || '' })}${!!formValue ? t('AIAgentChat.params') : ''}`
+
+    const params: AIInputWithParamsTemplate = {
+      description,
+      param: formValue ?? {},
+    }
+    const qs = aiInputWithParamsTemplate(params)
     handleStart({
       qs,
       extraValue: {
-        isForge: true,
-        showForgeQuestion: t('AIAgentChat.useForgeTask', { name: request.ForgeName || '' }),
-        forgeParams: JSON.stringify(formValue, null, 2),
+        showQS: qs,
       },
     })
     handleClearActiveForge()
@@ -475,10 +475,14 @@ export const AIAgentChat: React.FC<AIAgentChatProps> = memo((props) => {
       return
     }
     setMode('re-act')
+    const qs = `${t('AIAgentChat.useToolTask', {
+      name: `${activeTool.VerboseName || activeTool.Name}`,
+    })}${question ? `${t('AIAgentChat.input')}${question}` : ''}`
     handleStart({
-      qs: `${t('AIAgentChat.useToolTask', {
-        name: `${activeTool.VerboseName || activeTool.Name}`,
-      })}${question ? `${t('AIAgentChat.input')}${question}` : ''}`,
+      qs,
+      extraValue: {
+        showQS: qs,
+      },
     })
     handleClearActiveTool()
   })
