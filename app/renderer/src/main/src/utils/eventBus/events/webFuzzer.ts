@@ -19,7 +19,7 @@ export type WebFuzzerEventProps = {
   onCurrentFuzzerPage: boolean
   /**
    * 1.发送到WebFuzzerPage
-   * 2.序列包裹层点击tab切换到【配置】/【规则】/【热加载】或 代码层面触发打卡
+   * 2.序列包裹层点击tab切换到【配置】/【规则】/【热加载】/ 【AI】或 代码层面触发打卡
    * */
   sequenceOrCodeSendSwitchTypeToFuzzer: string
   /**发送到MainOperatorContent层中切换【序列】/(【规则】/配置) */

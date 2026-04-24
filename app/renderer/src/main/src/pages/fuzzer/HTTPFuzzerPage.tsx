@@ -950,7 +950,7 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
       }
       if (type === advancedConfigShowType) {
         const c = !advancedConfigShow[type]
-        newValue[type] = newValue[type] = open ? true : c
+        newValue[type] = open || c
       } else {
         newValue[type] = true
       }
@@ -2252,7 +2252,13 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
       return '0px'
     }
     return hotPatchVisible || aiTopPanelResizable ? hotPatchTopPanelFirstRatio : defaultTopPanelFirstRatio
-  }, [advancedConfigVisible, hotPatchVisible, aiTopPanelResizable, hotPatchTopPanelFirstRatio, defaultTopPanelFirstRatio])
+  }, [
+    advancedConfigVisible,
+    hotPatchVisible,
+    aiTopPanelResizable,
+    hotPatchTopPanelFirstRatio,
+    defaultTopPanelFirstRatio,
+  ])
 
   const onTopPanelResize = useMemoizedFn(({ firstSizeNum }) => {
     if (!hotPatchVisible && !aiTopPanelResizable) return
@@ -2445,8 +2451,8 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
         <YakitResizeBox
           freeze={hotPatchVisible || aiTopPanelResizable}
           firstRatio={topPanelFirstRatio}
-          secondRatio={advancedConfigVisible  ? `calc(100% - ${defaultTopPanelFirstRatio})` : '100%'}
-          firstMinSize={advancedConfigVisible  ? defaultTopPanelFirstRatio : 0}
+          secondRatio={advancedConfigVisible ? `calc(100% - ${defaultTopPanelFirstRatio})` : '100%'}
+          firstMinSize={advancedConfigVisible ? defaultTopPanelFirstRatio : 0}
           isRecalculateWH={false}
           firstNodeStyle={{ overflowY: 'auto' }}
           lineDirection="right"
