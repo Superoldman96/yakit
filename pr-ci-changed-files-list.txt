@@ -1,7 +1,0 @@
-app/renderer/src/main/src/pages/yakRunnerAuditCode/AuditCode/AuditCode.tsx
-app/renderer/src/main/src/pages/yakRunnerCodeScan/YakRunnerCodeScan.module.scss
-app/renderer/src/main/src/pages/yakRunnerCodeScan/YakRunnerCodeScan.tsx
-app/renderer/src/main/src/pages/yakRunnerCodeScan/YakRunnerCodeScanType.d.ts
-app/renderer/src/main/src/pages/yakRunnerCodeScan/utils.ts
-app/renderer/src/main/src/pages/yakRunnerScanHistory/YakRunnerScanHistory.tsx
-app/renderer/src/main/src/store/pageInfo.ts
