@@ -49,15 +49,35 @@ jobs:
         with:
           node-version: 22.22.1
 
-      - name: Write PR changed paths (git UTF-8, for Prettier/media)
+      - name: Get PR changed files
+        id: changed_files
+        uses: tj-actions/changed-files@v47
+        with:
+          base_sha: ${{ github.event.pull_request.base.sha }}
+          safe_output: false
+          quotepath: 'false'
+          separator: "\n"
+
+      - name: Print PR changed files
+        shell: bash
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          ALL_CHANGED_FILES: ${{ steps.changed_files.outputs.all_changed_files }}
+        run: |
+          echo 'Changed files from tj-actions/changed-files:'
+          if [ -z "${ALL_CHANGED_FILES:-}" ]; then
+            echo '(none)'
+          else
+            printf '%s\n' "$ALL_CHANGED_FILES"
+          fi
+
+      - name: Write PR changed paths (UTF-8, one path per line, for Prettier/media)
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed_files.outputs.all_changed_files }}
+        shell: bash
         run: |
           set -euo pipefail
-          # 勿用 .ci-changed-files-list.txt：该路径在 .gitignore 中，upload-artifact@v4 会忽略导致上传失败
-          git -c core.quotePath=false diff --name-only "$BASE_SHA" "$HEAD_SHA" > pr-ci-changed-files-list.txt
-          echo "Changed path lines: $(wc -l < pr-ci-changed-files-list.txt)"
+          printf '%s' "${ALL_CHANGED_FILES:-}" > pr-ci-changed-files-list.txt
+          echo "Changed path lines: $(wc -l < pr-ci-changed-files-list.txt | tr -d ' \t')"
           echo '---- sample paths (debug) ----'
           head -5 pr-ci-changed-files-list.txt || true
           echo '-------------------------------'
@@ -67,8 +87,6 @@ jobs:
         shell: bash
         env:
           CHANGED_FILES_PATH: ${{ github.workspace }}/pr-ci-changed-files-list.txt
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           CI_DEBUG_VITEST_SELECT: '0'
         run: node scripts/ci-select-vitest-tests.js
 
