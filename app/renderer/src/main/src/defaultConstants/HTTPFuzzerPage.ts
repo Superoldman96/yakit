@@ -23,7 +23,8 @@ export const DefFuzzerConcurrent = 20
 export const defaultAdvancedConfigShow: AdvancedConfigShowProps = {
   config: false,
   rule: true,
-  ai: false,
+  'hot-patch': true,
+  ai: true,
 }
 
 export const defaultAdvancedConfigValue: AdvancedConfigValueProps = {

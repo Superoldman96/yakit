@@ -219,7 +219,7 @@ const logger = (log: LoggerData) => {
   ipcRenderer.invoke('add-log', log)
 }
 
-export type AdvancedConfigShowProps = Record<Exclude<WebFuzzerType, 'sequence' | 'concurrency' | 'hot-patch'>, boolean>
+export type AdvancedConfigShowProps = Record<Exclude<WebFuzzerType, 'sequence' | 'concurrency'>, boolean>
 export interface ShareValueProps {
   /**高级配置显示/隐藏 */
   advancedConfigShow: AdvancedConfigShowProps
@@ -785,12 +785,11 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
     ...(initWebFuzzerPageInfo().advancedConfigShow || {}),
   })
 
-  // 切换【配置】/【规则】高级内容显示 type
+  // 切换【配置】/【规则】/【热加载】/ 【Ai】高级内容显示 type
   const [advancedConfigShowType, setAdvancedConfigShowType] = useState<WebFuzzerType>('config')
   const [aiAutoApplyRequest, setAiAutoApplyRequest] = useState(false)
   /** 仅看勾选态：选项只在 AI 子页展示，但勾选后切到「配置/规则」时仍应自动写回，避免漏应用 */
   const aiAutoApplyWantRef = useRef(false)
-  const [hotPatchSidebarVisible, setHotPatchSidebarVisible] = useState<boolean>(false)
   useEffect(() => {
     aiAutoApplyWantRef.current = aiAutoApplyRequest
   }, [aiAutoApplyRequest])
@@ -944,21 +943,14 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
     if (!inViewport) return
     try {
       const value = JSON.parse(data)
-      const { type } = value
-      if (type === 'sequence') return
-      if (type === 'hot-patch') {
-        const nextVisible = type === advancedConfigShowType ? !hotPatchSidebarVisible : true
-        emiter.emit('onGetFuzzerAdvancedConfigShow', JSON.stringify({ type, checked: nextVisible }))
-        setAdvancedConfigShowType('hot-patch')
-        setHotPatchSidebarVisible(nextVisible)
-        return
-      }
+      const { type, open } = value
+      if (['sequence', 'concurrency'].includes(type)) return
       let newValue = {
         ...advancedConfigShow,
       }
       if (type === advancedConfigShowType) {
         const c = !advancedConfigShow[type]
-        newValue[type] = c
+        newValue[type] = open || c
       } else {
         newValue[type] = true
       }
@@ -974,20 +966,18 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
         setHotPatchCodeWithParamGetter(`${remoteData}`)
       }
     })
-    onUpdatePatchCode()
     onUpdateRequest()
     onUpdateAdvancedConfigValue()
   })
   /**
    * @description 高级配置得内容展示切换
-   * 规则和配置之前得type切换，与序列无关
+   * 规则、配置、热加载、AI之间的得type切换，与序列无关
    * */
   const onFuzzerAdvancedConfigShowType = useMemoizedFn((data) => {
     if (!inViewport) return
     try {
       setCurrentFuzzerPage(true)
       const value = JSON.parse(data)
-      setHotPatchSidebarVisible(value.type === 'hot-patch')
       setAdvancedConfigShowType(value.type)
     } catch (error) {}
   })
@@ -1004,13 +994,6 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
       }
       setSelectedHotPatchTemplateName(value?.templateName || '')
     } catch (error) {}
-  })
-  /**更新热加载代码 */
-  const onUpdatePatchCode = useMemoizedFn(() => {
-    if (!inViewport) return
-    const currentItem: PageNodeItemProps | undefined = queryPagesDataById(YakitRoute.HTTPFuzzer, props.id)
-    if (!currentItem) return
-    const hotPatchCode = currentItem.pageParamsInfo.webFuzzerPageInfo?.hotPatchCode
   })
   /**更新请求包 */
   const onUpdateRequest = useMemoizedFn(() => {
@@ -1335,12 +1318,6 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
       Data: [pageData],
     }
     apiSaveFuzzerConfig(params)
-  })
-
-  const getProxyList = useMemoizedFn((proxyList) => {
-    if (proxyListRef.current) {
-      proxyListRef.current.onSetRemoteValues(proxyList)
-    }
   })
 
   const [isPause, setIsPause] = useState<boolean>(true) // 暂停或继续请求标识
@@ -1700,10 +1677,7 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
   })
 
   const hotPatchTrigger = useMemoizedFn(() => {
-    setHotPatchSidebarVisible(true)
-    emiter.emit('sendSwitchSequenceToMainOperatorContent', JSON.stringify({ type: 'hot-patch' }))
-    emiter.emit('sequenceSendSwitchTypeToFuzzer', JSON.stringify({ type: 'hot-patch' }))
-    emiter.emit('onCurrentFuzzerPage', true)
+    emiter.emit('sequenceOrCodeSendSwitchTypeToFuzzer', JSON.stringify({ type: 'hot-patch' }))
   })
   const getShareContent = useMemoizedFn((callback) => {
     const advancedConfiguration = { ...advancedConfigValue }
@@ -2248,6 +2222,8 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
         return advancedConfigShow.config
       case 'rule':
         return advancedConfigShow.rule
+      case 'hot-patch':
+        return advancedConfigShow['hot-patch']
       case 'ai':
         return advancedConfigShow.ai
       default:
@@ -2261,33 +2237,28 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
     }
   }, [advancedConfigShowType, setShowFreeChat])
   const hotPatchVisible = useCreation(
-    () => advancedConfigShowType === 'hot-patch' && hotPatchSidebarVisible,
-    [advancedConfigShowType, hotPatchSidebarVisible],
+    () => advancedConfigShowType === 'hot-patch' && advancedConfigVisible,
+    [advancedConfigShowType, advancedConfigVisible],
   )
   /** AI 侧栏展示时，与热加载一样允许拖动顶部分栏宽度 */
   const aiTopPanelResizable = useCreation(
-    () => advancedConfigShowType === 'ai' && advancedConfigShow.ai,
-    [advancedConfigShowType, advancedConfigShow],
-  )
-  const topPanelVisible = useCreation(
-    () => advancedConfigVisible || hotPatchVisible,
-    [advancedConfigVisible, hotPatchVisible],
+    () => advancedConfigShowType === 'ai' && advancedConfigVisible,
+    [advancedConfigShowType, advancedConfigVisible],
   )
   const defaultTopPanelFirstRatio = useMemo(() => (i18n.language === 'zh' ? '300px' : '460px'), [i18n.language])
   const [hotPatchTopPanelFirstRatio, setHotPatchTopPanelFirstRatio] = useState<string>(defaultTopPanelFirstRatio)
-  const topPanelDraggable = useCreation(
-    () => topPanelVisible && (hotPatchVisible || aiTopPanelResizable),
-    [topPanelVisible, hotPatchVisible, aiTopPanelResizable],
-  )
   const topPanelFirstRatio = useCreation(() => {
-    if (!topPanelVisible) {
+    if (!advancedConfigVisible) {
       return '0px'
     }
-    if (hotPatchVisible || aiTopPanelResizable) {
-      return hotPatchTopPanelFirstRatio
-    }
-    return defaultTopPanelFirstRatio
-  }, [topPanelVisible, hotPatchVisible, aiTopPanelResizable, hotPatchTopPanelFirstRatio, defaultTopPanelFirstRatio])
+    return hotPatchVisible || aiTopPanelResizable ? hotPatchTopPanelFirstRatio : defaultTopPanelFirstRatio
+  }, [
+    advancedConfigVisible,
+    hotPatchVisible,
+    aiTopPanelResizable,
+    hotPatchTopPanelFirstRatio,
+    defaultTopPanelFirstRatio,
+  ])
 
   const onTopPanelResize = useMemoizedFn(({ firstSizeNum }) => {
     if (!hotPatchVisible && !aiTopPanelResizable) return
@@ -2478,20 +2449,20 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
     <>
       <div className={styles['http-fuzzer-body']} ref={fuzzerRef}>
         <YakitResizeBox
-          freeze={topPanelDraggable}
+          freeze={hotPatchVisible || aiTopPanelResizable}
           firstRatio={topPanelFirstRatio}
-          secondRatio={topPanelVisible ? `calc(100% - ${defaultTopPanelFirstRatio})` : '100%'}
-          firstMinSize={topPanelVisible ? defaultTopPanelFirstRatio : 0}
+          secondRatio={advancedConfigVisible ? `calc(100% - ${defaultTopPanelFirstRatio})` : '100%'}
+          firstMinSize={advancedConfigVisible ? defaultTopPanelFirstRatio : 0}
           isRecalculateWH={false}
           firstNodeStyle={{ overflowY: 'auto' }}
           lineDirection="right"
-          lineStyle={{ display: topPanelDraggable ? '' : 'none' }}
+          lineStyle={{ display: hotPatchVisible || aiTopPanelResizable ? '' : 'none' }}
           onMouseUp={onTopPanelResize}
           firstNode={
             <React.Suspense fallback={<>{t('YakitSpin.loading')}...</>}>
               <HttpQueryAdvancedConfig
                 advancedConfigValue={advancedConfigValue}
-                visible={advancedConfigVisible}
+                visible={hotPatchVisible ? false : advancedConfigVisible}
                 onInsertYakFuzzer={onInsertYakFuzzerFun}
                 onValuesChange={onGetFormValue}
                 defaultHttpResponse={

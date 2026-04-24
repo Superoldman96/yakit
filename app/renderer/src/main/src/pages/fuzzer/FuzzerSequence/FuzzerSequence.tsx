@@ -2950,9 +2950,7 @@ const SequenceResponse: React.FC<SequenceResponseProps> = React.memo(
       if (!pageId) return
       emiter.emit('switchSubMenuItem', JSON.stringify({ pageId }))
       setTimeout(() => {
-        emiter.emit('sendSwitchSequenceToMainOperatorContent', JSON.stringify({ type: 'hot-patch' }))
-        emiter.emit('sequenceSendSwitchTypeToFuzzer', JSON.stringify({ type: 'hot-patch' }))
-        emiter.emit('onCurrentFuzzerPage', true)
+        emiter.emit('sequenceOrCodeSendSwitchTypeToFuzzer', JSON.stringify({ type: 'hot-patch' }))
       }, 100)
     })
 

@@ -1574,7 +1574,6 @@ export const MainOperatorContent: React.FC<MainOperatorContentProps> = React.mem
           newAdvancedConfigShow = {
             ...defaultAdvancedConfigShow,
             config: shareContent['advancedConfig'],
-            rule: true,
           }
         }
       }
@@ -3628,7 +3627,7 @@ const SubTabList: React.FC<SubTabListProps> = React.memo((props) => {
     }
   }, [pageItem.multipleNode])
   useUpdateEffect(() => {
-    if (type !== 'sequence') {
+    if (!['sequence', 'concurrency'].includes(type)) {
       emiter.emit('onRefWebFuzzer')
       /**VariableList组件从数据中心刷新最新的展开项,从序列切换到其他tab时，inViewport不会发生变化，所以采取信号发送 */
       emiter.emit('onRefVariableActiveKey')
