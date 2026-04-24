@@ -1,6 +1,0 @@
-app/renderer/src/main/src/components/configNetwork/ConfigNetworkPage.module.scss
-app/renderer/src/main/src/components/configNetwork/NewThirdPartyApplicationConfig.tsx
-app/renderer/src/main/src/pages/ai-agent/aiModelList/AIModelList.tsx
-app/renderer/src/main/src/pages/ai-agent/aiModelList/aiModelForm/AIModelForm.tsx
-app/renderer/src/main/src/pages/ai-agent/aiModelList/aiModelForm/AIModelFormType.ts
-app/renderer/src/main/src/utils/editors.tsx
