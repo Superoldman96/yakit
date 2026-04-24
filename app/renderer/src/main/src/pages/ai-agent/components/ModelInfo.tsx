@@ -4,6 +4,7 @@ import styles from './ModelInfo.module.scss'
 import { formatTimestamp } from '@/utils/timeUtil'
 import { useCreation } from 'ahooks'
 import { OutlineAtomIconByStatus } from '../aiModelList/AIModelList'
+import { AISystemOutputIcon } from '../aiModelList/icon'
 
 export interface ModalInfoProps {
   icon?: string
@@ -18,7 +19,12 @@ export interface ModalInfoProps {
 
 const ModalInfo: FC<ModalInfoProps> = ({ icon, title, time, trailing }) => {
   const iconSvg = useCreation(() => {
-    if (!icon) return null
+    if (!icon)
+      return (
+        <div className={styles['title-icon']}>
+          <AISystemOutputIcon />
+        </div>
+      )
     return (
       (AIOnlineModelIconMap[icon] && (
         <div className={styles['title-icon']}>{AIOnlineModelIconMap[icon || '']}</div>
@@ -30,7 +36,7 @@ const ModalInfo: FC<ModalInfoProps> = ({ icon, title, time, trailing }) => {
     <div className={styles['modal-info']}>
       <div className={styles['modal-info-title']}>
         {iconSvg}
-        {title && <span className={styles['modal-info-title-text']}>{title}</span>}
+        <span className={styles['modal-info-title-text']}>{title || '系统输出'}</span>
         {time != null && time > 0 ? (
           <span
             className={trailing != null ? styles['modal-info-title-time-squeeze'] : styles['modal-info-title-time']}
