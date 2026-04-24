@@ -790,7 +790,7 @@ const CompileHistoryList: React.FC<CompileHistoryListProps> = (props) => {
               onClick={async (e) => {
                 e.stopPropagation()
                 try {
-                  const selectTotal = await getGroupNamesTotal([program.Language])
+                  const selectTotal = await getGroupNamesTotal({ GroupNames: [program.Language] })
                   emiter.emit(
                     'openPage',
                     JSON.stringify({
