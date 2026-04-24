@@ -1409,7 +1409,7 @@ export const MainOperatorContent: React.FC<MainOperatorContentProps> = React.mem
     }
   }, [])
   const onClosePage = useMemoizedFn((res: string) => {
-    let data: { route: YakitRoute; source: YakitRoute } | undefined = undefined
+    let data: { route: YakitRoute; source?: YakitRoute } | undefined = undefined
     try {
       data = JSONParseLog(res || '{}', { page: 'MainOperatorContent', fun: 'onClosePage' })
     } catch (error) {}

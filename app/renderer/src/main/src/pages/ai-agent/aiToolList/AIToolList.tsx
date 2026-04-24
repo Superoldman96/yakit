@@ -123,7 +123,7 @@ const AIToolList: React.FC<AIToolListProps> = React.memo((props) => {
   const [inViewPort = true] = useInViewport(toolListRef)
 
   useEffect(() => {
-    getList()
+    if (inViewPort) getList()
   }, [inViewPort])
   const getList = useMemoizedFn(async (page?: number) => {
     setLoading(true)
