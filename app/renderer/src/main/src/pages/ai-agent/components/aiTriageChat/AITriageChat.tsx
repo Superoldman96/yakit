@@ -95,10 +95,11 @@ const AITriageChatContentEdit: React.FC<AITriageChatContentEditProps> = React.me
   const handleSetTextareaFocus = useMemoizedFn(() => {
     editorMilkdown.current?.action((ctx) => {
       const view = ctx.get(editorViewCtx)
+      if (view.isDestroyed) return
       const { state } = view
       const tr = state.tr.setSelection(TextSelection.create(state.doc, state.doc.content.size))
-      view.dispatch(tr.scrollIntoView())
       view.focus()
+      view.dispatch(tr.scrollIntoView())
     })
   })
 
