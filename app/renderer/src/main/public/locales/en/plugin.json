@@ -58,9 +58,6 @@
   "LocalPluginLog": {
     "no_log_information": "No log information available"
   },
-  "VulnerabilitiesRisksTable": {
-    "risks_and_vulnerabilities": "Risks and Vulnerabilities"
-  },
   "PluginExecutePortTable": {
     "portAssetManagement": "Port Asset Management"
   },

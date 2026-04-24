@@ -308,8 +308,8 @@ export const YakitRouteToPageInfo: Record<
     describeUi: 'YakitRoute.viewAndManageReportsGeneratedDuringScanning',
   },
   'db-risks': {
-    label: '漏洞',
-    labelUi: 'YakitRoute.vulnerability',
+    label: '风险与漏洞',
+    labelUi: 'YakitRoute.riskAndVulnerability',
     describeUi: 'YakitRoute.manageAllDetectedVulnerabilitiesAndRisks',
   },
   misstatement: { label: '误报记录', labelUi: 'YakitRoute.falsePositiveRecords' },

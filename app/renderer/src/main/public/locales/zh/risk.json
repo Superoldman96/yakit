@@ -30,9 +30,7 @@
     "feedback_success": "反馈成功",
     "vulnerability_not_scanned_by_plugin": "该漏洞未经插件扫描",
     "select_export_fields": "选择导出字段",
-    "risk_and_vulnerabilities": "风险与漏洞",
     "export_html_failed": "导出html失败：",
-
     "expand_filter": "展开筛选",
     "all": "全部",
     "unread": "未读",

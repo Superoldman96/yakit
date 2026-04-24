@@ -329,7 +329,7 @@ export const YakitRiskTable: React.FC<YakitRiskTableProps> = React.memo((props) 
     yakitRiskDetailsBorder = true,
     excludeColumnsKey = [],
   } = props
-  const { t, i18n } = useI18nNamespaces(['risk', 'yakitUi'])
+  const { t, i18n } = useI18nNamespaces(['risk', 'yakitUi', 'yakitRoute'])
   const { currentPageTabRouteKey } = usePageInfo(
     (s) => ({
       currentPageTabRouteKey: s.currentPageTabRouteKey,
@@ -860,7 +860,7 @@ export const YakitRiskTable: React.FC<YakitRiskTableProps> = React.memo((props) 
           exportKey={RemoteGV.RiskExportFields}
           getData={getExcelData}
           onClose={() => m.destroy()}
-          fileName={t('YakitRiskTable.risk_and_vulnerabilities')}
+          fileName={t('YakitRoute.riskAndVulnerability')}
           getContainer={document.getElementById(`main-operator-page-body-${percentContainerRef.current}`) || undefined}
         />
       ),
@@ -1347,9 +1347,7 @@ export const YakitRiskTable: React.FC<YakitRiskTableProps> = React.memo((props) 
                         ></YakitButton>
                       </Tooltip>
                     )}
-                    <div className={styles['table-renderTitle-text']}>
-                      {t('YakitRiskTable.risk_and_vulnerabilities')}
-                    </div>
+                    <div className={styles['table-renderTitle-text']}>{t('YakitRoute.riskAndVulnerability')}</div>
                     <YakitRadioButtons
                       value={type}
                       onChange={(e) => {
