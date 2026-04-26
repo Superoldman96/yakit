@@ -1,8 +1,8 @@
 import { StreamResult } from '@/hook/useHoldGRPCStream/useHoldGRPCStreamType'
 import {
   AIChatQSData,
+  AIChatQSDataType,
   AIStreamOutput,
-  AITaskInfoProps,
   AIYakExecFileRecord,
   ReActChatBaseInfo,
   ReActChatRenderItem,
@@ -14,7 +14,7 @@ import { Dispatch, SetStateAction } from 'react'
 import { AIChatData } from '@/pages/ai-agent/type/aiChat'
 import { ChatDataStore } from '@/pages/ai-agent/store/ChatDataStore'
 
-/** 公共 hoos 事件 */
+// #region 公共 hoos 事件
 export interface UseHookBaseParams {
   /** 将数据推送到日志集合中 */
   pushLog: (log: AIChatLogData) => void
@@ -36,6 +36,13 @@ interface UseHookStateFunc {
   setElements: Dispatch<SetStateAction<ReActChatRenderItem[]>>
   getElements: () => ReActChatRenderItem[]
 }
+
+/** 用于更新渲染数据的参数定义 */
+export interface UpdateRenderDataParams {
+  mapKey: string
+  type: AIChatQSDataType
+}
+// #endregion
 
 // #region useAIPerfData相关定义
 export interface UseAIPerfDataParams extends UseHookBaseParams {}
@@ -350,8 +357,11 @@ export interface UseHistoryChatState {
 
 export type loadMoreType = keyof AIChatData['beforeID']
 export interface UseHistoryChatEvents {
+  /** 是否还有更多数据 */
   fetchHasMore: (type: loadMoreType) => boolean
+  /** 初始化加载数据 */
   loadInit: (session: string) => void
+  /** 加载更多数据 */
   loadMore: (type: loadMoreType, session: string) => void
 }
 // #endregion

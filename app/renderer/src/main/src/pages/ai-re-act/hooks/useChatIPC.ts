@@ -623,10 +623,6 @@ function useChatIPC(params?: UseChatIPCParams) {
       } catch (error) {}
       // 历史数据的初始化加载
       historyEvents.loadInit(token)
-
-      // setTimeout(() => {
-      //   historyEvents.loadMore('chatID', token)
-      // }, 5000)
     }
     handleResetBeforeStart()
     chatID.current = token
