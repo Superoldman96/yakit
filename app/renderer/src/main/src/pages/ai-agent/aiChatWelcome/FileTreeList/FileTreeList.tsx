@@ -1,7 +1,7 @@
 import { FileNodeProps } from '@/pages/yakRunner/FileTree/FileTreeType'
 import { useState } from 'react'
 import { useCustomFolder } from '../../components/aiFileSystemList/store/useCustomFolder'
-import FileTreeSystemListWapper from '../../components/aiFileSystemList/FileTreeSystemListWapper/FileTreeSystemListWapper'
+import FileTreeSystemListWrapper from '../../components/aiFileSystemList/FileTreeSystemListWrapper/FileTreeSystemListWrapper'
 import FileTreeDrop from '../FileTreeDrop/FileTreeDrop'
 import { useI18nNamespaces } from '@/i18n/useI18nNamespaces'
 
@@ -20,7 +20,7 @@ const FileTreeList = () => {
     >
       <FileTreeDrop>
         {({ setDragSource }) => (
-          <FileTreeSystemListWapper
+          <FileTreeSystemListWrapper
             isOpen
             key="customFolder"
             title={t('FileTreeSystem.myOpenedFiles')}

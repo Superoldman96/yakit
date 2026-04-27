@@ -1,29 +1,23 @@
-import { handleOpenFileSystemDialog, type OpenDialogOptions } from '@/utils/fileSystemDialog'
-import { FileListTileMenu, FileTreeSystemListWapperProps, HistoryItem, PathIncludeResult } from '../type'
+import { FileListTileMenu, FileTreeSystemListWrapperProps, HistoryItem, PathIncludeResult } from '../type'
 import { type FC, useEffect, useState } from 'react'
 import { useMemoizedFn } from 'ahooks'
 import { YakitButton } from '@/components/yakitUI/YakitButton/YakitButton'
-import styles from './FileTreeSystemListWapper.module.scss'
+import styles from './FileTreeSystemListWrapper.module.scss'
 import FileTreeSystemList from '../FileTreeSystemList/FileTreeSystemList'
-import {
-  OutlineChevrondownIcon,
-  OutlineDocumentaddIcon,
-  OutlineFolderaddIcon,
-  OutlinePluscircleIcon,
-} from '@/assets/icon/outline'
+import { OutlineChevrondownIcon, OutlineDocumentaddIcon, OutlineFolderaddIcon } from '@/assets/icon/outline'
 import { YakitEmpty } from '@/components/yakitUI/YakitEmpty/YakitEmpty'
 import useGetSetState from '@/pages/pluginHub/hooks/useGetSetState'
 import { checkPathIncludeRelation, mergePathArray, onOpenFileFolder } from '../utils'
 import { yakitNotify } from '@/utils/notification'
 
-interface OpFileNotifyParams {
+interface OnFileNotifyParams {
   uniquePaths: HistoryItem[]
   incoming: HistoryItem
   label: string
   path?: string
 }
 
-export const opfileNotify = async ({ uniquePaths, incoming, label, path }: OpFileNotifyParams) => {
+export const onFileNotify = async ({ uniquePaths, incoming, label, path }: OnFileNotifyParams) => {
   const relation = await checkPathIncludeRelation(uniquePaths, incoming)
   const pathText = path ? `：${path} ` : ''
   switch (relation) {
@@ -44,7 +38,7 @@ export const opfileNotify = async ({ uniquePaths, incoming, label, path }: OpFil
   }
 }
 
-const FileTreeSystemListWapper: FC<FileTreeSystemListWapperProps> = ({
+const FileTreeSystemListWrapper: FC<FileTreeSystemListWrapperProps> = ({
   path,
   title,
   isOpen,
@@ -157,4 +151,4 @@ const FileTreeSystemListWapper: FC<FileTreeSystemListWapperProps> = ({
   )
 }
 
-export default FileTreeSystemListWapper
+export default FileTreeSystemListWrapper
