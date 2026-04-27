@@ -292,8 +292,6 @@ export interface UseChatIPCEvents extends Omit<UseHistoryChatEvents, 'loadInit'>
   handleResetTarget: (target: 'memoryList') => void
   /** 用户手动干预的执行事件 */
   handleUserManualIntervention: (chatInfo: AIChatQSData) => void
-  /** 历史数据获取的事件 */
-  historyEvents: UseHistoryChatEvents
 }
 // #endregion
 
