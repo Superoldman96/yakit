@@ -12,24 +12,31 @@ const FileTreeList = () => {
   const customFolder = useCustomFolder()
 
   return (
-    <FileTreeDrop>
-      {({ setDragSource }) => (
-        <FileTreeSystemListWapper
-          isOpen
-          key="customFolder"
-          title={t('FileTreeSystem.myOpenedFiles')}
-          selected={selected}
-          path={customFolder}
-          setSelected={setSelected}
-          onTreeDragStart={() => {
-            setDragSource('AIRreeToChat')
-          }}
-          onTreeDragEnd={() => {
-            setDragSource(null)
-          }}
-        />
-      )}
-    </FileTreeDrop>
+    <div
+      style={{
+        height: '100%',
+        overflowY: 'auto',
+      }}
+    >
+      <FileTreeDrop>
+        {({ setDragSource }) => (
+          <FileTreeSystemListWapper
+            isOpen
+            key="customFolder"
+            title={t('FileTreeSystem.myOpenedFiles')}
+            selected={selected}
+            path={customFolder}
+            setSelected={setSelected}
+            onTreeDragStart={() => {
+              setDragSource('AIRreeToChat')
+            }}
+            onTreeDragEnd={() => {
+              setDragSource(null)
+            }}
+          />
+        )}
+      </FileTreeDrop>
+    </div>
   )
 }
 export default FileTreeList
