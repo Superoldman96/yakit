@@ -434,7 +434,7 @@ function useHistoryChat(params?: UseHistoryChatParams) {
         }
         if (item.Type === 'result') {
           const { result, after_stream } = (JSON.parse(ipcContent) as AIAgentGrpcApi.AIChatResult) || {}
-          if (!!after_stream) return
+          if (!!after_stream) continue
 
           const chatData: AIChatQSData = {
             ...genBaseAIChatData(item),
@@ -1104,6 +1104,7 @@ function useHistoryChat(params?: UseHistoryChatParams) {
       isUpdateCasual.current = false
       handleChatData([...Events])
       updateCasualElement(session)
+      hasMoreChats.current = Events.length === request.Pagination?.Limit
     } catch {
     } finally {
       if (!isUpdateCasual.current) {

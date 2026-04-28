@@ -1,4 +1,4 @@
-import { FC, useMemo, forwardRef, memo, useRef, useEffect, useState } from 'react'
+import { FC, useMemo, forwardRef, memo, useRef } from 'react'
 import styles from './TimelineCard.module.scss'
 import { YakitTag } from '@/components/yakitUI/YakitTag/YakitTag'
 import classNames from 'classnames'
@@ -13,6 +13,7 @@ import { YakitSpin } from '@/components/yakitUI/YakitSpin/YakitSpin'
 import useAIAgentStore from '../../useContext/useStore'
 import useChatIPCStore from '../../useContext/ChatIPCContent/useStore'
 import useChatIPCDispatcher from '../../useContext/ChatIPCContent/useDispatcher'
+import useLoadHistory from '@/pages/ai-re-act/hooks/useLoadHistory'
 
 const TYPE_COLOR_MAP: Record<string, 'info' | 'white' | 'danger'> = {
   user_input: 'info',
@@ -82,8 +83,6 @@ const VirtuosoListContainer = forwardRef<HTMLDivElement, ListProps>(({ children,
 VirtuosoListContainer.displayName = 'VirtuosoListContainer'
 
 const TYPE = 'timelineID'
-// 足够大的偏移量，保证 firstItemIndex 始终有向下调整的空间
-const PREPEND_OFFSET = 1000000
 
 const TimelineCard: FC = () => {
   const { activeChat } = useAIAgentStore()
@@ -98,33 +97,12 @@ const TimelineCard: FC = () => {
   const containerRef = useRef<HTMLDivElement>(null)
   const size = useSize(containerRef)
 
-  const [firstItemIndex, setFirstItemIndex] = useState(PREPEND_OFFSET)
-  const prevLengthRef = useRef(reActTimelines.length)
-  const wasLoadingRef = useRef(false)
-
-  // timelinesLoading: true→false 意味着一次历史加载完成，更新 firstItemIndex
-  useEffect(() => {
-    if (wasLoadingRef.current && !timelinesLoading) {
-      const diff = reActTimelines.length - prevLengthRef.current
-      if (diff > 0) {
-        setFirstItemIndex((prev) => Math.max(0, prev - diff))
-      }
-      prevLengthRef.current = reActTimelines.length
-    }
-    wasLoadingRef.current = timelinesLoading
-  }, [timelinesLoading, reActTimelines.length])
-
-  // 切换会话时重置，避免不同会话的索引互相干扰
-  useEffect(() => {
-    setFirstItemIndex(PREPEND_OFFSET)
-    prevLengthRef.current = reActTimelines.length
-    wasLoadingRef.current = false
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeChat?.SessionID])
-
-  const handleLoadMore = useMemoizedFn(() => {
-    if (timelinesLoading || !fetchHasMore(TYPE) || !activeChat?.SessionID) return
-    loadMore(TYPE, activeChat.SessionID)
+  const { firstItemIndex, handleLoadMore } = useLoadHistory({
+    loading: timelinesLoading,
+    dataLength: reActTimelines.length,
+    SessionID: activeChat?.SessionID || '',
+    fetchHasMore: () => fetchHasMore(TYPE),
+    loadMore: () => loadMore(TYPE, activeChat?.SessionID || ''),
   })
 
   const components = useMemo<Components<AIAgentGrpcApi.TimelineItem>>(
