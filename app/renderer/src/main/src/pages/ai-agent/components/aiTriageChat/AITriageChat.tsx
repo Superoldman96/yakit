@@ -56,18 +56,20 @@ export const AITriageChatContent: React.FC<AITriageChatContentProps> = memo((pro
           >
             <div className={classNames(styles['content-wrapper'], contentClassName || '')}>{renderContent()}</div>
           </div>
-          <div className={styles['triage-chat-content-extra']}>
-            <Tooltip title="复制">
-              <CopyComponents
-                copyText={`${extraValue?.showQS}` || content || ''}
-                iconColor="var(--Colors-Use-Neutral-Text-3-Secondary)"
-                className={styles['copy-btn']}
-              />
-            </Tooltip>
-            <Tooltip title="编辑">
-              <YakitButton type="text2" icon={<OutlinePencilaltIcon />} onClick={() => setEdit(true)} />
-            </Tooltip>
-          </div>
+          {!isAnswer && (
+            <div className={styles['triage-chat-content-extra']}>
+              <Tooltip title="复制">
+                <CopyComponents
+                  copyText={`${extraValue?.showQS}` || content || ''}
+                  iconColor="var(--Colors-Use-Neutral-Text-3-Secondary)"
+                  className={styles['copy-btn']}
+                />
+              </Tooltip>
+              <Tooltip title="编辑">
+                <YakitButton type="text2" icon={<OutlinePencilaltIcon />} onClick={() => setEdit(true)} />
+              </Tooltip>
+            </div>
+          )}
         </>
       )}
     </div>
