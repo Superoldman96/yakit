@@ -78,14 +78,20 @@ const AITriageChatContentEdit: React.FC<AITriageChatContentEditProps> = React.me
   const { activeChat } = useAIAgentStore()
   const { chatIPCEvents } = useChatIPCDispatcher()
 
-  const [disabled, setDisabled] = useState<boolean>(false)
+  const defaultValue = useCreation(() => {
+    if (!!extraValue?.showQS) {
+      return `${extraValue?.showQS}`
+    }
+    return content
+  }, [content, extraValue])
+
+  const [disabled, setDisabled] = useState<boolean>(() => !defaultValue.trim())
   const editorMilkdown = useRef<EditorMilkdownProps>()
 
   const onUpdateEditor = useMemoizedFn((editor: EditorMilkdownProps) => {
-    if (!!editorMilkdown.current) {
-      editorMilkdown.current = editor
-    } else {
-      editorMilkdown.current = editor
+    const isFirstEditorUpdate = !editorMilkdown.current
+    editorMilkdown.current = editor
+    if (isFirstEditorUpdate) {
       handleSetTextareaFocus()
     }
   })
@@ -111,6 +117,7 @@ const AITriageChatContentEdit: React.FC<AITriageChatContentEditProps> = React.me
     // 发送消息逻辑
     if (!editorMilkdown.current || !activeChat) return
     const qs = getMarkdownValue()
+    if (!qs) return
     const { mentions } = extractDataWithMilkdown(editorMilkdown.current)
     const value: AIChatTextareaSubmit = {
       qs,
@@ -149,12 +156,6 @@ const AITriageChatContentEdit: React.FC<AITriageChatContentEditProps> = React.me
       onSend()
     }
   })
-  const defaultValue = useCreation(() => {
-    if (!!extraValue?.showQS) {
-      return `${extraValue?.showQS}`
-    }
-    return content
-  }, [content, extraValue])
 
   return (
     <div className={styles['edit-content-wrapper']} onClick={handleSetTextareaFocus} onKeyDown={handleTextareaKeyDown}>

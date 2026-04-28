@@ -88,7 +88,7 @@ export const aiInputWithParamsTemplate = (data: AIInputWithParamsTemplate) => {
   if (!data) return ''
   return `${data.description || ''}
 \`\`\`
-${JSON.stringify(data.param, null, 2)}
+${JSON.stringify(data.param || {}, null, 2)}
 \`\`\`
   `
 }

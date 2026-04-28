@@ -131,15 +131,25 @@ export const AIMilkdownInputBase: React.FC<AIMilkdownInputBaseProps> = React.mem
       if (editor) {
         onUpdateEditor?.(editor)
       }
+      const handlePaste = (e: Event) => {
+        const clipboardEvent = e as ClipboardEvent
+        const clipboardData = clipboardEvent.clipboardData
+        if (clipboardData?.types.includes('Files')) {
+          clipboardEvent.preventDefault()
+        }
+      }
       editor?.action((ctx) => {
         // 简单阻止所有文件粘贴
-        ctx.get(editorViewCtx).dom.addEventListener('paste', (e) => {
-          const clipboardData = e.clipboardData
-          if (clipboardData?.types.includes('Files')) {
-            e.preventDefault()
+        ctx.get(editorViewCtx).dom.addEventListener('paste', handlePaste)
+      })
+      return () => {
+        editor?.action((ctx) => {
+          const dom = ctx.get(editorViewCtx)?.dom
+          if (dom) {
+            dom.removeEventListener('paste', handlePaste)
           }
         })
-      })
+      }
     }, [loading, get])
     useEffect(() => {
       return () => {
