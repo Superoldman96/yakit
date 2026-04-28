@@ -117,8 +117,8 @@ const AIChatWelcome: React.FC<AIChatWelcomeProps> = React.memo(
       }
     }, [inViewPort])
 
-    useEffect(() => {
-      if ((welcomeSize?.width || 0) < 1430) {
+    useUpdateEffect(() => {
+      if (welcomeSize?.width && welcomeSize?.width < 1430) {
         setOpenDrawer(false)
       }
     }, [welcomeSize?.width])

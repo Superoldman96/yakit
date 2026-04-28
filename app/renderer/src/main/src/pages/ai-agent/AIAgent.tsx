@@ -81,8 +81,8 @@ export const AIAgent: React.FC<AIAgentProps> = (props) => {
   const [inViewPort = true] = useInViewport(agentRef)
   const agentSize = useSize(agentRef)
 
-  useEffect(() => {
-    if ((agentSize?.width || 0) < 1230) {
+  useUpdateEffect(() => {
+    if (agentSize?.width && agentSize?.width < 1230) {
       setShow(false)
     }
   }, [agentSize?.width])
