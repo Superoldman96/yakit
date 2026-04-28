@@ -129,10 +129,11 @@ export const AIReActChatContents: React.FC<AIReActChatContentsPProps> = React.me
   const renderItem = useCallback(
     (index: number, item?: ReActChatRenderItem) => {
       if (!item?.token) return null
-      const hasNext = chats.elements.length - index > 1
-      return <AIChatListItem key={item.token} hasNext={hasNext} itemIndex={index} item={item} type="re-act" />
+      const arrayIndex = index - firstItemIndex
+      const hasNext = chats.elements.length - arrayIndex > 1
+      return <AIChatListItem key={item.token} hasNext={hasNext} itemIndex={arrayIndex} item={item} type="re-act" />
     },
-    [chats.elements.length],
+    [chats.elements.length, firstItemIndex],
   )
 
   const Item = useCallback(
@@ -184,7 +185,7 @@ export const AIReActChatContents: React.FC<AIReActChatContentsPProps> = React.me
         atBottomStateChange={setIsAtBottomRef}
         data={chats.elements}
         totalListHeightChanged={handleTotalListHeightChanged}
-        itemContent={(index, item) => renderItem(index, item)}
+        itemContent={renderItem}
         initialTopMostItemIndex={chats.elements.length > 1 ? chats.elements.length - 1 : 0}
         components={components}
         atBottomThreshold={50}

@@ -973,10 +973,10 @@ function useChatIPC(params?: UseChatIPCParams) {
       ipcRenderer.removeAllListeners(`${token}-end`)
       ipcRenderer.removeAllListeners(`${token}-error`)
     })
-    ipcRenderer.on(`${token}-error`, (e, err: any) => {
-      // console.log("error", err)
-      yakitNotify('error', `AI执行失败: ${err}`)
-    })
+    // ipcRenderer.on(`${token}-error`, (e, err: any) => {
+    // console.log("error", err)
+    // yakitNotify('error', `AI执行失败: ${err}`)
+    // })
     // console.log('start-ai-re-act', token, params)
 
     tempUserQuestionRequest.current.push({ request: params, extra: extraValue })
