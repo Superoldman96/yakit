@@ -8,7 +8,7 @@ import { listener, listenerCtx } from '@milkdown/kit/plugin/listener'
 import { useNodeViewFactory, usePluginViewFactory } from '@prosemirror-adapter/react'
 import { $view } from '@milkdown/kit/utils'
 import { Ctx } from '@milkdown/kit/ctx'
-import { commonmark } from '@milkdown/kit/preset/commonmark'
+import { codeBlockSchema, commonmark } from '@milkdown/kit/preset/commonmark'
 import { gfm } from '@milkdown/kit/preset/gfm'
 import classNames from 'classnames'
 import styles from './AIMilkdownInput.module.scss'
@@ -27,6 +27,8 @@ import directive from 'remark-directive'
 import { useMemoizedFn } from 'ahooks'
 import { aiCustomPlugin } from './customPlugin'
 import { customShiftEnterPlugin } from '@/components/MilkdownEditor/utils/utils'
+
+import { AICustomCode } from './aiCustomCode/AICustomCode'
 
 const remarkDirective = $remark(`remark-directive`, () => directive)
 
@@ -62,6 +64,13 @@ export const AIMilkdownInputBase: React.FC<AIMilkdownInputBaseProps> = React.mem
               }),
             })
           },
+        ].flat()
+        const codePlugin = [
+          $view(codeBlockSchema.node, () => {
+            return nodeViewFactory({
+              component: () => <AICustomCode />,
+            })
+          }),
         ].flat()
         const placeholder = [
           placeholderConfig,
@@ -108,6 +117,8 @@ export const AIMilkdownInputBase: React.FC<AIMilkdownInputBaseProps> = React.mem
             .use(listener)
             // mention 提及@
             .use(mentionPlugin)
+            // ```codePlugin```
+            .use(codePlugin)
             // 自定义
             .use(customPlugin)
         )
@@ -120,15 +131,25 @@ export const AIMilkdownInputBase: React.FC<AIMilkdownInputBaseProps> = React.mem
       if (editor) {
         onUpdateEditor?.(editor)
       }
+      const handlePaste = (e: Event) => {
+        const clipboardEvent = e as ClipboardEvent
+        const clipboardData = clipboardEvent.clipboardData
+        if (clipboardData?.types.includes('Files')) {
+          clipboardEvent.preventDefault()
+        }
+      }
       editor?.action((ctx) => {
         // 简单阻止所有文件粘贴
-        ctx.get(editorViewCtx).dom.addEventListener('paste', (e) => {
-          const clipboardData = e.clipboardData
-          if (clipboardData?.types.includes('Files')) {
-            e.preventDefault()
+        ctx.get(editorViewCtx).dom.addEventListener('paste', handlePaste)
+      })
+      return () => {
+        editor?.action((ctx) => {
+          const dom = ctx.get(editorViewCtx)?.dom
+          if (dom) {
+            dom.removeEventListener('paste', handlePaste)
           }
         })
-      })
+      }
     }, [loading, get])
     useEffect(() => {
       return () => {

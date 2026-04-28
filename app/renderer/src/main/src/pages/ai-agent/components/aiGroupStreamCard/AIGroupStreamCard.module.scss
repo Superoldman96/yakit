@@ -9,7 +9,7 @@
     display: flex;
     align-items: center;
     cursor: pointer;
-    & > :first-child {
+    .title-node-label {
       margin-right: 8px;
       display: flex;
       align-items: center;
@@ -17,13 +17,6 @@
       font-size: 11px;
       font-weight: 500;
       line-height: 14px;
-    }
-    & > :nth-child(2) {
-      flex: 1;
-      width: 0;
-      color: var(--Colors-Use-Neutral-Text-1-Title);
-      font-size: 14px;
-      line-height: 20px;
     }
     & > :last-child {
       color: var(--Colors-Use-Neutral-Text-3-Secondary);
@@ -100,6 +93,13 @@
   overflow: hidden;
   text-align: left;
   position: relative;
+  flex: 1;
+  width: 0;
+  color: var(--Colors-Use-Neutral-Text-1-Title);
+  font-size: 14px;
+  line-height: 20px;
+  display: flex;
+  align-items: center;
 
   .ai-mask {
     width: 100%;

@@ -8,7 +8,7 @@ import {
 } from './type'
 import styles from './AIChatWelcome.module.scss'
 import { AIChatTextarea } from '../template/template'
-import { useCreation, useDebounceFn, useInViewport, useMemoizedFn, useUpdateEffect } from 'ahooks'
+import { useCreation, useDebounceFn, useInViewport, useMemoizedFn, useSize, useUpdateEffect } from 'ahooks'
 import { AIChatTextareaRefProps, AIChatTextareaSubmit } from '../template/type'
 
 import { YakitButton } from '@/components/yakitUI/YakitButton/YakitButton'
@@ -109,12 +109,19 @@ const AIChatWelcome: React.FC<AIChatWelcomeProps> = React.memo(
     const lineStartRef = useRef<HTMLDivElement>(null)
     const welcomeRef = useRef<HTMLDivElement>(null)
     const [inViewPort = true] = useInViewport(welcomeRef)
+    const welcomeSize = useSize(welcomeRef)
 
     useUpdateEffect(() => {
       if (inViewPort) {
         onRefresh()
       }
     }, [inViewPort])
+
+    useUpdateEffect(() => {
+      if (welcomeSize?.width && welcomeSize?.width < 1430) {
+        setOpenDrawer(false)
+      }
+    }, [welcomeSize?.width])
 
     const onSetQuestion = useMemoizedFn((value: string) => {
       aiChatTextareaRef.current?.setValue(value ?? '')

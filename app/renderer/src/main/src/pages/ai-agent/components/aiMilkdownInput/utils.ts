@@ -1,6 +1,7 @@
 import { EditorMilkdownProps } from '@/components/MilkdownEditor/MilkdownEditorType'
 import { editorViewCtx, parserCtx } from '@milkdown/kit/core'
 import { AIMentionCommandParams, aiMentionCustomId } from './aiMilkdownMention/aiMentionPlugin'
+import { AIChatIPCStartParams } from '@/pages/ai-re-act/hooks/type'
 
 /**md编辑器中匹配出提及相关数据/纯文本 */
 export const extractDataWithMilkdown = (editor: EditorMilkdownProps) => {
@@ -72,4 +73,22 @@ export const setEditorValue = (editor: EditorMilkdownProps, value: string) => {
     tr.replaceWith(0, view.state.doc.content.size, doc)
     view.dispatch(tr)
   })
+}
+
+export interface AIInputWithParamsTemplate {
+  description: string
+  param: AIChatIPCStartParams['extraValue']
+}
+/**
+ *
+ * @param data AI输入命令参数
+ * @returns markdown字符串，
+ */
+export const aiInputWithParamsTemplate = (data: AIInputWithParamsTemplate) => {
+  if (!data) return ''
+  return `${data.description || ''}
+\`\`\`
+${JSON.stringify(data.param || {}, null, 2)}
+\`\`\`
+  `
 }

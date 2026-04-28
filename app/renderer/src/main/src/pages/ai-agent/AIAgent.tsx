@@ -77,8 +77,15 @@ export const AIAgent: React.FC<AIAgentProps> = (props) => {
   const sideHiddenModeRef = useRef<string>()
 
   const { initialize, knowledgeBases } = useKnowledgeBase()
-  const welcomeRef = useRef<HTMLDivElement>(null)
-  const [inViewPort = true] = useInViewport(welcomeRef)
+  const agentRef = useRef<HTMLDivElement>(null)
+  const [inViewPort = true] = useInViewport(agentRef)
+  const agentSize = useSize(agentRef)
+
+  useUpdateEffect(() => {
+    if (agentSize?.width && agentSize?.width < 1230) {
+      setShow(false)
+    }
+  }, [agentSize?.width])
 
   // #region 新版本删除缓存提示框
   const [delCacheVisible, setDelCacheVisible] = useState(false)
@@ -200,18 +207,6 @@ export const AIAgent: React.FC<AIAgentProps> = (props) => {
   }, [])
   // #endregion
 
-  const wrapperSize = useSize(document.getElementById(YakitAIAgentPageID))
-  const [isMini, setIsMini] = useState(false)
-  useThrottleEffect(
-    () => {
-      const width = wrapperSize?.width || 0
-      if (!!width) {
-        setIsMini(width <= 1300)
-      }
-    },
-    [wrapperSize],
-    { wait: 100, trailing: false },
-  )
   useEffect(() => {
     initSideHiddenMode()
     emiter.on('switchSideHiddenMode', switchSideHiddenMode)
@@ -281,9 +276,9 @@ export const AIAgent: React.FC<AIAgentProps> = (props) => {
 
   return (
     <AIAgentContext.Provider value={{ store, dispatcher }}>
-      <div id={YakitAIAgentPageID} className={styles['ai-agent']} ref={welcomeRef}>
+      <div id={YakitAIAgentPageID} className={styles['ai-agent']} ref={agentRef}>
         <div className={styles['ai-agent-wrapper']}>
-          <div className={classNames(styles['ai-side-list'], { [styles['ai-side-list-mini']]: isMini })}>
+          <div className={classNames(styles['ai-side-list'])}>
             <AIAgentSideList show={show} setShow={setShow} />
           </div>
           <div className={styles['split-wrapper']}>
@@ -294,12 +289,7 @@ export const AIAgent: React.FC<AIAgentProps> = (props) => {
               elements={[
                 {
                   element: (
-                    <div
-                      className={classNames(styles['ai-agent-chat'], {
-                        [styles['ai-agent-chat-mini']]: isMini,
-                      })}
-                      onClick={onSendSwitchAIAgentTab}
-                    >
+                    <div className={classNames(styles['ai-agent-chat'])} onClick={onSendSwitchAIAgentTab}>
                       <AIAgentChat />
                     </div>
                   ),
@@ -318,7 +308,7 @@ export const AIAgent: React.FC<AIAgentProps> = (props) => {
         </div>
         <AIBottomSideBar setShowAIBottomDetails={setShowAIBottomDetails} />
         <YakitHint
-          getContainer={welcomeRef.current || undefined}
+          getContainer={agentRef.current || undefined}
           visible={delCacheVisible}
           title={t('AIAgent.tip')}
           content={

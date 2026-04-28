@@ -172,9 +172,9 @@ const AIGroupStreamCard: FC<{
   return (
     <div className={styles.container}>
       <div className={styles.title} onClick={() => setExpand(!expand)}>
-        <div>
+        <div className={styles['title-node-label']}>
           {/* <OutlineSparklesColorsIcon /> */}
-          <span> {nodeLabel}</span>
+          {nodeLabel}
         </div>
         <div className={styles['stream-text']}>
           {shouldShowMask && <div className={styles['ai-mask']} />}

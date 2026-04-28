@@ -192,6 +192,7 @@ export const AIChatTextarea: React.FC<AIChatTextareaProps> = memo(
     const handleSetTextareaFocus = useMemoizedFn(() => {
       editorMilkdown.current?.action((ctx) => {
         const view = ctx.get(editorViewCtx)
+        if (view.isDestroyed) return
         view.focus()
       })
     })
