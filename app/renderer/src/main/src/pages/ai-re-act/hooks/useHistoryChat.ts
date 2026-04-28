@@ -255,6 +255,7 @@ function useHistoryChat(params?: UseHistoryChatParams) {
             }
           }
         }
+        parsedCasualElements.current = []
 
         if (tempCasualElements.current.length) {
           if (tempCasualElements.current[0].type === AIChatQSDataTypeEnum.STREAM) {
@@ -266,11 +267,13 @@ function useHistoryChat(params?: UseHistoryChatParams) {
             tempCasualElements.current = []
           }
         }
+        tempCasualElements.current = []
 
         return newArr
       })
     } catch (error) {}
   })
+  // TODO 没有调整逻辑，无法直接使用
   const updateTaskElement = useMemoizedFn((main: UpdateRenderDataParams, sub?: UpdateRenderDataParams) => {
     if (!getTaskElements || !setTaskElements) return
     // 先判断该项是否存在
@@ -339,7 +342,7 @@ function useHistoryChat(params?: UseHistoryChatParams) {
       const { mapKey, type, nodeID, contentType } = params
 
       // 查看要更新的数据类型是否符合 || 没有任何渲染数据时直接渲染
-      if (contentType === AIStreamContentType.DEFAULT || !tempCasualElements.current.length) {
+      if (contentType !== AIStreamContentType.DEFAULT || !tempCasualElements.current.length) {
         handleParseCasual({ mapKey, type })
         return
       }
@@ -647,7 +650,7 @@ function useHistoryChat(params?: UseHistoryChatParams) {
           streamData.data.status = 'end'
           streamData.data.content += content
           streamData.data.ContentType = item.ContentType
-          if (isStreamNew) setCasualContentMap(streamData.id, streamData)
+          if (isStreamNew) setCasualContentMap(streamData.id, { ...streamData })
 
           handleParseIsGroup({
             mapKey: EventUUID,
