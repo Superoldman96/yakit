@@ -56,7 +56,7 @@ export const AITriageChatContent: React.FC<AITriageChatContentProps> = memo((pro
           >
             <div className={classNames(styles['content-wrapper'], contentClassName || '')}>{renderContent()}</div>
           </div>
-          <div className={styles['triage-chat-content-footer']}>
+          <div className={styles['triage-chat-content-extra']}>
             <Tooltip title="复制">
               <CopyComponents
                 copyText={`${extraValue?.showQS}` || content || ''}
