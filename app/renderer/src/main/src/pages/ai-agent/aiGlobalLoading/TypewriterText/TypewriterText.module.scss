@@ -21,6 +21,7 @@
   display: inline-block;
   min-width: 1ch;
   color: var(--Colors-Use-Main-Primary);
+  transform: scaleY(0.5) translateY(2px);
   animation: ai-loading-cursor-blink 0.7s steps(1) infinite;
 }
 

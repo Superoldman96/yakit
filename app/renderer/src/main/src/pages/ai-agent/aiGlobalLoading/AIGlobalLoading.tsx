@@ -8,7 +8,7 @@ import loopAnimationData2 from './loop2.json'
 import loopAnimationData3 from './loop3.json'
 import TypewriterText from './TypewriterText/TypewriterText'
 
-const LOADING_TEXT = '数据加载中，请稍后...'
+const LOADING_TEXT = '数据加载中，请稍后'
 const BEGIN_ANIMATION_SPEED = 0.82
 const BEGIN_ANIMATION_DELAY = 500
 // Lottie 源文件中用于主色与浅色边框的原始色值，渲染后会映射到主题变量。
@@ -244,8 +244,10 @@ const AIGlobalLoading: FC<AIGlobalLoadingProps> = ({
           <div className={styles.loading}>
             <div ref={beginAnimationRef} className={styles.begin} />
             {/* 文案延后到 begin 完成后再显示，避免与入场动画抢视觉焦点。 */}
-            {animationStage === 'loop' && (
+            {animationStage === 'loop' ? (
               <TypewriterText text={LOADING_TEXT} textClassName={styles.typewriter} loop loopMode="delete" showCursor />
+            ) : (
+              <p className={styles.typewriter} style={{ height: 10 }} />
             )}
           </div>
         </div>
