@@ -4236,13 +4236,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
                     {showBatchActions && (
                       <>
                         {(selectedRowKeys.length === 0 && (
-                          <YakitButton
-                            type="outline2"
-                            disabled={selectedRowKeys.length === 0}
-                            onClick={(e) => {
-                              e.stopPropagation()
-                            }}
-                          >
+                          <YakitButton type="outline2" disabled={selectedRowKeys.length === 0}>
                             {t('YakitButton.batchOperation')}
                             <ChevronDownIcon style={{ color: '#85899E' }} />
                           </YakitButton>
@@ -4264,13 +4258,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
                             onVisibleChange={setBatchVisible}
                             visible={batchVisible}
                           >
-                            <YakitButton
-                              type="outline2"
-                              disabled={selectedRowKeys.length === 0}
-                              onClick={(e) => {
-                                e.stopPropagation()
-                              }}
-                            >
+                            <YakitButton type="outline2" disabled={selectedRowKeys.length === 0}>
                               {t('YakitButton.batchOperation')}
                               <ChevronDownIcon />
                             </YakitButton>

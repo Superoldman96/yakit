@@ -2414,13 +2414,7 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
                   trigger="click"
                   placement="bottomLeft"
                 >
-                  <YakitButton
-                    type="outline2"
-                    disabled={selectedRowKeys.length === 0}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                    }}
-                  >
+                  <YakitButton type="outline2" disabled={selectedRowKeys.length === 0}>
                     {t('YakitButton.batchOperation')}
                     <OutlineChevrondownIcon />
                   </YakitButton>
