@@ -4421,6 +4421,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
           useUpAndDown={true}
           containerClassName={containerClassName}
           onRowDoubleClick={onHTTPFlowTableRowDoubleClick}
+          disableDeselect={true}
         />
       </div>
       <HTTPFlowTableFormConfiguration
