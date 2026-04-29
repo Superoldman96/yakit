@@ -27,8 +27,11 @@ import {
   AISendParams,
   AISendResProps,
 } from '@/pages/ai-re-act/aiReActChat/AIReActChatType'
-import { AIInputEvent } from '@/pages/ai-re-act/hooks/grpcApi'
-import { getWebFuzzerPageRequestString } from '@/pages/fuzzer/webFuzzerAiRequestApplyBridge'
+import { AIAgentGrpcApi, AIInputEvent } from '@/pages/ai-re-act/hooks/grpcApi'
+import {
+  applyHttpFuzzRequestChangeToWebFuzzerPage,
+  getWebFuzzerPageRequestString,
+} from '@/pages/fuzzer/webFuzzerAiRequestApplyBridge'
 import { ChatIPCSendType, UseChatIPCEvents } from '@/pages/ai-re-act/hooks/type'
 import useChatIPC from '@/pages/ai-re-act/hooks/useChatIPC'
 import useGetSetState from '@/pages/pluginHub/hooks/useGetSetState'
@@ -119,8 +122,14 @@ export const HistoryAIReActChatProvider = memo(function HistoryAIReActChatProvid
   const [chats, setChats, getChats] = useGetSetState<AISession[]>([])
   const [activeChat, setActiveChat] = useSafeState<AISession>()
 
+  const onHttpFuzzRequestChange = useMemoizedFn((data: AIAgentGrpcApi.HttpFuzzRequestChange) => {
+    if (!httpFuzzTabPageId) return
+    applyHttpFuzzRequestChangeToWebFuzzerPage(httpFuzzTabPageId, data)
+  })
+
   const [chatIPCData, events] = useChatIPC({
     cacheDataStore,
+    onHttpFuzzRequestChange,
   })
 
   const { execute } = chatIPCData

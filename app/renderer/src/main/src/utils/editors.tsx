@@ -13,7 +13,7 @@ import { EnterOutlined, FullscreenOutlined, SettingOutlined, ThunderboltFilled }
 import { HTTPFlowBodyByIdRequest, HTTPPacketFuzzable } from '../components/HTTPHistory'
 import ReactResizeDetector from 'react-resize-detector'
 
-import { useDebounceFn, useMemoizedFn, useUpdateEffect } from 'ahooks'
+import { useDebounceFn, useMemoizedFn, useUpdateEffect, useWhyDidYouUpdate } from 'ahooks'
 import { Buffer } from 'buffer'
 import { StringToUint8Array, Uint8ArrayToString } from './str'
 import { getRemoteValue } from '@/utils/kv'

@@ -1,21 +1,24 @@
+import type { AIAgentGrpcApi } from '@/pages/ai-re-act/hooks/grpcApi'
 import { yakitFailed } from '@/utils/notification'
 
-const pageApplyHandlers = new Map<string, (raw: string) => void>()
-const pageGetRequestHandlers = new Map<string, () => string>()
-const pageAiAutoApplyGetEnabled = new Map<string, () => boolean>()
-type WebFuzzerAiAutoApplyLast = { streamId: string | null; content: string }
+export type WebFuzzerApplyRequestExtras = { isHttps?: boolean }
 
-const lastWebFuzzerAiAutoApply = new Map<string, WebFuzzerAiAutoApplyLast>()
-const maxAutoApplyListItemIndex = new Map<string, Map<string, number>>()
+const pageApplyHandlers = new Map<string, (raw: string, extras?: WebFuzzerApplyRequestExtras) => void>()
+const pageGetRequestHandlers = new Map<string, () => string>()
+const lastAppliedReplaceRequestByPage = new Map<string, { raw: string; isHttps: boolean | undefined }>()
 
 /**
  * 由 `HTTPFuzzerPageCore` 在挂载时注册，用于从 AI 代码卡「应用」将请求原文写入当前页并同步会话存储。
  */
-export function registerWebFuzzerPageApplyRequestFromCard(pageId: string, handler: (raw: string) => void): () => void {
+export function registerWebFuzzerPageApplyRequestFromCard(
+  pageId: string,
+  handler: (raw: string, extras?: WebFuzzerApplyRequestExtras) => void,
+): () => void {
   pageApplyHandlers.set(pageId, handler)
   return () => {
     if (pageApplyHandlers.get(pageId) === handler) {
       pageApplyHandlers.delete(pageId)
+      lastAppliedReplaceRequestByPage.delete(pageId)
     }
   }
 }
@@ -39,72 +42,6 @@ export function getWebFuzzerPageRequestString(pageId: string): string | null {
   return fn()
 }
 
-/**
- * 由 `HTTPFuzzerPageCore` 注册：是否开启「AI 自动改包」（勾选项）。
- */
-export function registerWebFuzzerPageAiAutoApplyEnabled(pageId: string, getEnabled: () => boolean): () => void {
-  pageAiAutoApplyGetEnabled.set(pageId, getEnabled)
-  return () => {
-    if (pageAiAutoApplyGetEnabled.get(pageId) === getEnabled) {
-      pageAiAutoApplyGetEnabled.delete(pageId)
-    }
-  }
-}
-
-export function clearWebFuzzerLastAiAutoApplySnapshot(pageId: string) {
-  lastWebFuzzerAiAutoApply.delete(pageId)
-  maxAutoApplyListItemIndex.delete(pageId)
-}
-
-/**
- * `AIYaklangCode` 的 `content` 更新时调用：在已勾选自动改包且内容相对上次有变化时，等同「应用」写入请求盒并落盘（无 yakit 失败弹窗）
- * @param autoApplyStreamId 单条流/卡片的 `stream.id`：不同回复即使报文字符串与上一条终稿相同也应再次应用
- * @param autoApplyChatSessionId 当前 ReAct 会话，换会话时列表下标会重置
- * @param listItemIndex 在 `chats.elements` 中的下标，用于拒绝虚拟列表中更早条目重挂载时的越权覆盖
- */
-export function tryWebFuzzerAutoApplyRequestFromAiYaklangCode(
-  pageId: string,
-  content: string | undefined,
-  autoApplyStreamId?: string,
-  autoApplyChatSessionId?: string,
-  listItemIndex?: number,
-): void {
-  if (content === undefined) return
-  if (content.trim() === '') return
-  if (!pageAiAutoApplyGetEnabled.get(pageId)?.()) return
-  const sessionId = (autoApplyChatSessionId || '').trim()
-  if (sessionId && listItemIndex !== undefined) {
-    const bySess = maxAutoApplyListItemIndex.get(pageId)
-    const maxIdx = bySess?.get(sessionId) ?? -1
-    if (listItemIndex < maxIdx) {
-      return
-    }
-  }
-  const last = lastWebFuzzerAiAutoApply.get(pageId)
-  const id = (autoApplyStreamId || '').trim() || null
-  if (last) {
-    if (id) {
-      if (last.streamId === id && last.content === content) return
-    } else if (last.content === content) {
-      // 无 stream id 时与旧版一致：全串相同时跳过
-      return
-    }
-  }
-  const apply = pageApplyHandlers.get(pageId)
-  if (!apply) return
-  if (sessionId && listItemIndex !== undefined) {
-    let m = maxAutoApplyListItemIndex.get(pageId)
-    if (!m) {
-      m = new Map()
-      maxAutoApplyListItemIndex.set(pageId, m)
-    }
-    const maxIdx = m.get(sessionId) ?? -1
-    m.set(sessionId, Math.max(maxIdx, listItemIndex))
-  }
-  lastWebFuzzerAiAutoApply.set(pageId, { streamId: id, content })
-  apply(content)
-}
-
 /** 从 Web Fuzzer AI 代码卡将内容应用到指定页签的请求编辑器（会触发 `onSetRequest` 的会话落盘与编辑器刷新） */
 export function applyRequestContentToWebFuzzerPage(pageId: string, raw: string): void {
   const fn = pageApplyHandlers.get(pageId)
@@ -113,6 +50,44 @@ export function applyRequestContentToWebFuzzerPage(pageId: string, raw: string):
     return
   }
   fn(raw)
+}
+
+/**
+ * 由引擎 `http_fuzz_request_change` 推送：按 `op` 写入 Web Fuzzer。
+ * 当前仅处理 `replace`；其它 `op` 在 `switch` 的 `default` 中预留扩展。
+ */
+export function applyHttpFuzzRequestChangeToWebFuzzerPage(
+  pageId: string,
+  data: AIAgentGrpcApi.HttpFuzzRequestChange,
+): void {
+  const op = data?.op
+
+  switch (op) {
+    case 'replace': {
+      const fn = pageApplyHandlers.get(pageId)
+      if (!fn) {
+        yakitFailed('未找到对应的 Web Fuzzer 页，请保持该页已打开。')
+        return
+      }
+      const raw = data?.request?.raw
+      if (raw == null || String(raw).trim() === '') return
+      const normalizedRaw = String(raw)
+      const isHttps = data.request.is_https
+      const lastApplied = lastAppliedReplaceRequestByPage.get(pageId)
+      if (lastApplied && lastApplied.raw === normalizedRaw && lastApplied.isHttps === isHttps) return
+
+      lastAppliedReplaceRequestByPage.set(pageId, {
+        raw: normalizedRaw,
+        isHttps,
+      })
+      fn(normalizedRaw, { isHttps })
+      return
+    }
+    default:
+      // 预留：非 `replace` 的 `op`（如 patch、merge 等）在此分支自行扩展；
+      // 需要写请求盒时可复用 `pageApplyHandlers.get(pageId)` 或抽新函数。
+      break
+  }
 }
 
 export { WebFuzzerAiRequestCompareModalContent } from './webFuzzerAiRequestCompareModalContent'

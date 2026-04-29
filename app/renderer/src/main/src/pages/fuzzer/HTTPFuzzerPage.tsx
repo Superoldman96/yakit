@@ -108,8 +108,6 @@ import emiter from '@/utils/eventBus/eventBus'
 import { HistoryAIReActChatProvider, useHistoryAIReActChat } from '@/components/historyAIReActChat'
 import { WebFuzzerAiStore } from '@/pages/ai-agent/store/ChatDataStore'
 import {
-  clearWebFuzzerLastAiAutoApplySnapshot,
-  registerWebFuzzerPageAiAutoApplyEnabled,
   registerWebFuzzerPageApplyRequestFromCard,
   registerWebFuzzerPageGetRequestString,
 } from './webFuzzerAiRequestApplyBridge'
@@ -787,12 +785,6 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
 
   // 切换【配置】/【规则】/【热加载】/ 【Ai】高级内容显示 type
   const [advancedConfigShowType, setAdvancedConfigShowType] = useState<WebFuzzerType>('config')
-  const [aiAutoApplyRequest, setAiAutoApplyRequest] = useState(false)
-  /** 仅看勾选态：选项只在 AI 子页展示，但勾选后切到「配置/规则」时仍应自动写回，避免漏应用 */
-  const aiAutoApplyWantRef = useRef(false)
-  useEffect(() => {
-    aiAutoApplyWantRef.current = aiAutoApplyRequest
-  }, [aiAutoApplyRequest])
   const [currentFuzzerPage, setCurrentFuzzerPage] = useGetSetState<boolean>(true)
   const [redirectedResponse, setRedirectedResponse] = useState<FuzzerResponse>()
   const [affixSearch, setAffixSearch] = useState('')
@@ -1849,16 +1841,29 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
 
   useLayoutEffect(() => {
     if (!props.id) return
-    const unregisterApply = registerWebFuzzerPageApplyRequestFromCard(props.id, (raw) => {
+    const unregisterApply = registerWebFuzzerPageApplyRequestFromCard(props.id, (raw, extras) => {
+      if (extras?.isHttps !== undefined) {
+        setAdvancedConfigValue((prev) => {
+          if (prev.isHttps === extras.isHttps) return prev
+          return {
+            ...prev,
+            isHttps: extras.isHttps!,
+            ...(!extras.isHttps
+              ? {
+                  isGmTLS: false,
+                  randomJA3: false,
+                }
+              : {}),
+          }
+        })
+      }
       onSetRequest(raw)
       refreshRequest()
     })
     const unregisterGet = registerWebFuzzerPageGetRequestString(props.id, () => requestRef.current)
-    const unregisterAuto = registerWebFuzzerPageAiAutoApplyEnabled(props.id, () => aiAutoApplyWantRef.current)
     return () => {
       unregisterApply()
       unregisterGet()
-      unregisterAuto()
     }
   }, [props.id, onSetRequest, refreshRequest])
   const onInsertYakFuzzerFun = useMemoizedFn(() => {
@@ -2608,24 +2613,6 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
                         })
                       }}
                     />
-                    {advancedConfigShowType === 'ai' && (
-                      <>
-                        <Divider type="vertical" style={{ marginRight: 0, top: 1 }} />
-                        <span className={styles['fuzzer-heard-https']} style={{ marginLeft: 8, whiteSpace: 'nowrap' }}>
-                          {t('HTTPFuzzerPage.ai_auto_patch_request')}
-                        </span>
-                        <YakitCheckbox
-                          checked={aiAutoApplyRequest}
-                          onChange={(e) => {
-                            const v = e.target.checked
-                            setAiAutoApplyRequest(v)
-                            if (!v && props.id) {
-                              clearWebFuzzerLastAiAutoApplySnapshot(props.id)
-                            }
-                          }}
-                        />
-                      </>
-                    )}
                   </div>
                   <Divider type="vertical" style={{ margin: 0, top: 1 }} />
                   <div className={styles['display-flex']}>
