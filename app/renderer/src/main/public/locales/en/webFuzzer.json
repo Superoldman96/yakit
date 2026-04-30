@@ -99,7 +99,22 @@
     "send_request": "Send Request",
     "parameter": "Parameter",
     "trafficAnalysisMode": "TrafficAnalysis Mode",
-    "trafficAnalysis": "TrafficAnalysis"
+    "trafficAnalysis": "TrafficAnalysis",
+    "aiCasualReplaceReviewHintLine": "Inline diff vs the request captured when Q&A started. Use Abandon / Apply next to each change, then Apply merged round. ⌘Y / Ctrl+Y apply, ⌘N / Ctrl+N discard round.",
+    "aiCasualRejectAll": "Reject all",
+    "aiCasualAcceptAll": "Accept all",
+    "aiCasualAbandonRound": "Discard round",
+    "aiCasualApplyRound": "Apply merged round",
+    "aiCasualHunkInsert": "Insert: {{lines}}",
+    "aiCasualHunkDelete": "Delete: {{lines}}",
+    "aiCasualHunkModify": "Change from \"{{from}}\" to \"{{to}}\"",
+    "aiCasualHunkReject": "Reject",
+    "aiCasualHunkAccept": "Accept",
+    "aiCasualHunkChosenAccept": "Accepted",
+    "aiCasualHunkChosenReject": "Rejected",
+    "aiCasualInlineNav": "{{current}} of {{total}}",
+    "aiCasualInlineKeep": "Keep",
+    "aiCasualInlineUndo": "Undo"
   },
   "FuzzerExtraShow": {
     "responsesDiscarded": "Discarded [{{droppedCount}}] responses",

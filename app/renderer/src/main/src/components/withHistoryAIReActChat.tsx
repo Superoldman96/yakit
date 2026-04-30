@@ -1,4 +1,4 @@
-import React, { createContext, memo, useCallback, useContext, useMemo, useRef } from 'react'
+import React, { createContext, memo, useCallback, useContext, useEffect, useMemo, useRef } from 'react'
 import { useCreation, useInViewport, useMemoizedFn, useSafeState } from 'ahooks'
 import { cloneDeep } from 'lodash'
 
@@ -31,6 +31,7 @@ import { AIAgentGrpcApi, AIInputEvent } from '@/pages/ai-re-act/hooks/grpcApi'
 import {
   applyHttpFuzzRequestChangeToWebFuzzerPage,
   getWebFuzzerPageRequestString,
+  enqueueWebFuzzerCasualReplaceReview,
 } from '@/pages/fuzzer/webFuzzerAiRequestApplyBridge'
 import { ChatIPCSendType, UseChatIPCEvents } from '@/pages/ai-re-act/hooks/type'
 import useChatIPC from '@/pages/ai-re-act/hooks/useChatIPC'
@@ -121,9 +122,24 @@ export const HistoryAIReActChatProvider = memo(function HistoryAIReActChatProvid
   const [setting, setSetting, getSetting] = useGetSetState<AIAgentSetting>(cloneDeep(AIAgentSettingDefault))
   const [chats, setChats, getChats] = useGetSetState<AISession[]>([])
   const [activeChat, setActiveChat] = useSafeState<AISession>()
+  const casualLoadingRef = useRef(false)
+  const initialRequestInCasualRef = useRef<string | null>(null)
 
   const onHttpFuzzRequestChange = useMemoizedFn((data: AIAgentGrpcApi.HttpFuzzRequestChange) => {
     if (!httpFuzzTabPageId) return
+
+    // casual 问答期间：`replace` 不自动写包；入队审阅（页内合并为「问答开始前快照 vs 最新一条 raw」）
+    if (casualLoadingRef.current && data?.op === 'replace') {
+      const nextRaw = data?.request?.raw
+      if (nextRaw != null && String(nextRaw).trim() !== '' && initialRequestInCasualRef.current != null) {
+        enqueueWebFuzzerCasualReplaceReview(httpFuzzTabPageId, {
+          original: initialRequestInCasualRef.current ?? '',
+          change: data,
+        })
+      }
+      return
+    }
+
     applyHttpFuzzRequestChangeToWebFuzzerPage(httpFuzzTabPageId, data)
   })
 
@@ -132,7 +148,23 @@ export const HistoryAIReActChatProvider = memo(function HistoryAIReActChatProvid
     onHttpFuzzRequestChange,
   })
 
-  const { execute } = chatIPCData
+  const { execute, casualStatus } = chatIPCData
+
+  useEffect(() => {
+    if (!httpFuzzTabPageId) {
+      casualLoadingRef.current = false
+      initialRequestInCasualRef.current = null
+      return
+    }
+
+    if (!casualLoadingRef.current && casualStatus.loading) {
+      initialRequestInCasualRef.current = getWebFuzzerPageRequestString(httpFuzzTabPageId) ?? ''
+    } else if (casualLoadingRef.current && !casualStatus.loading) {
+      initialRequestInCasualRef.current = null
+    }
+
+    casualLoadingRef.current = casualStatus.loading
+  }, [casualStatus.loading, httpFuzzTabPageId])
 
   const activeID = useCreation(() => {
     return activeChat?.SessionID

@@ -23,6 +23,8 @@ const { ipcRenderer } = window.require('electron')
 export interface WebFuzzerNewEditorProps {
   ref?: any
   refreshTrigger: boolean
+  /** casual 审阅分段写回时递增，与 refreshTrigger 组合以强制请求编辑器同步 `requestRef`（避免仅 ref 更新子组件未吃到新 props） */
+  casualEditorApplyNonce?: number
   request: string
   hex: boolean
   isHttps: boolean
@@ -42,6 +44,7 @@ export const WebFuzzerNewEditor: React.FC<WebFuzzerNewEditorProps> = React.memo(
   React.forwardRef((props, ref) => {
     const {
       refreshTrigger,
+      casualEditorApplyNonce = 0,
       request,
       setRequest,
       isHttps,
@@ -162,7 +165,7 @@ export const WebFuzzerNewEditor: React.FC<WebFuzzerNewEditorProps> = React.memo(
         defaultHttps={isHttps}
         isShowBeautifyRender={false}
         showDefaultExtra={false}
-        refreshTrigger={refreshTrigger}
+        refreshTrigger={`${refreshTrigger}_${casualEditorApplyNonce}`}
         noMinimap={true}
         utf8={true}
         originValue={request}
