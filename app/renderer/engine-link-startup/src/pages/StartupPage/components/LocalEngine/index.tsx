@@ -13,7 +13,7 @@ import {
 } from '../../grpc'
 import { FetchSoftwareVersion, getReleaseEditionName, isCommunityYakit, isEnpriTraceAgent } from '@/utils/envfile'
 import { yakitNotify } from '@/utils/notification'
-import { outputToWelcomeConsole, SystemInfo } from '../../utils'
+import { SystemInfo } from '../../utils'
 import { getLocalValue } from '@/utils/kv'
 import { LocalGVS } from '@/enums/yakitGV'
 import { UpdateYakitHint } from '../UpdateYakitHint'

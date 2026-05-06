@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useMemoizedFn } from 'ahooks'
 import {
+  DragHeaderHeight,
   handleFetchArchitecture,
   handleFetchIsDev,
   handleFetchSystem,
@@ -68,6 +69,7 @@ import { SolidIrifyFontLogoIcon, SolidMemfitFontLogoIcon, SolidYakitFontLogoIcon
 import { Theme, useTheme } from '@/hooks/useTheme'
 import { Lange, YakitSoftMode } from './components/SoftwareBasics'
 import { yakitApp, yakitEngine } from '@/utils/electronBridge'
+import { useYakitStatus } from '@/hooks/useYakitStatus'
 import styles from './index.module.scss'
 
 const DefaultCredential: YaklangEngineWatchDogCredential = {
@@ -98,10 +100,10 @@ export const StartupPage: React.FC = () => {
   })
   /** 是否为远程模式 */
   const isRemoteEngine = useMemo(() => engineMode === 'remote', [engineMode])
-  /** yakit使用状态 请用 safeSetYakitStatus 设置状态 */
-  const [yakitStatus, setYakitStatus, getYakitStatus] = useGetSetState<YakitStatusType>('init')
   /** 手动点击中断连接 */
   const breakHandleRef = useRef<boolean>(false)
+  /** yakit使用状态 请用 safeSetYakitStatus 设置状态 */
+  const { yakitStatus, getYakitStatus, safeSetYakitStatus } = useYakitStatus(breakHandleRef)
   /** 手动点击倒计时连接取消 */
   const cancelCountdownLinkRef = useRef<boolean>(false)
   /** 倒计时秒数 */
@@ -138,9 +140,6 @@ export const StartupPage: React.FC = () => {
 
   // #region 软件开始进行逻辑启动
   useEffect(() => {
-    if (SystemInfo.isDev) {
-      if (getEngineLink() && getEngineMode() === 'local') return
-    }
     handleBuiltInCheck()
     handleFetchBaseInfo(() => {
       handleLinkEngineMode()
@@ -166,7 +165,7 @@ export const StartupPage: React.FC = () => {
    * 6、本地软件版本号、更新yak版本检测状态
    * 7、获取本地缓存连接端口号
    */
-  const handleFetchBaseInfo = useMemoizedFn(async (nextFunc?: () => any) => {
+  const handleFetchBaseInfo = useMemoizedFn(async (nextFunc: () => void) => {
     debugToPrintLog(`------ 获取系统基础信息 ------`)
     const tasks: Array<() => Promise<any>> = []
     // 是否开发环境
@@ -282,24 +281,17 @@ export const StartupPage: React.FC = () => {
         case 'remote':
           setCheckLog((arr) => arr.concat(['获取连接模式成功——远程模式']))
           debugToPrintLog(`------ 连接引擎的模式: remote ------`)
-          setTimeout(() => {
-            handleChangeLinkMode(true)
-          }, 500)
-
+          handleChangeLinkMode(true)
           return
         case 'local':
           setCheckLog((arr) => arr.concat(['获取连接模式成功——本地模式']))
           debugToPrintLog(`------ 连接引擎的模式: local ------`)
-          setTimeout(() => {
-            handleChangeLinkMode()
-          }, 500)
+          handleChangeLinkMode()
           return
         default:
           setCheckLog((arr) => arr.concat(['未获取到连接模式-默认(本地)模式']))
           debugToPrintLog(`------ 连接引擎的模式: local ------`)
-          setTimeout(() => {
-            handleChangeLinkMode()
-          }, 500)
+          handleChangeLinkMode()
           return
       }
     })
@@ -307,12 +299,15 @@ export const StartupPage: React.FC = () => {
 
   // 切换连接模式
   const handleChangeLinkMode = useMemoizedFn((isRemote?: boolean) => {
-    setCheckLog([])
-    if (!!isRemote) {
-      handleLinkRemoteMode()
-    } else {
-      handleLinkLocalMode()
-    }
+    // 可能isRemoteEngine状态值没有变
+    setTimeout(() => {
+      setCheckLog([])
+      if (!!isRemote) {
+        handleLinkRemoteMode()
+      } else {
+        handleLinkLocalMode()
+      }
+    }, 500)
   })
 
   // 本地连接的两种模式
@@ -376,7 +371,8 @@ export const StartupPage: React.FC = () => {
   const [yaklangDownload, setYaklangDownload] = useState<boolean>(false)
   const onDownloadedYaklang = useMemoizedFn((isOk: boolean) => {
     setYaklangDownload(false)
-    if (['installNetWork', 'skipAgreement_InstallNetWork', 'old_version'].includes(getYakitStatus())) {
+    const statusArr: YakitStatusType[] = ['installNetWork', 'skipAgreement_InstallNetWork', 'old_version']
+    if (statusArr.includes(getYakitStatus())) {
       setRestartLoading(false)
       isCheckVersion.current = true
       if (!isOk) {
@@ -528,19 +524,6 @@ export const StartupPage: React.FC = () => {
         isCheckVersion.current = false
         setKeepalive(false)
         return
-      case 'reclaimDatabaseSpace_start':
-        setRestartLoading(true)
-        cancelCountdownLinkRef.current = false
-        breakHandleRef.current = false
-        reclaimDbSpacePath.current = []
-        outputToWelcomeConsole('手动触发回收所有数据库空间')
-        debugToPrintLog(`------ 手动触发回收所有数据库空间 ------`)
-        onDisconnect()
-        safeSetYakitStatus('reclaimDatabaseSpace_start')
-        killCurrentProcess(() => {
-          handleReclaimDatabaseSpace()
-        }, [getCustomPort()])
-        break
       case 'reclaimDatabaseSpace_success':
       case 'reclaimDatabaseSpace_error':
         // 回收数据库空间成功或者失败
@@ -761,10 +744,7 @@ export const StartupPage: React.FC = () => {
     cancelCountdownLinkRef.current = false
     setCheckLog([])
     onSetEngineMode(undefined)
-    // 可能isRemoteEngine状态值没有变
-    setTimeout(() => {
-      handleChangeLinkMode()
-    }, 500)
+    handleChangeLinkMode()
   })
 
   // 开始本地连接引擎
@@ -798,14 +778,6 @@ export const StartupPage: React.FC = () => {
     setKeepalive(value)
   })
 
-  // 安全设置 yakitStatus，当手动点中断连接的时候，不能更新状态
-  const safeSetYakitStatus = useMemoizedFn((value: YakitStatusType) => {
-    if (breakHandleRef.current) {
-      return
-    }
-    setYakitStatus(value)
-  })
-
   // 开始连接引擎
   const onStartLinkEngine = useMemoizedFn(() => {
     isStopSend.current = false
@@ -829,7 +801,8 @@ export const StartupPage: React.FC = () => {
 
   // #region 连接成功
   const onReady = useMemoizedFn(() => {
-    if (['break', 'link_countdown', 'link'].includes(getYakitStatus())) {
+    const statusArr: YakitStatusType[] = ['break', 'link_countdown', 'link']
+    if (statusArr.includes(getYakitStatus())) {
       return
     }
     if (getKeepalive()) {
@@ -1086,7 +1059,7 @@ export const StartupPage: React.FC = () => {
 
   return (
     <div className={styles['startup-wrapper']}>
-      <div className={styles['startup-header-drap']}></div>
+      <div className={styles['startup-header-drap']} style={{ height: DragHeaderHeight }}></div>
       <div className={styles['startup-wrapper-left']}>
         <div className={styles['startup-title']}>
           <div className={styles['startup-logo']}>

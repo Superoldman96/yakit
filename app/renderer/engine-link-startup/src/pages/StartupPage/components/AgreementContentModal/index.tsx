@@ -4,6 +4,7 @@ import { useMemoizedFn } from 'ahooks'
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable'
 import classNames from 'classnames'
 import { MacUIOpCloseSvgIcon, WinUIOpCloseSvgIcon } from '@/assets/newIcon'
+import { DragHeaderHeight } from '../../utils'
 import styles from './AgreementContentModal.module.scss'
 
 /** @name 用户协议弹窗 */
@@ -24,7 +25,7 @@ export const AgreementContentModal: React.FC<AgrAndQSModalProps> = React.memo((p
     setBounds({
       left: -targetRect.left + uiData.x,
       right: clientWidth - (targetRect.right - uiData.x),
-      top: -targetRect.top + uiData.y + 50,
+      top: -targetRect.top + uiData.y + DragHeaderHeight,
       bottom: clientHeight - (targetRect.bottom - uiData.y),
     })
   })
