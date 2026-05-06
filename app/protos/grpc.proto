@@ -6842,6 +6842,7 @@ message HTTPFlow {
   string HiddenIndex = 49;
   string FromPlugin = 50;
   string Host = 52;
+  string PathSuffix = 53;
 }
 
 message FuzzableParam {

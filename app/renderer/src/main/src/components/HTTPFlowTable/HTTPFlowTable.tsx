@@ -184,6 +184,7 @@ export interface HTTPFlow {
   HostPort?: string
   IPAddress?: string
   HtmlTitle?: string
+  PathSuffix?: string
 
   GetParams: FuzzableParams[]
   PostParams: FuzzableParams[]
@@ -2162,6 +2163,18 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
           },
           filterIcon: <OutlineSearchIcon className={style['filter-icon']} />,
           filters: contentType,
+        },
+      },
+      {
+        title: '扩展名',
+        dataKey: 'PathSuffix',
+        width: 100,
+        render: (_, rowData) => {
+          const path = rowData?.Path || ''
+          const cleanPath = path.split('?')[0].replace(/\/+$/, '')
+          const match = cleanPath.match(/\.([a-zA-Z0-9]+)$/)
+          const ext = match ? match[1] : ''
+          return <div>{ext || '-'}</div>
         },
       },
       {

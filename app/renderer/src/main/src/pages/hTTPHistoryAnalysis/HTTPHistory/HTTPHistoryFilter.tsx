@@ -390,6 +390,7 @@ export const defalutColumnsOrder = [
   'HtmlTitle',
   'GetParamsTotal',
   'ContentType',
+  'PathSuffix',
   'DurationMs',
   'UpdatedAt',
   'RequestSizeVerbose',
