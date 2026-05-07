@@ -7,6 +7,8 @@ import { useI18nNamespaces } from '@/i18n/useI18nNamespaces'
 import { computeCasualLineHunks, mergeCasualLineHunks } from '@/pages/fuzzer/webFuzzerCasualLineMerge'
 
 import styles from './WebFuzzerCasualReplaceReviewOverlay.module.scss'
+import { CopyComponents } from '@/components/yakitUI/YakitTag/YakitTag'
+import classNames from 'classnames'
 
 function norm(s: string): string {
   return s.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
@@ -37,6 +39,9 @@ const WebFuzzerCasualReplaceReviewOverlay = memo(function WebFuzzerCasualReplace
   /** 左侧或右侧任一变化后递增，强制 Monaco 重挂 */
   const [diffNonce, setDiffNonce] = useState(0)
   const diffNonceRef = useRef(0)
+  /** 控制「全部接受」元数据预览卡片显示：仅当悬浮在按钮或卡片时显示 */
+  const [showAcceptMeta, setShowAcceptMeta] = useState(false)
+  const acceptMetaHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   /** 无差异时避免重复触发 onApplyRound(done) */
   const autoDoneRef = useRef(false)
   const hunksRef = useRef(hunks)
@@ -48,6 +53,34 @@ const WebFuzzerCasualReplaceReviewOverlay = memo(function WebFuzzerCasualReplace
     diffNonceRef.current += 1
     setDiffNonce(diffNonceRef.current)
   })
+
+  const handleAcceptMetaEnter = useMemoizedFn(() => {
+    if (acceptMetaHideTimerRef.current) {
+      clearTimeout(acceptMetaHideTimerRef.current)
+      acceptMetaHideTimerRef.current = null
+    }
+    setShowAcceptMeta(true)
+  })
+
+  const handleAcceptMetaLeave = useMemoizedFn(() => {
+    if (acceptMetaHideTimerRef.current) {
+      clearTimeout(acceptMetaHideTimerRef.current)
+    }
+    // 留出从按钮移动到卡片之间的短暂间隙，避免穿越空白区域时闪烁
+    acceptMetaHideTimerRef.current = setTimeout(() => {
+      setShowAcceptMeta(false)
+      acceptMetaHideTimerRef.current = null
+    }, 80)
+  })
+
+  useEffect(() => {
+    return () => {
+      if (acceptMetaHideTimerRef.current) {
+        clearTimeout(acceptMetaHideTimerRef.current)
+        acceptMetaHideTimerRef.current = null
+      }
+    }
+  }, [])
 
   hunksRef.current = hunks
 
@@ -143,12 +176,13 @@ const WebFuzzerCasualReplaceReviewOverlay = memo(function WebFuzzerCasualReplace
   const acceptMetaPreview = useMemo(() => {
     const change = payload.change
     const req = change?.request ?? {}
-    const { raw: _raw, ...requestRest } = req as Record<string, unknown>
-    const preview = {
-      ...change,
-      request: requestRest,
-    }
-    return JSON.stringify(preview, null, 2)
+    const { raw: _raw, ...request } = req as Record<string, unknown>
+    // const preview = {
+    //   ...change,
+    //   request: request,
+    // }
+    // return JSON.stringify(request, null, 2)
+    return request
   }, [payload.change])
 
   return (
@@ -170,13 +204,38 @@ const WebFuzzerCasualReplaceReviewOverlay = memo(function WebFuzzerCasualReplace
             {t('HTTPFuzzerPage.aiCasualRejectAll')}
           </button>
           <div className={styles['bulkAcceptWrap']}>
-            <button type="button" className={styles['bulkAccept']} onClick={handleAcceptAll}>
+            <button
+              type="button"
+              className={styles['bulkAccept']}
+              onClick={handleAcceptAll}
+              onMouseEnter={handleAcceptMetaEnter}
+              onMouseLeave={handleAcceptMetaLeave}
+            >
               {t('HTTPFuzzerPage.aiCasualAcceptAll')}
             </button>
-            <div className={styles['acceptMetaCard']}>
-              <div className={styles['acceptMetaTitle']}>{t('HTTPFuzzerPage.aiCasualAcceptAllMetaTitle')}</div>
-              <pre className={styles['acceptMetaPre']}>{acceptMetaPreview}</pre>
-            </div>
+            {showAcceptMeta && (
+              <div
+                className={styles['acceptMetaCard']}
+                onMouseEnter={handleAcceptMetaEnter}
+                onMouseLeave={handleAcceptMetaLeave}
+              >
+                <div className={styles['acceptMetaTitle']}>
+                  <div> {t('HTTPFuzzerPage.aiCasualAcceptAllMetaTitle')}</div>
+                  <CopyComponents
+                    className={classNames(styles['copy-icon-style'])}
+                    copyText={JSON.stringify(acceptMetaPreview, null, 2)}
+                  />
+                </div>
+                {Object.keys(acceptMetaPreview ?? {}).map((it) => {
+                  const value = acceptMetaPreview?.[it]
+                  return (
+                    <div key={it}>
+                      {it}: {value !== undefined && value !== null ? JSON.stringify(value, null, 2) : '-'}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
         </div>
       )}

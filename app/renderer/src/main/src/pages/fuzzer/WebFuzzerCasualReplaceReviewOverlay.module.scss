@@ -54,8 +54,8 @@
 }
 
 .bulkAccept {
-  color: var(--Colors-Use-Neutral-Text-1-Title);
-  background: var(--Colors-Use-Success-Primary);
+  color: var(--Colors-Use-Main-On-Primary);
+  background: var(--Colors-Use-Main-Primary);
 }
 
 .bulkAccept:hover {
@@ -64,21 +64,16 @@
 
 .acceptMetaCard {
   position: absolute;
-  right: 0;
+  right: -8px;
   bottom: 36px;
-  width: 420px;
+  width: 400px;
   max-width: min(70vw, 520px);
-  max-height: 220px;
+  max-height: 180px;
   padding: 10px;
   border-radius: 8px;
   border: 1px solid var(--Colors-Use-Neutral-Border);
   background: var(--Colors-Use-Basic-Background);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.32);
-  display: none;
-}
-
-.bulkAcceptWrap:hover .acceptMetaCard {
-  display: block;
+  box-shadow: 0 10px 30px var(--Colors-Use-Basic-Shadow);
 }
 
 .acceptMetaTitle {
@@ -86,6 +81,9 @@
   font-weight: 500;
   margin-bottom: 6px;
   color: var(--Colors-Use-Neutral-Text-1-Title);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .acceptMetaPre {

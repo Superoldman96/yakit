@@ -115,7 +115,7 @@
     "aiCasualInlineNav": "{{current}} of {{total}}",
     "aiCasualInlineKeep": "Keep",
     "aiCasualInlineUndo": "Undo",
-    "aiCasualAcceptAllMetaTitle": "Data to apply (excluding request.raw)"
+    "aiCasualAcceptAllMetaTitle": "Setting to apply"
   },
   "FuzzerExtraShow": {
     "responsesDiscarded": "Discarded [{{droppedCount}}] responses",

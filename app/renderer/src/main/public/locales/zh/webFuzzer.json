@@ -115,7 +115,7 @@
     "aiCasualInlineNav": "{{current}} / {{total}}",
     "aiCasualInlineKeep": "保留",
     "aiCasualInlineUndo": "撤销",
-    "aiCasualAcceptAllMetaTitle": "即将应用的数据（不含 request.raw）"
+    "aiCasualAcceptAllMetaTitle": "即将应用的配置"
   },
   "FuzzerExtraShow": {
     "responsesDiscarded": "已丢弃[{{droppedCount}}]个响应",
