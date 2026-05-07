@@ -17,7 +17,7 @@ import {
   useUpdateEffect,
 } from 'ahooks'
 import { useStore } from '@/store/mitmState'
-import { YakQueryHTTPFlowRequest } from '@/utils/yakQueryHTTPFlow'
+import { MitmExtractAggregateFlowFilterRow, YakQueryHTTPFlowRequest } from '@/utils/yakQueryHTTPFlow'
 import { YakitResizeBox } from './yakitUI/YakitResizeBox/YakitResizeBox'
 import { getRemoteValue, setRemoteValue } from '@/utils/kv'
 import { v4 as uuidv4 } from 'uuid'
@@ -26,6 +26,7 @@ import emiter from '@/utils/eventBus/eventBus'
 import { WebTree } from './WebTree/WebTree'
 import {
   OutlineBotIcon,
+  OutlineFileSlidersIcon,
   OutlineFilterIcon,
   OutlineLog2Icon,
   OutlinePlusIcon,
@@ -88,6 +89,7 @@ import YakitCollapse from './yakitUI/YakitCollapse/YakitCollapse'
 import { YakitPopover } from './yakitUI/YakitPopover/YakitPopover'
 import { yakitNotify } from '@/utils/notification'
 import { FiltersItemProps } from './TableVirtualResize/TableVirtualResizeType'
+import { HTTPFlowRuleDataFilter } from './HTTPFlowTable/HTTPFlowRuleDataFilter'
 
 const { ipcRenderer } = window.require('electron')
 const { YakitPanel } = YakitCollapse
@@ -128,6 +130,11 @@ export const HistoryTab: YakitTabsProps[] = [
     icon: <OutlineFilterIcon />,
     label: 'RangeInputNumberTableWrapper.filter',
     value: 'process',
+  },
+  {
+    icon: <OutlineFileSlidersIcon />,
+    label: 'HTTPFlowExtractedDataTable.ruleData',
+    value: 'rules',
   },
   {
     icon: <OutlineBotIcon />,
@@ -175,13 +182,15 @@ const HTTPHistoryInner: React.FC<HTTPHistoryProp> = (props) => {
       secondRatio: '80%',
     }
 
-    if (openTabsFlag) {
+    if (activeKey === 'rules' && openTabsFlag) {
+      p.firstRatio = '470px'
+    } else if (openTabsFlag) {
       p.firstRatio = '20%'
     } else {
       p.firstRatio = '24px'
     }
     return p
-  }, [openTabsFlag])
+  }, [openTabsFlag, activeKey])
   // #endregion
 
   // #region 网站树、进程
@@ -194,6 +203,8 @@ const HTTPHistoryInner: React.FC<HTTPHistoryProp> = (props) => {
   const [curProcess, setCurProcess] = useState<string[]>([])
   const [processQueryparams, setProcessQueryparams] = useState<string>('')
   const [curTags, setCurTags] = useState<string[]>([])
+  const [rulesQueryparams, setRulesQueryparams] = useState<string>('')
+  const [mitmAggregateFilterRows, setMitmAggregateFilterRows] = useState<MitmExtractAggregateFlowFilterRow[]>([])
 
   const mitmContent = useContext(MITMContext)
 
@@ -213,6 +224,8 @@ const HTTPHistoryInner: React.FC<HTTPHistoryProp> = (props) => {
       delete processQuery.ProcessName
       delete processQuery.Tags
       setProcessQueryparams(JSON.stringify(processQuery))
+      setRulesQueryparams(queryParams || '')
+
       if (pageType === 'MITM') {
         emiter.emit(
           'onMITMLogProcessQuery',
@@ -221,6 +234,17 @@ const HTTPHistoryInner: React.FC<HTTPHistoryProp> = (props) => {
       }
     } catch (error) {}
   })
+
+  const mergedMITMParams = useMemo(() => {
+    const merged: YakQueryHTTPFlowRequest = {
+      ...(historyProps.params || {}),
+      MitmExtractAggregateFilterRows: mitmAggregateFilterRows.length > 0 ? mitmAggregateFilterRows : [],
+    }
+    if (mitmAggregateFilterRows.length > 0) {
+      delete merged.HiddenIndex
+    }
+    return merged
+  }, [historyProps.params, mitmAggregateFilterRows])
 
   // 跳转网站树指定节点
   const onJumpWebTree = useMemoizedFn((value) => {
@@ -305,6 +329,18 @@ const HTTPHistoryInner: React.FC<HTTPHistoryProp> = (props) => {
                   }}
                 ></HistoryProcess>
               </div>
+              <div className={styles['process-wrapper']} style={{ display: activeKey === 'rules' ? 'block' : 'none' }}>
+                <HTTPFlowRuleDataFilter
+                  baseParams={historyProps.params}
+                  queryparamsStr={rulesQueryparams}
+                  refreshRuleFlag={refreshFlag}
+                  onSetFilterRows={setMitmAggregateFilterRows}
+                  resetTableAndEditorShow={(table, editor) => {
+                    setOnlyShowFirstNode(table)
+                    setSecondNodeVisible(editor)
+                  }}
+                />
+              </div>
               {activeKey === 'ai' &&
                 renderHistoryAIReActChat({
                   externalParameters: {
@@ -362,6 +398,7 @@ const HTTPHistoryInner: React.FC<HTTPHistoryProp> = (props) => {
               setSecondNodeVisible={setSecondNodeVisible}
               showHistoryAnalysisBtn
               {...historyProps}
+              params={mergedMITMParams}
             />
           </div>
         }

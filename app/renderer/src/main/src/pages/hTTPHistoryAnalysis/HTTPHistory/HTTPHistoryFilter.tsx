@@ -77,6 +77,7 @@ import { HistoryProcess, HistoryTab } from '@/components/HTTPHistory'
 import { useCampare } from '@/hook/useCompare/useCompare'
 import { v4 as uuidv4 } from 'uuid'
 import { cloneDeep, isEqual, toArray, update } from 'lodash'
+import { MitmExtractAggregateFlowFilterRow } from '@/utils/yakQueryHTTPFlow'
 import { showByRightContext } from '@/components/yakitUI/YakitMenu/showByRightContext'
 import { randomString } from '@/utils/randomUtil'
 import { handleSaveFileSystemDialog } from '@/utils/fileSystemDialog'
@@ -119,6 +120,7 @@ import {
 import { FlowAiStore } from '@/pages/ai-agent/store/ChatDataStore'
 import { AIInputInnerFeatureEnum } from '@/pages/ai-agent/template/type'
 import { HistoryAIReActChatProvider, useHistoryAIReActChat } from '@/components/historyAIReActChat'
+import { HTTPFlowRuleDataFilter } from '@/components/HTTPFlowTable/HTTPFlowRuleDataFilter'
 const { ipcRenderer } = window.require('electron')
 
 interface HTTPHistoryFilterProps {
@@ -202,13 +204,15 @@ const HTTPHistoryFilterInner: React.FC<HTTPHistoryFilterProps> = React.memo((pro
       secondRatio: '80%',
     }
 
-    if (openTabsFlag) {
+    if (activeKey === 'rules' && openTabsFlag) {
+      p.firstRatio = '470px'
+    } else if (openTabsFlag) {
       p.firstRatio = '20%'
     } else {
       p.firstRatio = '24px'
     }
     return p
-  }, [openTabsFlag])
+  }, [openTabsFlag, activeKey])
   // #endregion
 
   // #region 网站树、进程
@@ -220,6 +224,8 @@ const HTTPHistoryFilterInner: React.FC<HTTPHistoryFilterProps> = React.memo((pro
   const [curProcess, setCurProcess] = useState<string[]>([])
   const [processQueryparams, setProcessQueryparams] = useState<string>('')
   const [curTags, setCurTags] = useState<string[]>([])
+  const [rulesQueryparams, setRulesQueryparams] = useState<string>('')
+  const [mitmAggregateFilterRows, setMitmAggregateFilterRows] = useState<MitmExtractAggregateFlowFilterRow[]>([])
 
   // 表格参数改变
   const onQueryParams = useMemoizedFn((queryParams, execFlag) => {
@@ -234,6 +240,7 @@ const HTTPHistoryFilterInner: React.FC<HTTPHistoryFilterProps> = React.memo((pro
       delete processQuery.ProcessName
       delete processQuery.Tags
       setProcessQueryparams(JSON.stringify(processQuery))
+      setRulesQueryparams(queryParams || '')
     } catch (error) {}
   })
   // #endregion
@@ -290,6 +297,13 @@ const HTTPHistoryFilterInner: React.FC<HTTPHistoryFilterProps> = React.memo((pro
                   onSetCurTags={setCurTags}
                   onSetCurProcess={setCurProcess}
                 ></HistoryProcess>
+              </div>
+              <div className={styles['process-wrapper']} style={{ display: activeKey === 'rules' ? 'block' : 'none' }}>
+                <HTTPFlowRuleDataFilter
+                  queryparamsStr={rulesQueryparams}
+                  refreshRuleFlag={refreshFlag}
+                  onSetFilterRows={setMitmAggregateFilterRows}
+                />
               </div>
               <div style={{ display: activeKey === 'ai' ? 'block' : 'none', height: '100%' }}>
                 {renderHistoryAIReActChat({
@@ -357,6 +371,7 @@ const HTTPHistoryFilterInner: React.FC<HTTPHistoryFilterProps> = React.memo((pro
               sourceType={sourceType}
               webFuzzerPageId={webFuzzerPageId}
               closable={closable}
+              mitmAggregateFilterRows={mitmAggregateFilterRows}
             />
           </div>
         }
@@ -414,6 +429,7 @@ interface HTTPFlowTableProps {
   sourceType?: string
   webFuzzerPageId?: string
   closable?: boolean
+  mitmAggregateFilterRows?: MitmExtractAggregateFlowFilterRow[]
 }
 const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => {
   const {
@@ -433,6 +449,7 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
     sourceType = 'mitm',
     webFuzzerPageId,
     closable = true,
+    mitmAggregateFilterRows = [],
   } = props
   const { t, i18n } = useI18nNamespaces(['yakitUi', 'history', 'yakitRoute'])
   const { currentPageTabRouteKey, queryPagesDataById } = usePageInfo(
@@ -451,6 +468,7 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
     WithPayload: toWebFuzzer,
     RuntimeIDs: runtimeId.length > 1 ? runtimeId : undefined,
     RuntimeId: runtimeId.length === 1 ? runtimeId[0] : undefined,
+    MitmExtractAggregateFilterRows: mitmAggregateFilterRows.length > 0 ? mitmAggregateFilterRows : [],
   })
   const [color, setColor] = useState<string[]>([])
   const [isShowColor, setIsShowColor] = useState<boolean>(false)
@@ -504,6 +522,19 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
     },
     [campareTagsFilter, campareOnlyFavorite],
     { wait: 500 },
+  )
+  const campareMitmAggregateFilterRows = useCampare(mitmAggregateFilterRows)
+  useDebounceEffect(
+    () => {
+      setQuery((prev) => {
+        return {
+          ...prev,
+          MitmExtractAggregateFilterRows: mitmAggregateFilterRows.length > 0 ? mitmAggregateFilterRows : [],
+        }
+      })
+    },
+    [campareMitmAggregateFilterRows],
+    { wait: 300 },
   )
   // #endregion
 
@@ -2346,12 +2377,17 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
     refreshTabsContRef.current = true
     update(1)
   })
+
+  useEffect(() => {
+    update(1)
+  }, [update])
+
   useEffect(() => {
     emiter.on('onDeleteToUpdateHTTPHistoryFilter', onDeleteToUpdateHTTPHistoryFilter)
     return () => {
       emiter.off('onDeleteToUpdateHTTPHistoryFilter', onDeleteToUpdateHTTPHistoryFilter)
     }
-  }, [])
+  }, [onDeleteToUpdateHTTPHistoryFilter])
 
   useDebounceEffect(
     () => {

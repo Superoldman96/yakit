@@ -714,12 +714,22 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
   const [onlyFavorite, setOnlyFavorite] = useState(false)
   const [isShowColor, setIsShowColor] = useState<boolean>(false)
   const [params, setParams, getParams] = useGetSetState<YakQueryHTTPFlowRequest>({
+    ...(props.params || {}),
     SourceType: props.params?.SourceType || 'mitm',
     ...getRunTimeIdObj(runTimeId),
-    FromPlugin: '',
-    Full: false,
-    Tags: [],
+    FromPlugin: props.params?.FromPlugin ?? '',
+    Full: props.params?.Full ?? false,
+    Tags: props.params?.Tags ?? [],
   })
+  const comparePropsParams = useCampare(props.params)
+  useUpdateEffect(() => {
+    if (props.params) {
+      setParams((pre) => ({
+        ...pre,
+        ...props.params,
+      }))
+    }
+  }, [comparePropsParams])
   useEffect(() => {
     setParams((pre) => ({
       ...pre,
@@ -3725,6 +3735,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
   /**@description 重置查询条件并刷新 */
   const resetParams = useMemo(() => {
     const obj: YakQueryHTTPFlowRequest = {
+      ...(props.params || {}),
       // 这里是外界传进来的条件重置时需要保留
       SourceType: props.params?.SourceType || 'mitm',
       ...getRunTimeIdObj(runTimeId),
