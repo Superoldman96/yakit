@@ -63,9 +63,7 @@ function modEndLineForHunk(hunks: YakitMonacoDiffInlineHunk[], i: number, modMax
  * 内联 diff 审阅器：以行级 hunk 为单位在 modified 末行下方挂浮条，
  * 提供「撤销 / 保留」逐块决策。文案可由调用方注入。
  */
-export const YakitMonacoDiffInline = memo(function YakitMonacoDiffInlineInner(
-  props: YakitMonacoDiffInlineProps,
-) {
+export const YakitMonacoDiffInline = memo(function YakitMonacoDiffInlineInner(props: YakitMonacoDiffInlineProps) {
   const { reuseKey, original, incoming, hunks, onDecision, language = 'http' } = props
 
   const { i18n } = useI18nNamespaces([])

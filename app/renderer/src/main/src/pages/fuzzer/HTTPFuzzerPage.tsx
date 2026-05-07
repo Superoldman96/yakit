@@ -1856,7 +1856,9 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
     /** 提案与基线完全一致时不入队，避免 mount→自动 done 闪一帧 overlay */
     const incoming = payload.change.request?.raw ?? ''
     const normIncoming = String(incoming).replace(/\r\n/g, '\n').replace(/\r/g, '\n')
-    const normOriginal = String(payload.original ?? '').replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+    const normOriginal = String(payload.original ?? '')
+      .replace(/\r\n/g, '\n')
+      .replace(/\r/g, '\n')
     if (normOriginal === normIncoming) {
       if (casualReviewSessionIdRef.current != null) {
         setCasualReviewQueue([])
