@@ -860,7 +860,7 @@ export const YakitRiskTable: React.FC<YakitRiskTableProps> = React.memo((props) 
           exportKey={RemoteGV.RiskExportFields}
           getData={getExcelData}
           onClose={() => m.destroy()}
-          fileName={t('YakitRoute.riskAndVulnerability')}
+          fileName={t('YakitRoute.vulnerabilityAndrisk')}
           getContainer={document.getElementById(`main-operator-page-body-${percentContainerRef.current}`) || undefined}
         />
       ),
@@ -1347,7 +1347,7 @@ export const YakitRiskTable: React.FC<YakitRiskTableProps> = React.memo((props) 
                         ></YakitButton>
                       </Tooltip>
                     )}
-                    <div className={styles['table-renderTitle-text']}>{t('YakitRoute.riskAndVulnerability')}</div>
+                    <div className={styles['table-renderTitle-text']}>{t('YakitRoute.vulnerabilityAndrisk')}</div>
                     <YakitRadioButtons
                       value={type}
                       onChange={(e) => {
@@ -1697,7 +1697,7 @@ export const YakitRiskDetails: React.FC<YakitRiskDetailsProps> = React.memo((pro
             {isRequest ? (
               <div className={styles['content-resize-first-heard']}>
                 <span>Request</span>
-                <Tooltip title={t('YakitRiskDetails.prev')} align={{ targetOffset: [0, -10] }}>
+                <Tooltip title={t('YakitButton.prev')} align={{ targetOffset: [0, -10] }}>
                   <YakitButton
                     type="text"
                     disabled={packetIndex <= 0}
@@ -1707,7 +1707,7 @@ export const YakitRiskDetails: React.FC<YakitRiskDetailsProps> = React.memo((pro
                     }}
                   ></YakitButton>
                 </Tooltip>
-                <Tooltip title={t('YakitRiskDetails.next')} align={{ targetOffset: [0, -10] }}>
+                <Tooltip title={t('YakitButton.next')} align={{ targetOffset: [0, -10] }}>
                   <YakitButton
                     type="text"
                     disabled={packetIndex + 1 === packetHistory.length}

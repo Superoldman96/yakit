@@ -74,7 +74,7 @@ const scanDeepMapPresetPort = {
 
 export const SimpleDetect: React.FC<SimpleDetectProps> = React.memo((props) => {
   const { pageId } = props
-  const { t, i18n } = useI18nNamespaces(['simpleDetect', 'yakitUi'])
+  const { t, i18n } = useI18nNamespaces(['simpleDetect', 'yakitUi', 'yakitRoute'])
   // 全局登录状态
   const { userInfo } = useStore()
   const { queryPagesDataById, updatePagesDataCacheById, removePagesDataCacheById } = usePageInfo(
@@ -149,7 +149,7 @@ export const SimpleDetect: React.FC<SimpleDetectProps> = React.memo((props) => {
 
   const defaultTabs = useCreation(() => {
     return [
-      { tabName: t('SimpleDetect.riskTab'), type: 'risk' },
+      { tabName: t('YakitRoute.vulnerabilityAndrisk'), type: 'risk' },
       { tabName: t('SimpleDetect.portTab'), type: 'port' },
       { tabName: t('SimpleDetect.logTab'), type: 'log' },
       { tabName: 'Console', type: 'console' },
@@ -746,7 +746,7 @@ export const SimpleDetect: React.FC<SimpleDetectProps> = React.memo((props) => {
               wrapperCol={{ span: 12 }} //这样设置是为了让输入框居中
               validateMessages={{
                 /* eslint-disable no-template-curly-in-string */
-                required: '${label} 是必填字段',
+                required: t('YakitForm.field_required_with_label', { label: '${label}' }),
               }}
               labelWrap={true}
             >

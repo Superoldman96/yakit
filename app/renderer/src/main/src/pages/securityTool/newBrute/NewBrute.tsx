@@ -247,7 +247,7 @@ const BruteExecute: React.FC<BruteExecuteProps> = React.memo((props) => {
 
 const BruteExecuteContent: React.FC<BruteExecuteContentProps> = React.memo(
   forwardRef((props, ref) => {
-    const { t, i18n } = useI18nNamespaces(['brute', 'yakitUi'])
+    const { t, i18n } = useI18nNamespaces(['brute', 'yakitUi', 'yakitRoute'])
     const { bruteType, isExpand, executeStatus, setExecuteStatus, setIsExpand, selectNum, setProgressList, pageInfo } =
       props
     const [form] = Form.useForm()
@@ -263,7 +263,7 @@ const BruteExecuteContent: React.FC<BruteExecuteContentProps> = React.memo(
 
     const defaultTabs = useCreation(() => {
       const tabs = [
-        { tabName: t('BruteExecuteContent.riskAndVulnerability'), type: 'risk' },
+        { tabName: t('YakitRoute.vulnerabilityAndrisk'), type: 'risk' },
         { tabName: t('BruteExecuteContent.logs'), type: 'log' },
         { tabName: 'Console', type: 'console' },
       ]
@@ -371,7 +371,7 @@ const BruteExecuteContent: React.FC<BruteExecuteContentProps> = React.memo(
             wrapperCol={{ span: 12 }} //这样设置是为了让输入框居中
             validateMessages={{
               /* eslint-disable no-template-curly-in-string */
-              required: t('YakitForm.requiredField'),
+              required: t('YakitForm.field_required_with_label', { label: '${label}' }),
             }}
             labelWrap={true}
           >

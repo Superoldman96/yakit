@@ -745,7 +745,13 @@ export const ConfigNetworkPage: React.FC<ConfigNetworkPageProp> = (props) => {
         <AutoCard style={{ height: 'auto' }}>
           <AutoSpin spinning={loading} tip={t('ConfigNetworkPage.loading')}>
             {params && (
-              <Form size={'small'} labelCol={{ span: 5 }} wrapperCol={{ span: 14 }} onSubmitCapture={() => submit()}>
+              <Form
+                size={'small'}
+                labelCol={{ span: 5 }}
+                wrapperCol={{ span: 14 }}
+                onSubmitCapture={() => submit()}
+                labelWrap
+              >
                 <Divider orientation={'left'} style={{ marginTop: '0px' }}>
                   {t('ConfigNetworkPage.dnsConfig')}
                 </Divider>
@@ -1410,7 +1416,7 @@ const AIModelGlobalConfig: React.FC<AIModelGlobalConfigProps> = React.memo((prop
       <Divider orientation={'left'} style={{ marginTop: '0px' }}>
         {t('AIModelGlobalConfig.aiModelConfig')}
       </Divider>
-      <Form.Item label={t('AIModelGlobalConfig.aiModel')}>
+      <Form.Item label={t('AiAgengt.aiModel')}>
         <div className={styles['ai-model-list-wrapper']}>
           <div className={styles['ai-model-list-header']}>
             <YakitButton type="primary" onClick={onAdd}>
@@ -1418,7 +1424,7 @@ const AIModelGlobalConfig: React.FC<AIModelGlobalConfigProps> = React.memo((prop
             </YakitButton>
           </div>
           <YakitCollapse defaultActiveKey={['高质模型', '轻量模型', '视觉模式']}>
-            <YakitCollapse.YakitPanel key="高质模型" header={t('AIModelGlobalConfig.highQualityModel')}>
+            <YakitCollapse.YakitPanel key="高质模型" header={t('AiAgengt.intelligentModels')}>
               {!!aiGlobalConfig?.IntelligentModels.length && (
                 <AIOnlineModel
                   list={aiGlobalConfig?.IntelligentModels || []}
@@ -1445,7 +1451,7 @@ const AIModelGlobalConfig: React.FC<AIModelGlobalConfigProps> = React.memo((prop
               )}
             </YakitCollapse.YakitPanel>
             {!!aiGlobalConfig?.LightweightModels.length && (
-              <YakitCollapse.YakitPanel key="轻量模型" header={t('AIModelGlobalConfig.lightweightModel')}>
+              <YakitCollapse.YakitPanel key="轻量模型" header={t('AiAgengt.lightweightModels')}>
                 <AIOnlineModel
                   list={aiGlobalConfig?.LightweightModels || []}
                   onEdit={(index) =>
@@ -1471,7 +1477,7 @@ const AIModelGlobalConfig: React.FC<AIModelGlobalConfigProps> = React.memo((prop
               </YakitCollapse.YakitPanel>
             )}
             {!!aiGlobalConfig?.VisionModels?.length && (
-              <YakitCollapse.YakitPanel key="视觉模式" header={t('AIModelGlobalConfig.visionModel')}>
+              <YakitCollapse.YakitPanel key="视觉模式" header={t('AiAgengt.visionModels')}>
                 <AIOnlineModel
                   list={aiGlobalConfig?.VisionModels || []}
                   onEdit={(index) =>
@@ -1499,13 +1505,10 @@ const AIModelGlobalConfig: React.FC<AIModelGlobalConfigProps> = React.memo((prop
           </YakitCollapse>
         </div>
       </Form.Item>
-      <Form.Item
-        label={t('AIModelGlobalConfig.routingMode')}
-        extra={<>{getTipByType(aiGlobalConfig.RoutingPolicy, t)}</>}
-      >
+      <Form.Item label={t('AiAgengt.callingMode')} extra={<>{getTipByType(aiGlobalConfig.RoutingPolicy, t)}</>}>
         <YakitRadioButtons
           buttonStyle="solid"
-          options={AIModelPolicyOptions}
+          options={AIModelPolicyOptions.map((item) => ({ ...item, label: t(item.label) }))}
           value={aiGlobalConfig.RoutingPolicy}
           onChange={(v) => event.setAIGlobalConfig({ RoutingPolicy: v.target.value })}
         />
@@ -1750,7 +1753,7 @@ export const NTMLConfig: React.FC<NTMLConfigProps> = (props) => {
     <>
       <YakitDrawer
         // placement='right'
-        width="50%"
+        width="max(700px, 50%)"
         closable={false}
         onClose={() => onClose()}
         visible={visible}
