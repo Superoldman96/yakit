@@ -40,15 +40,29 @@ export const isPerfDataChanged = (prev: PerfData, next: PerfData): boolean => {
   // 上下文字节统计
   const prevStats = prev.contextStats
   const nextStats = next.contextStats
-  if (
-    prevStats?.prompt_bytes !== nextStats?.prompt_bytes ||
-    prevStats?.data?.prompt_bytes.length !== nextStats?.data?.prompt_bytes.length ||
-    prevStats?.data?.system_prompt_bytes.length !== nextStats?.data?.system_prompt_bytes.length ||
-    prevStats?.data?.runtime_context_bytes.length !== nextStats?.data?.runtime_context_bytes.length ||
-    prevStats?.data?.user_input_bytes.length !== nextStats?.data?.user_input_bytes.length ||
-    prevStats?.data?.times.length !== nextStats?.data?.times.length
-  )
-    return true
+  if (prevStats?.prompt_bytes !== nextStats?.prompt_bytes) return true
+  const prevD = prevStats?.data
+  const nextD = nextStats?.data
+  if (prevD?.times.length !== nextD?.times.length) return true
+  if (prevD?.prompt_bytes.length !== nextD?.prompt_bytes.length) return true
+
+  const prevOrderLen = prevD?.role_order?.length ?? 0
+  const nextOrderLen = nextD?.role_order?.length ?? 0
+  if (prevOrderLen > 0 || nextOrderLen > 0) {
+    if (prevOrderLen !== nextOrderLen) return true
+    if (prevOrderLen && prevD?.role_order?.join('|') !== nextD?.role_order?.join('|')) return true
+    const order = nextD?.role_order?.length ? nextD.role_order : prevD?.role_order || []
+    for (const role of order) {
+      if (prevD?.role_series?.[role]?.length !== nextD?.role_series?.[role]?.length) return true
+    }
+  } else {
+    if (
+      prevD?.system_prompt_bytes.length !== nextD?.system_prompt_bytes.length ||
+      prevD?.runtime_context_bytes.length !== nextD?.runtime_context_bytes.length ||
+      prevD?.user_input_bytes.length !== nextD?.user_input_bytes.length
+    )
+      return true
+  }
 
   // 上下文成分
   if (prev.contextSections?.sections.length !== next.contextSections?.sections.length) return true
@@ -225,20 +239,26 @@ export const getThreshold = (pressure?: Record<AIModelTypeEnum, AIAgentGrpcApi.P
 }
 
 export const getContextStatsData = (contextStats?: AIContextStatsDetail['data']) => {
-  if (!contextStats)
+  if (!contextStats) {
     return {
+      times: [],
       prompt_bytes: [],
       system_prompt_bytes: [],
       runtime_context_bytes: [],
       user_input_bytes: [],
-      times: [],
+      role_order: [],
+      role_labels: {},
+      role_series: {},
     }
-  const { prompt_bytes, system_prompt_bytes, runtime_context_bytes, user_input_bytes, times } = contextStats
+  }
   return {
-    prompt_bytes,
-    system_prompt_bytes,
-    runtime_context_bytes,
-    user_input_bytes,
-    times,
+    times: contextStats.times || [],
+    prompt_bytes: contextStats.prompt_bytes || [],
+    system_prompt_bytes: contextStats.system_prompt_bytes || [],
+    runtime_context_bytes: contextStats.runtime_context_bytes || [],
+    user_input_bytes: contextStats.user_input_bytes || [],
+    role_order: contextStats.role_order || [],
+    role_labels: contextStats.role_labels || {},
+    role_series: contextStats.role_series || {},
   }
 }

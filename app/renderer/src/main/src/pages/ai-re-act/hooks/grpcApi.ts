@@ -719,21 +719,31 @@ export declare namespace AIAgentGrpcApi {
     children?: AIContextSections[]
   }
 
+  /** prompt_profile 中按 role 拆分的字节统计项 */
+  export interface PromptProfileRoleStat {
+    role_name: string
+    role_name_zh?: string
+    role_bytes: number
+  }
+
   /** 上下文字节统计和上下文成分 */
   export interface ContextStatsSections {
     loop_name: string
     nonce: string
     /** 总字节数 */
     prompt_bytes: number
+    prompt_tokens?: number
     prompt_lines: number
     section_count: number
     included_section_count: number
-    /** 系统信息 */
-    system_prompt_bytes: number
-    /** 运行内容 */
-    runtime_context_bytes: number
-    /** 用户输入 */
-    user_input_bytes: number
+    /** 新版：按 role 的字节拆分（存在时取代下方四个固定字段） */
+    role_stats?: PromptProfileRoleStat[]
+    /** 系统信息（旧版） */
+    system_prompt_bytes?: number
+    /** 运行内容（旧版） */
+    runtime_context_bytes?: number
+    /** 用户输入（旧版） */
+    user_input_bytes?: number
     compressible_bytes: number
     fixed_bytes: number
     sections: AIContextSections[]

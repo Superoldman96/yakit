@@ -799,21 +799,50 @@ const getResponseSpeedDetailsOption = (
   return option
 }
 
+const TOKEN_COUNT_ROLE_COLOR_KEYS = [
+  '--yakit-colors-Blue-50',
+  '--yakit-colors-Purple-50',
+  '--yakit-colors-Magenta-50',
+  '--yakit-colors-Warn-50',
+  '--yakit-colors-Success-40',
+  '--yakit-colors-Orange-50',
+]
+
 // 上下文字节统计
 const getTokenCountChartData = (contextStatsData?: AIContextStatsDetail['data']) => {
-  const promptBytes = contextStatsData?.prompt_bytes || []
+  const times = contextStatsData?.times || []
+  const totalSeries = contextStatsData?.prompt_bytes || []
+  const roleOrder = contextStatsData?.role_order || []
+  const roleLabels = contextStatsData?.role_labels || {}
+  const roleSeries = contextStatsData?.role_series || {}
+
+  if (roleOrder.length > 0) {
+    const roleRows = roleOrder.map((key) => roleSeries[key] || [])
+    const maxValue = Math.max(0, ...totalSeries, ...roleRows.flat())
+    const normalizedMax = maxValue <= 100 ? 100 : Math.ceil(maxValue / 100) * 100
+    return {
+      mode: 'dynamic' as const,
+      xAxis: times,
+      yAxisMax: normalizedMax,
+      total: totalSeries,
+      roles: roleOrder.map((key) => ({
+        key,
+        name: roleLabels[key] || key,
+        data: roleSeries[key] || [],
+      })),
+    }
+  }
+
   const systemPromptBytes = contextStatsData?.system_prompt_bytes || []
   const runtimeContextBytes = contextStatsData?.runtime_context_bytes || []
   const userInputBytes = contextStatsData?.user_input_bytes || []
-  const times = contextStatsData?.times || []
-
-  const maxValue = Math.max(...promptBytes, ...systemPromptBytes, ...runtimeContextBytes, ...userInputBytes, 0)
+  const maxValue = Math.max(0, ...totalSeries, ...systemPromptBytes, ...runtimeContextBytes, ...userInputBytes)
   const normalizedMax = maxValue <= 100 ? 100 : Math.ceil(maxValue / 100) * 100
 
   return {
     xAxis: times,
     series: {
-      total: promptBytes,
+      total: totalSeries,
       systemPrompt: systemPromptBytes,
       runtimeContext: runtimeContextBytes,
       userInput: userInputBytes,
@@ -921,6 +950,31 @@ const getTokenCountOption = (
     data,
   })
 
+  const gridTop = tokenCountData.mode === 'dynamic' && tokenCountData.roles.length > 4 ? 52 : 42
+
+  const legendData =
+    tokenCountData.mode === 'dynamic'
+      ? ['总数', ...tokenCountData.roles.map((r) => r.name)]
+      : ['总数', '系统信息', '运行内容', '用户输入']
+
+  const seriesList =
+    tokenCountData.mode === 'dynamic'
+      ? [
+          buildLine('总数', totalColor, tokenCountData.total, 0.12, 10 + tokenCountData.roles.length),
+          ...tokenCountData.roles.map((r, i) => {
+            const colorKey = TOKEN_COUNT_ROLE_COLOR_KEYS[i % TOKEN_COUNT_ROLE_COLOR_KEYS.length]
+            const lineColor = colors[colorKey] || systemPromptColor
+            const opacity = Math.max(0.05, 0.1 - i * 0.01)
+            return buildLine(r.name, lineColor, r.data, opacity, 9 - i)
+          }),
+        ]
+      : [
+          buildLine('总数', totalColor, tokenCountData.series.total, 0.12, 5),
+          buildLine('系统信息', systemPromptColor, tokenCountData.series.systemPrompt, 0.1, 4),
+          buildLine('运行内容', runtimeContextColor, tokenCountData.series.runtimeContext, 0.08, 3),
+          buildLine('用户输入', userInputColor, tokenCountData.series.userInput, 0.07, 2),
+        ]
+
   return {
     animation: false,
     legend: {
@@ -929,12 +983,13 @@ const getTokenCountOption = (
       itemWidth: 10,
       itemHeight: 10,
       icon: 'circle',
+      type: tokenCountData.mode === 'dynamic' && tokenCountData.roles.length > 5 ? 'scroll' : 'plain',
       textStyle: {
         color: titleColor,
         fontSize: 12,
         fontWeight: 500,
       },
-      data: ['总数', '系统信息', '运行内容', '用户输入'],
+      data: legendData,
     },
     tooltip: {
       trigger: 'axis',
@@ -965,7 +1020,7 @@ const getTokenCountOption = (
       },
     },
     grid: {
-      top: 42,
+      top: gridTop,
       left: 12,
       right: 16,
       bottom: 8,
@@ -1011,12 +1066,7 @@ const getTokenCountOption = (
         },
       },
     },
-    series: [
-      buildLine('总数', totalColor, tokenCountData.series.total, 0.12, 5),
-      buildLine('系统信息', systemPromptColor, tokenCountData.series.systemPrompt, 0.1, 4),
-      buildLine('运行内容', runtimeContextColor, tokenCountData.series.runtimeContext, 0.08, 3),
-      buildLine('用户输入', userInputColor, tokenCountData.series.userInput, 0.07, 2),
-    ],
+    series: seriesList,
   }
 }
 

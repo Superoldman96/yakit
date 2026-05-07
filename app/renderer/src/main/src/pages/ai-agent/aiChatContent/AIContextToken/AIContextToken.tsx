@@ -283,6 +283,16 @@ const AIEchartsDetails: React.FC<AIEchartsDetailsProps> = memo((props) => {
   const contextStatsData = useCreation(() => {
     return getContextStatsData(contextStats?.data)
   }, [renderNumber, contextStats])
+
+  useEffect(() => {
+    if (!contextStats?.prompt_bytes) return
+    if (process.env.NODE_ENV === 'development') {
+      console.log(
+        '[AIContextToken/AIEchartsDetails] 上下文字节统计展示: props.contextStats ← 父组件 aiDataRef.contextStats ← aiChatDataStore.get(session).aiPerfData.contextStats（写入见 useAIPerfData prompt_profile）',
+        contextStats,
+      )
+    }
+  }, [contextStats])
   // 上下文成分
   const contextSectionsData = useCreation(() => {
     if (!contextSections?.sections)
