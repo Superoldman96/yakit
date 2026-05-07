@@ -711,6 +711,8 @@ export declare namespace AIAgentGrpcApi {
     key: string
     label: string
     role: string
+    /** 与 role 对应的中文名（新版 prompt_profile sections） */
+    role_zh?: string
     included: boolean
     can_compress: boolean
     bytes: number

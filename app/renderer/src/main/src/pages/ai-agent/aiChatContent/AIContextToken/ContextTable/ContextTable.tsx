@@ -1,5 +1,5 @@
 import { Table, TableColumnsType } from 'antd'
-import { FC, useMemo, useState } from 'react'
+import { FC, useCallback, useMemo, useState } from 'react'
 import styles from './ContextTable.module.scss'
 import { OutlineChevrondownIcon, OutlineFilterIcon } from '@/assets/icon/outline'
 import { YakitButton } from '@/components/yakitUI/YakitButton/YakitButton'
@@ -9,21 +9,30 @@ import { AIAgentGrpcApi } from '@/pages/ai-re-act/hooks/grpcApi'
 import { YakitModal } from '@/components/yakitUI/YakitModal/YakitModal'
 import { YakitEditor } from '@/components/yakitUI/YakitEditor/YakitEditor'
 
-const roleTextMap: Record<string, string> = {
+/** 旧版 sections 仅有少量固定 role 时的展示回退 */
+const LEGACY_ROLE_LABELS: Record<string, string> = {
   mixed: '混合',
   runtime_context: '运行内容',
   user_input: '用户输入',
   system_prompt: '系统信息',
 }
 
-const roleFilters = Object.entries(roleTextMap).map(([value, text]) => ({ text, value }))
+const collectSectionRoles = (nodes: AIAgentGrpcApi.AIContextSections[] | undefined, out = new Set<string>()) => {
+  if (!nodes?.length) return out
+  for (const n of nodes) {
+    if (n.role) out.add(n.role)
+    if (n.children?.length) collectSectionRoles(n.children, out)
+  }
+  return out
+}
 
 const RoleFilterDropdown: React.FC<{
+  roleFilters: { text: string; value: string }[]
   selectedKeys: React.Key[]
   setSelectedKeys: (keys: React.Key[]) => void
   confirm: () => void
   clearFilters?: () => void
-}> = ({ selectedKeys, setSelectedKeys, confirm, clearFilters }) => {
+}> = ({ roleFilters, selectedKeys, setSelectedKeys, confirm, clearFilters }) => {
   const activeKeys = selectedKeys as string[]
 
   return (
@@ -65,9 +74,32 @@ const RoleFilterDropdown: React.FC<{
 
 const ContextTable: FC<{
   contextSectionsData?: AIContextSectionsDetail
-}> = ({ contextSectionsData }) => {
+  /** prompt_profile 首次锁定的 role_name -> role_name_zh，与上下文字节统计一致 */
+  roleLabelMap?: Record<string, string>
+}> = ({ contextSectionsData, roleLabelMap }) => {
   const [previewKey, setPreviewKey] = useState<string>('')
   const [expandedRowKeys, setExpandedRowKeys] = useState<React.Key[]>([])
+
+  const roleFilters = useMemo(() => {
+    const merged: Record<string, string> = { ...LEGACY_ROLE_LABELS, ...(roleLabelMap || {}) }
+    const keys = new Set<string>()
+    if (roleLabelMap && Object.keys(roleLabelMap).length > 0) {
+      for (const k of Object.keys(roleLabelMap)) keys.add(k)
+    } else {
+      for (const k of Object.keys(LEGACY_ROLE_LABELS)) keys.add(k)
+    }
+    collectSectionRoles(contextSectionsData?.sections).forEach((r) => keys.add(r))
+    return [...keys].map((value) => ({
+      value,
+      text: merged[value] || value,
+    }))
+  }, [roleLabelMap, contextSectionsData?.sections])
+
+  const resolveRoleText = useCallback(
+    (role: string, row: AIAgentGrpcApi.AIContextSections) =>
+      roleLabelMap?.[role] ?? row.role_zh ?? LEGACY_ROLE_LABELS[role] ?? role,
+    [roleLabelMap],
+  )
 
   const columns: TableColumnsType<AIAgentGrpcApi.AIContextSections> = useMemo(
     () => [
@@ -100,10 +132,10 @@ const ContextTable: FC<{
         filterIcon: (filtered: boolean) => (
           <OutlineFilterIcon className={`${styles['filter-icon']} ${filtered ? styles['filter-icon-active'] : ''}`} />
         ),
-        filterDropdown: (props) => <RoleFilterDropdown {...props} />,
+        filterDropdown: (props) => <RoleFilterDropdown roleFilters={roleFilters} {...props} />,
         onFilter: (value, record) => record.role === value,
-        render: (role: string) => {
-          const roleText = roleTextMap[role] || role
+        render: (role: string, row: AIAgentGrpcApi.AIContextSections) => {
+          const roleText = resolveRoleText(role, row)
 
           return (
             <span className={styles['context-sub-label']} title={roleText}>
@@ -130,7 +162,7 @@ const ContextTable: FC<{
         },
       },
     ],
-    [contextSectionsData?.summary],
+    [contextSectionsData?.summary, roleFilters, resolveRoleText],
   )
 
   const previewContent = useMemo(() => {

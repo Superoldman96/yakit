@@ -415,7 +415,7 @@ const AIEchartsDetails: React.FC<AIEchartsDetailsProps> = memo((props) => {
         )}
         {contextSectionsData?.sections.length > 0 && (
           <div style={{ height: '320px' }}>
-            <ContextTable contextSectionsData={contextSectionsData} />
+            <ContextTable contextSectionsData={contextSectionsData} roleLabelMap={contextStats?.data?.role_labels} />
           </div>
         )}
       </div>
