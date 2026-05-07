@@ -181,7 +181,8 @@ function useAIPerfData(params?: UseAIPerfDataParams) {
         const sectionsData = data.sections || []
         if (sections) {
           // 这里是直接使用引用设置的值，所以不需要在使用setContentMap设置回去
-          const summaryMap = sections.summary || new Map<string, string>()
+          // 每次新的后端数据进来,需要重置上次数据逻辑处理的map对象,避免之前数据对当前数据处理造成影响
+          const summaryMap = new Map<string, string>()
           handleSummarySectionsSummary(sectionsData, summaryMap)
           sections.summary = summaryMap
           sections.sections = sectionsData
