@@ -33,6 +33,8 @@ import styles from './globalState.module.scss'
 import { useRunNodeStore } from '@/store/runNode'
 import { YakitTag } from '../yakitUI/YakitTag/YakitTag'
 import { YakitCheckbox } from '../yakitUI/YakitCheckbox/YakitCheckbox'
+import { mcpStreamHooks } from './hooks/useMcp/useMcp'
+import { ConfigMcpModal } from '@/utils/ConfigSystemMcp'
 import emiter from '@/utils/eventBus/eventBus'
 import { serverPushStatus } from '@/utils/duplex/duplex'
 import { openABSFileLocated } from '@/utils/openWebsite'
@@ -68,6 +70,7 @@ const ShowColorClass: Record<string, string> = {
 export interface GlobalReverseStateProp {
   isEngineLink: boolean
   system: YakitSystem
+  mcp: mcpStreamHooks
 }
 
 export interface CheckSyntaxFlowRuleUpdateResponse {
@@ -84,8 +87,17 @@ interface ReverseDetail {
 }
 
 export const GlobalState: React.FC<GlobalReverseStateProp> = React.memo((props) => {
-  const { isEngineLink, system } = props
+  const { isEngineLink, system, mcp } = props
   const { t, i18n } = useI18nNamespaces(['yakitRoute', 'home', 'yakitUi', 'layout'])
+  const [configMcpModalVisible, setConfigMcpModalVisible] = useState<boolean>(false)
+  const enableMcp = useMemo(() => {
+    if (!mcp.mcpStreamInfo.mcpCurrent) return false
+    if (['stopped', 'error'].includes(mcp.mcpStreamInfo.mcpCurrent.Status)) {
+      return false
+    }
+    if (!mcp.mcpStreamInfo.mcpServerUrl) return false
+    return true
+  }, [mcp.mcpStreamInfo])
 
   /** 自启全局反连配置(默认指定为本地) */
   useEffect(() => {
@@ -1018,6 +1030,49 @@ export const GlobalState: React.FC<GlobalReverseStateProp> = React.memo((props) 
                   )}
                 </div>
               </div>
+              <div className={styles['body-info']}>
+                <div className={styles['info-left']}>
+                  {enableMcp ? <SuccessIcon /> : <HelpIcon />}
+                  <div className={styles['left-body']}>
+                    <div className={styles['system-proxy-title']}>
+                      {t('GlobalState.mcp')}
+                      <YakitTag color={enableMcp ? 'success' : 'danger'}>
+                        {enableMcp ? t('GlobalState.enabled') : t('GlobalState.notEnabled')}
+                      </YakitTag>
+                    </div>
+                    <div className={styles['subtitle-style']}>{t('GlobalState.mcpDesc')}</div>
+                  </div>
+                </div>
+                <div className={styles['info-right']}>
+                  {enableMcp ? (
+                    <div className={styles['system-proxy-info']}>
+                      {mcp.mcpStreamInfo.mcpServerUrl}
+                      <YakitButton
+                        type="text"
+                        colors="danger"
+                        className={styles['btn-style']}
+                        onClick={() => {
+                          setShow(false)
+                          mcp.mcpStreamEvent.onCancel()
+                        }}
+                      >
+                        {t('GlobalState.disable')}
+                      </YakitButton>
+                    </div>
+                  ) : (
+                    <YakitButton
+                      type="text"
+                      className={styles['btn-style']}
+                      onClick={() => {
+                        setShow(false)
+                        setConfigMcpModalVisible(true)
+                      }}
+                    >
+                      {t('GlobalState.toConfigure')}
+                    </YakitButton>
+                  )}
+                </div>
+              </div>
             </>
           )}
           {isEnpriTraceAgent() && state === 'success' && (
@@ -1149,6 +1204,8 @@ export const GlobalState: React.FC<GlobalReverseStateProp> = React.memo((props) 
     stateNum,
     showCheckEngine,
     isChecking,
+    enableMcp,
+    mcp.mcpStreamInfo.mcpServerUrl,
     Array.from(runNodeList).length,
     i18n.language,
     zoomScale,
@@ -1383,6 +1440,7 @@ export const GlobalState: React.FC<GlobalReverseStateProp> = React.memo((props) 
           setCloseRunNodeItemVerifyVisible(false)
         }}
       />
+      {configMcpModalVisible && <ConfigMcpModal mcp={mcp} onClose={() => setConfigMcpModalVisible(false)} />}
     </>
   )
 })

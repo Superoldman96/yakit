@@ -216,6 +216,8 @@
     "chromePath": "Chrome Startup Path",
     "chromePathDesc": "If Chrome cannot be started, please configure the Chrome startup path",
     "configured": "Configured",
+    "mcp": "Yak Mcp",
+    "mcpDesc": "May affect the use of some features",
     "systemProxy": "System Proxy",
     "statusRefreshInterval": "Status Refresh Interval",
     "zoomScale": "Zoom Scale Adjustment",

@@ -216,6 +216,8 @@
     "chromePath": "Chrome 启动路径",
     "chromePathDesc": "如无法启动 Chrome，请配置 Chrome 启动路径",
     "configured": "已配置",
+    "mcp": "Yak Mcp",
+    "mcpDesc": "可能会影响部分功能的使用",
     "systemProxy": "系统代理",
     "statusRefreshInterval": "状态刷新间隔时间",
     "zoomScale": "缩放比例调整",

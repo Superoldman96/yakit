@@ -130,7 +130,7 @@ import {
 import { YakitAuditRiskDetails } from '@/pages/yakRunnerAuditHole/YakitAuditHoleTable/YakitAuditHoleTable'
 import SelectUpload from '@/pages/SelectUpload'
 import { ShortcutKeyPageName } from '@/utils/globalShortcutKey/events/pageMaps'
-import useMcpStream, { mcpStreamHooks } from './hooks/useMcp/useMcp'
+import { mcpStreamHooks } from './hooks/useMcp/useMcp'
 import { ConfigMcpModal } from '@/utils/ConfigSystemMcp'
 import { useCampare } from '@/hook/useCompare/useCompare'
 import { openConsoleNewWindow } from '@/utils/openWebsite'
@@ -240,6 +240,7 @@ export interface FuncDomainProp {
   isReverse?: Boolean
   engineMode: YaklangEngineMode
   isRemoteMode: boolean
+  mcp: mcpStreamHooks
   onEngineModeChange: (type: YaklangEngineMode) => any
   typeCallback: (type: YakitSettingCallbackType) => any
   /** 远程控制 - 自动切换远程连接 */
@@ -265,6 +266,7 @@ export const FuncDomain: React.FC<FuncDomainProp> = React.memo((props) => {
     onEngineModeChange,
     runDynamicControlRemote,
     typeCallback,
+    mcp,
     showProjectManage = false,
     system,
     isJudgeLicense,
@@ -549,8 +551,6 @@ export const FuncDomain: React.FC<FuncDomainProp> = React.memo((props) => {
   }, [])
 
   // mcp 全局监听
-  const [mcpStreamInfo, mcpStreamEvent] = useMcpStream({})
-
   // 引擎日志 全局监听
   useEngineConsole({})
 
@@ -599,10 +599,7 @@ export const FuncDomain: React.FC<FuncDomainProp> = React.memo((props) => {
               engineMode={engineMode}
               onEngineModeChange={onEngineModeChange}
               typeCallback={typeCallback}
-              mcp={{
-                mcpStreamInfo,
-                mcpStreamEvent,
-              }}
+              mcp={mcp}
             />
           )}
         </div>
@@ -1157,6 +1154,7 @@ const GetUIOpSettingMenu = () => {
         // { key: "engineVar",label: "引擎环境变量" },
         { key: 'config-network', label: '全局配置' },
         { key: 'setShortcutKey', label: '快捷键设置' },
+        { key: 'configMcp', label: 'Yak Mcp配置' },
       ],
     },
     {
@@ -1254,6 +1252,7 @@ const UIOpSetting: React.FC<UIOpSettingProp> = React.memo((props) => {
         showConfigSystemProxyForm()
         return
       case 'mcp':
+      case 'configMcp':
         setConfigMcpModalVisible(true)
         return
       case 'engineVar':
