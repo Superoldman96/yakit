@@ -188,6 +188,8 @@ export interface WebFuzzerPageInfoProps {
   variableActiveKeys?: string[]
   // 热加载代码
   hotPatchCode: string
+  // 共用热加载代码开关
+  sharedHotReloadCode?: boolean
 }
 
 export interface PocPageInfoProps {

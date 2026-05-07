@@ -1611,12 +1611,7 @@ export const MainOperatorContent: React.FC<MainOperatorContentProps> = React.mem
         newAdvancedConfigValue.noSystemProxy = noSystemProxy
       }
 
-      // 共享热加载时，以当前选中的 WebFuzzer 状态为准
-      const currentPageId = getCurrentSelectPageId(YakitRoute.HTTPFuzzer)
-      const currentPageInfo = currentPageId
-        ? queryPagesDataById(YakitRoute.HTTPFuzzer, currentPageId)?.pageParamsInfo?.webFuzzerPageInfo
-        : undefined
-      const { hotPatchCode, hotPatchOpen } = await getHotPatchCodeInfo(currentPageInfo)
+      const { hotPatchCode, hotPatchOpen } = await getHotPatchCodeInfo()
 
       openMenuPage(
         { route: YakitRoute.HTTPFuzzer },
