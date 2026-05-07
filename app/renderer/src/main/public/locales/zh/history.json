@@ -16,6 +16,7 @@
     "bodyLength": "响应长度",
     "params": "参数",
     "contentType": "响应类型",
+    "pathSuffix": "扩展名",
     "durationMs": "延迟（ms）",
     "updatedAt": "请求时间",
     "requestSizeVerbose": "请求大小",

@@ -16,6 +16,7 @@
     "bodyLength": "Body Length",
     "params": "Parameters",
     "contentType": "Content Type",
+    "pathSuffix": "Path Suffix",
     "durationMs": "Duration (ms)",
     "updatedAt": "Request Time",
     "requestSizeVerbose": "Request Size",

@@ -39,6 +39,7 @@ import {
   filterHTTPFlowsByFavoriteAndTags,
   getClassNameData,
   getHTTPFlowReqAndResToString,
+  handlePathSuffix,
   HistorySearch,
   HTTP_FLOW_FAVORITE_TAG,
   HTTPFlow,
@@ -1163,6 +1164,14 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
         },
       },
       {
+        title: t('HTTPFlowTable.pathSuffix'),
+        dataKey: 'PathSuffix',
+        width: 100,
+        render: (_, rowData) => {
+          return <div>{handlePathSuffix(rowData.Path || '')}</div>
+        },
+      },
+      {
         title: t('HTTPFlowTable.durationMs'),
         dataKey: 'DurationMs',
         width: 120,
@@ -1994,6 +2003,9 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
         }
         if (j === 'UpdatedAt') {
           return formatTimestamp(v[j])
+        }
+        if (j === 'PathSuffix') {
+          return handlePathSuffix(v['Path'])
         }
         return v[j]
       }),

@@ -5,6 +5,7 @@ import { RouteToPageProps } from './PublicMenu'
 import { EnhancedPrivateRouteMenuProps } from '../HeardMenu/HeardMenuType'
 import { SendDatabaseFirstMenuProps } from '@/routes/newRouteType'
 import { YakitRoute } from '@/enums/yakitRoute'
+import { TFunction } from '@/i18n/useI18nNamespaces'
 
 /** public版本前端增强型菜单项属性(用于前端数据对比和渲染逻辑使用) */
 export interface EnhancedPublicRouteMenuProps extends PublicRouteMenuProps {
@@ -283,7 +284,7 @@ export const separator = '|'
 /** 将菜单数据转换成 Menu组件数据 */
 export const routeToMenu = (
   routes: EnhancedPublicRouteMenuProps[] | EnhancedPrivateRouteMenuProps[],
-  t: (key: string) => string,
+  t: TFunction,
   parent?: string,
 ) => {
   const menus: YakitMenuItemProps[] = []

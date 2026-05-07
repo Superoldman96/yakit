@@ -605,16 +605,11 @@ export const getClassNameData = (resData: HTTPFlow[]) => {
   return newData
 }
 
-export const filterData = (filterArr: HTTPFlow[], key: keyof HTTPFlow) => {
-  const uniqueData: HTTPFlow[] = []
-  const idSet = new Set<HTTPFlow[keyof HTTPFlow]>()
-  filterArr.forEach((item) => {
-    if (!idSet.has(item[key])) {
-      idSet.add(item[key])
-      uniqueData.push(item)
-    }
-  })
-  return uniqueData
+export const handlePathSuffix = (path: string) => {
+  const cleanPath = path.split('?')[0].replace(/\/+$/, '')
+  const match = cleanPath.match(/\.([a-zA-Z0-9]+)$/)
+  const ext = match ? match[1] : ''
+  return ext || '-'
 }
 
 /**
@@ -2166,15 +2161,11 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
         },
       },
       {
-        title: '扩展名',
+        title: t('HTTPFlowTable.pathSuffix'),
         dataKey: 'PathSuffix',
         width: 100,
         render: (_, rowData) => {
-          const path = rowData?.Path || ''
-          const cleanPath = path.split('?')[0].replace(/\/+$/, '')
-          const match = cleanPath.match(/\.([a-zA-Z0-9]+)$/)
-          const ext = match ? match[1] : ''
-          return <div>{ext || '-'}</div>
+          return <div>{handlePathSuffix(rowData.Path || '')}</div>
         },
       },
       {
@@ -2594,6 +2585,9 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
         }
         if (j === 'UpdatedAt') {
           return formatTimestamp(v[j])
+        }
+        if (j === 'PathSuffix') {
+          return handlePathSuffix(v['Path'])
         }
         return v[j]
       }),
