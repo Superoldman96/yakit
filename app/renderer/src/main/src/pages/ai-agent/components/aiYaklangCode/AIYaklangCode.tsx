@@ -35,7 +35,15 @@ export const AIYaklangCode: React.FC<AIYaklangCodeProps> = React.memo((props) =>
   const renderCode = useMemoizedFn(() => {
     switch (type) {
       case 'http-request':
-        return <NewHTTPPacketEditor originValue={content} readOnly={true} onlyBasicMenu={false} noMinimap={true} />
+        return (
+          <NewHTTPPacketEditor
+            originValue={content}
+            readOnly={true}
+            onlyBasicMenu={false}
+            noMinimap={true}
+            noLineNumber={true}
+          />
+        )
       default:
         // case AIStreamContentType.CODE_YAKLANG:
         // case AIStreamContentType.CODE_PYTHON:

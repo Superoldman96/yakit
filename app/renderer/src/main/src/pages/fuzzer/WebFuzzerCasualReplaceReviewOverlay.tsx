@@ -3,6 +3,7 @@ import { useMemoizedFn } from 'ahooks'
 
 import type { WebFuzzerCasualReplaceReviewPayload } from '@/pages/fuzzer/webFuzzerAiRequestApplyBridge'
 import { YakitMonacoDiffInline } from '@/components/yakitUI/YakitMonacoDiffInline/YakitMonacoDiffInline'
+import { useI18nNamespaces } from '@/i18n/useI18nNamespaces'
 import { computeCasualLineHunks, mergeCasualLineHunks } from '@/pages/fuzzer/webFuzzerCasualLineMerge'
 
 import styles from './WebFuzzerCasualReplaceReviewOverlay.module.scss'
@@ -22,6 +23,7 @@ const WebFuzzerCasualReplaceReviewOverlay = memo(function WebFuzzerCasualReplace
   props: WebFuzzerCasualReplaceReviewOverlayProps,
 ) {
   const { roundKey, payload, onApplyRound } = props
+  const { t } = useI18nNamespaces(['webFuzzer'])
   /** casual 开始时快照（会话级不变） */
   const sessionSnapshot = payload.original
   const incoming = payload.change.request?.raw ?? ''
@@ -114,6 +116,41 @@ const WebFuzzerCasualReplaceReviewOverlay = memo(function WebFuzzerCasualReplace
     bumpDiffNonce()
   })
 
+  const handleRejectAll = useMemoizedFn(() => {
+    const rb = reviewBaselineRef.current
+    draftIncomingRef.current = rb
+    setDraftIncoming(rb)
+    bumpDiffNonce()
+    onApplyRound(rb, true)
+  })
+
+  const handleAcceptAll = useMemoizedFn(() => {
+    const hs = hunksRef.current
+    const rb = reviewBaselineRef.current
+    const decMap: Record<string, 'accept' | 'reject'> = {}
+    hs.forEach((h) => {
+      decMap[h.id] = 'accept'
+    })
+    const merged = mergeCasualLineHunks(rb, hs, decMap)
+    reviewBaselineRef.current = merged
+    draftIncomingRef.current = merged
+    setReviewBaseline(merged)
+    setDraftIncoming(merged)
+    bumpDiffNonce()
+    onApplyRound(merged, true)
+  })
+
+  const acceptMetaPreview = useMemo(() => {
+    const change = payload.change
+    const req = change?.request ?? {}
+    const { raw: _raw, ...requestRest } = req as Record<string, unknown>
+    const preview = {
+      ...change,
+      request: requestRest,
+    }
+    return JSON.stringify(preview, null, 2)
+  }, [payload.change])
+
   return (
     <div className={styles['overlay']} role="dialog" aria-modal="true">
       <div className={styles['diffWrap']}>
@@ -127,6 +164,22 @@ const WebFuzzerCasualReplaceReviewOverlay = memo(function WebFuzzerCasualReplace
           language="http"
         />
       </div>
+      {hunks.length > 0 && (
+        <div className={styles['bulkBar']}>
+          <button type="button" className={styles['bulkReject']} onClick={handleRejectAll}>
+            {t('HTTPFuzzerPage.aiCasualRejectAll')}
+          </button>
+          <div className={styles['bulkAcceptWrap']}>
+            <button type="button" className={styles['bulkAccept']} onClick={handleAcceptAll}>
+              {t('HTTPFuzzerPage.aiCasualAcceptAll')}
+            </button>
+            <div className={styles['acceptMetaCard']}>
+              <div className={styles['acceptMetaTitle']}>{t('HTTPFuzzerPage.aiCasualAcceptAllMetaTitle')}</div>
+              <pre className={styles['acceptMetaPre']}>{acceptMetaPreview}</pre>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 })

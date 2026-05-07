@@ -114,7 +114,8 @@
     "aiCasualHunkChosenReject": "Rejected",
     "aiCasualInlineNav": "{{current}} of {{total}}",
     "aiCasualInlineKeep": "Keep",
-    "aiCasualInlineUndo": "Undo"
+    "aiCasualInlineUndo": "Undo",
+    "aiCasualAcceptAllMetaTitle": "Data to apply (excluding request.raw)"
   },
   "FuzzerExtraShow": {
     "responsesDiscarded": "Discarded [{{droppedCount}}] responses",

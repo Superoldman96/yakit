@@ -114,7 +114,8 @@
     "aiCasualHunkChosenReject": "已放弃",
     "aiCasualInlineNav": "{{current}} / {{total}}",
     "aiCasualInlineKeep": "保留",
-    "aiCasualInlineUndo": "撤销"
+    "aiCasualInlineUndo": "撤销",
+    "aiCasualAcceptAllMetaTitle": "即将应用的数据（不含 request.raw）"
   },
   "FuzzerExtraShow": {
     "responsesDiscarded": "已丢弃[{{droppedCount}}]个响应",

@@ -11,7 +11,6 @@
   min-height: 0;
 }
 
-/* 每个 hunk 一条浮条，纵向由 JS 锚定到该 hunk modified 末行下方，横向统一贴容器右侧 */
 .floatingBar {
   display: inline-flex;
   align-items: center;
@@ -20,19 +19,19 @@
   border-radius: 6px;
   background: var(--Colors-Use-Neutral-Bg-Hover);
   border: 1px solid var(--Colors-Use-Neutral-Border);
-  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  box-shadow: 0 6px 28px var(--Colors-Use-Neutral-Shadow) 0 0 0 1px var(--Colors-Use-Neutral-Shadow);
   font-size: 12px;
   line-height: 1.35;
-  color: var(--Colors-Use-Neutral-Text-Primary);
+  color: var(--Colors-Use-Neutral-Text-1-Title);
   white-space: nowrap;
   position: absolute;
-  right: 12px;
+  right: 48px;
   z-index: 50;
   max-width: calc(100% - 24px);
 }
 
 .floatingNav {
-  color: var(--Colors-Use-Neutral-Text-Secondary);
+  color: var(--Colors-Use-Neutral-Text-3-Secondary);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
   user-select: none;
@@ -56,12 +55,12 @@
   border: none;
   border-radius: 4px;
   font: inherit;
-  color: var(--Colors-Use-Neutral-Text-Secondary);
+  color: var(--Colors-Use-Neutral-Text-3-Secondary);
   background: transparent;
 }
 
 .btnUndo:hover:not(:disabled) {
-  color: var(--Colors-Use-Neutral-Text-Primary);
+  color: var(--Colors-Use-Neutral-Text-1-Title);
   background: var(--Colors-Use-Neutral-Bg-Hover);
 }
 
@@ -75,9 +74,9 @@
   border-radius: 4px;
   font: inherit;
   font-weight: 500;
-  color: #fff;
+  color: var(--Colors-Use-Neutral-Text-1-Title);
   background: var(--Colors-Use-Success-Primary);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 0 var(--Colors-Use-Neutral-Shadow);
 }
 
 .btnKeep:hover:not(:disabled) {
