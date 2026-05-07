@@ -36,6 +36,7 @@ import {
   ColumnAllInfoItem,
   contentType,
   ExportHTTPFlowStreamRequest,
+  filterHTTPFlowsByFavoriteAndTags,
   getClassNameData,
   getHTTPFlowReqAndResToString,
   HistorySearch,
@@ -2268,10 +2269,14 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
       .invoke('QueryHTTPFlows', params)
       .then((res: YakQueryHTTPFlowResponse) => {
         const resData = res?.Data || []
-        const dataHasClassName: HTTPFlow[] = getClassNameData(resData)
+        const dataHasClassName: HTTPFlow[] = filterHTTPFlowsByFavoriteAndTags(
+          getClassNameData(resData),
+          tagsFilter,
+          onlyFavorite,
+        )
         const d = isInit ? dataHasClassName : mergeHTTPFlowsById(data, dataHasClassName)
         setData(d)
-        setTotal(res.Total)
+        setTotal(onlyFavorite && tagsFilter.length > 0 ? d.length : res.Total)
 
         const page = { ...res.Pagination }
         delete page['AfterId']
@@ -2482,9 +2487,12 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
                 />
                 <Tooltip title={t('HTTPFlowTable.favorites')} placement="top">
                   <YakitButton
-                    type={onlyFavorite ? 'text' : 'text2'}
+                    type={onlyFavorite ? 'outline1' : 'outline2'}
                     icon={<SolidStarIcon />}
-                    onClick={onToggleOnlyFavorite}
+                    onClick={(e) => {
+                      e.currentTarget.blur()
+                      onToggleOnlyFavorite()
+                    }}
                   />
                 </Tooltip>
                 <div className={styles['http-history-table-color-swatch']}>

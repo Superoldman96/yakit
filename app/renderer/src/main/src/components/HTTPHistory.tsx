@@ -2,6 +2,7 @@ import React, { CSSProperties, ReactElement, ReactNode, useContext, useEffect, u
 import 'react-resizable/css/styles.css'
 import {
   HistoryTableTitleShow,
+  HTTP_FLOW_FAVORITE_TAG,
   HTTPFlow,
   HTTPFlowsFieldGroupResponse,
   HTTPFlowTable,
@@ -880,7 +881,7 @@ export const HistoryProcess: React.FC<HistoryProcessProps> = React.memo((props) 
         IsAll: true,
       })
       .then((rsp: HTTPFlowsFieldGroupResponse) => {
-        const tags = (rsp.Tags || []).filter((item) => item.Value)
+        const tags = (rsp.Tags || []).filter((item) => item.Value && item.Value !== HTTP_FLOW_FAVORITE_TAG)
         const realTags: FiltersItemProps[] = tags.map(({ Value }) => ({
           label: Value,
           value: Value,

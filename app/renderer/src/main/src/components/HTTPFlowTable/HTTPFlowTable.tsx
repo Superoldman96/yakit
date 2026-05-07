@@ -417,6 +417,19 @@ export const buildHTTPFlowQueryTags = (tags: string[], onlyFavorite: boolean) =>
   return onlyFavorite ? [...tags, HTTP_FLOW_FAVORITE_TAG] : [...tags]
 }
 
+const matchHTTPFlowTagsFilter = (flow: HTTPFlow, tagsFilter: string[]) => {
+  if (!tagsFilter.length) return true
+  const flowTags = getHTTPFlowTags(flow.Tags)
+  return tagsFilter.some((tag) => flowTags.includes(tag))
+}
+
+export const filterHTTPFlowsByFavoriteAndTags = (list: HTTPFlow[], tagsFilter: string[], onlyFavorite: boolean) => {
+  return list.filter((flow) => {
+    if (onlyFavorite && !isHTTPFlowFavorite(flow)) return false
+    return matchHTTPFlowTagsFilter(flow, tagsFilter)
+  })
+}
+
 export const availableColors = [
   {
     color: 'RED',
@@ -736,6 +749,9 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
   const [total, setTotal] = useState<number>(0)
   const [loading, setLoading] = useState(false)
   const [selected, setSelected, getSelected] = useGetSetState<HTTPFlow>()
+  const getDisplayTotal = useMemoizedFn((visibleLength: number, backendTotal: number) => {
+    return onlyFavorite && tagsFilter.length > 0 ? visibleLength : backendTotal
+  })
 
   const { compareState, setCompareState, setCompareLeft, setCompareRight } = useHttpFlowStore()
 
@@ -1267,7 +1283,11 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
       .invoke('QueryHTTPFlows', realQuery)
       .then((rsp: YakQueryHTTPFlowResponse) => {
         const resData = rsp?.Data || []
-        const newData: HTTPFlow[] = getClassNameData(resData)
+        const newData: HTTPFlow[] = filterHTTPFlowsByFavoriteAndTags(
+          getClassNameData(resData),
+          tagsFilter,
+          onlyFavorite,
+        )
         const copyData = newData.slice()
         if (type === 'top') {
           if (newData.length <= 0) {
@@ -1277,12 +1297,16 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
           }
           if (['desc', 'none'].includes(tableOrder)) {
             const reverseData = copyData.reverse()
-            setData([...reverseData, ...data])
+            const nextData = [...reverseData, ...data]
+            setData(nextData)
+            setTotal(getDisplayTotal(nextData.length, rsp.Total))
             maxIdRef.current = reverseData[0].Id
           } else {
             // 升序
             if (rsp.Pagination.Limit - data.length >= 0) {
-              setData([...data, ...newData])
+              const nextData = [...data, ...newData]
+              setData(nextData)
+              setTotal(getDisplayTotal(nextData.length, rsp.Total))
               maxIdRef.current = newData[newData.length - 1].Id
             }
           }
@@ -1294,6 +1318,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
           }
           const arr = [...data, ...newData]
           setData(arr)
+          setTotal(getDisplayTotal(arr.length, rsp.Total))
           if (['desc', 'none'].includes(tableOrder)) {
             minIdRef.current = newData[newData.length - 1].Id
           } else {
@@ -1329,7 +1354,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
             maxIdRef.current = newData.length > 0 ? newData[newData.length - 1].Id : 0
             minIdRef.current = newData.length > 0 ? newData[0].Id : 0
           }
-          setTotal(rsp.Total)
+          setTotal(getDisplayTotal(newData.length, rsp.Total))
           // 开启定时器 用于算total和拿最新的最大id
           if (extraTimerRef.current) {
             clearInterval(extraTimerRef.current)
@@ -1373,7 +1398,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
       .then((rsp: YakQueryHTTPFlowResponse) => {
         const resData = rsp?.Data || []
         if (resData.length) {
-          setTotal(rsp.Total)
+          setTotal(getDisplayTotal(data.length, rsp.Total))
         }
       })
       .catch(() => {
@@ -4339,9 +4364,12 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
                     )}
                     <Tooltip title={t('HTTPFlowTable.favorites')} placement="top">
                       <YakitButton
-                        type={onlyFavorite ? 'text' : 'text2'}
+                        type={onlyFavorite ? 'outline1' : 'outline2'}
                         icon={<SolidStarIcon />}
-                        onClick={onToggleOnlyFavorite}
+                        onClick={(e) => {
+                          e.currentTarget.blur()
+                          onToggleOnlyFavorite()
+                        }}
                       />
                     </Tooltip>
                     {showColorSwatch && (
