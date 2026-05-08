@@ -4117,6 +4117,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
 
   const onMitmNoResetRefresh = useMemoizedFn((version: string) => {
     if (version !== mitmVersion) return
+    setWatchRefresh((prev) => !prev)
     updateData()
   })
 
