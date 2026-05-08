@@ -1095,7 +1095,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
         .catch(() => {})
     },
     [inViewport, refresh, watchRefresh],
-    { wait: 300 },
+    { wait: 500 },
   )
 
   const onTableChange = useDebounceFn(
@@ -1612,6 +1612,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
         }
       }
     } catch (error) {}
+    setWatchRefresh((prev) => !prev)
     setIsLoop(true)
   })
   useEffect(() => {

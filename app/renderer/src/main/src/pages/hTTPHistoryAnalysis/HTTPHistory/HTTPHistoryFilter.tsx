@@ -725,7 +725,7 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
         .catch(() => {})
     },
     [inViewport, refresh],
-    { wait: 300 },
+    { wait: 500 },
   )
 
   /** ---- 响应长度 start ----*/
