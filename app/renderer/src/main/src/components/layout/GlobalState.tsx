@@ -88,7 +88,7 @@ interface ReverseDetail {
 
 export const GlobalState: React.FC<GlobalReverseStateProp> = React.memo((props) => {
   const { isEngineLink, system, mcp } = props
-  const { t, i18n } = useI18nNamespaces(['yakitRoute', 'home', 'yakitUi', 'layout'])
+  const { t, i18n } = useI18nNamespaces(['yakitRoute', 'home', 'yakitUi', 'layout', 'utils'])
   const [configMcpModalVisible, setConfigMcpModalVisible] = useState<boolean>(false)
   const enableMcp = useMemo(() => {
     if (!mcp.mcpStreamInfo.mcpCurrent) return false
@@ -1009,7 +1009,18 @@ export const GlobalState: React.FC<GlobalReverseStateProp> = React.memo((props) 
                         className={styles['btn-style']}
                         onClick={() => {
                           setShow(false)
-                          showConfigSystemProxyForm()
+                          yakitHost
+                            .setSystemProxy({
+                              HttpProxy: systemProxy.CurrentProxy,
+                              Enable: false,
+                            })
+                            .then(() => {
+                              info(t('ConfigSystemProxy.setSystemProxySuccess'))
+                              emiter.emit('onRefConfigSystemProxy', '')
+                            })
+                            .catch((err) => {
+                              yakitFailed(t('GlobalState.setSystemProxyFailed', { error: String(err) }))
+                            })
                         }}
                       >
                         {' '}
