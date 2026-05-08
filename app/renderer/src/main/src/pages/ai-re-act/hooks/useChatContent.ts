@@ -771,8 +771,6 @@ function useChatContent(params: UseChatContentParams) {
         )
         return
       }
-      console.log('handleTrafficCount---', res.Type, data)
-
       switch (res.Type) {
         case 'yak_httpflow_count':
           toolResult.data.httpFlowDataCount = (data as AIAgentGrpcApi.HTTPTrafficNotice).http_flow_count ?? 0

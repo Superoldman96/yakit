@@ -130,8 +130,6 @@ function useAIPerfData(params?: UseAIPerfDataParams) {
       if (res.Type === 'prompt_profile') {
         // 上下文字节统计 & 上下文成分（源头：AI 流式输出事件 prompt_profile，经 useChatIPC → handleSetData）
         const data = JSON.parse(ipcContent) as AIAgentGrpcApi.ContextStatsSections
-        console.log('prompt_profile---', data)
-
         const stats = getChatDataStore?.()?.aiPerfData?.contextStats
         if (stats) {
           const d = stats.data
