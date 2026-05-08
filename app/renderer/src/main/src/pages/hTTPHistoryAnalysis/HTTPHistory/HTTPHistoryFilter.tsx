@@ -11,6 +11,7 @@ import {
 } from 'ahooks'
 import { getRemoteValue, setRemoteValue } from '@/utils/kv'
 import { getHTTPFlowExportFields } from '@/components/HTTPFlowTable/HTTPFlowExportFields'
+import { HTTPFlowsFieldGroupResponse } from '@/components/HTTPFlowTable/HTTPFlowTable'
 import {
   OutlineChevrondownIcon,
   OutlineCogIcon,
@@ -453,6 +454,7 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
   })
   const [color, setColor] = useState<string[]>([])
   const [isShowColor, setIsShowColor] = useState<boolean>(false)
+  const [suffixList, setSuffixList] = useState<FiltersItemProps[]>([])
 
   // 表格相关变量
   const [isRefresh, setIsRefresh] = useState<boolean>(false)
@@ -709,6 +711,17 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
   const [tagSearchVal, setTagSearchVal] = useState<string>('')
   const [tagsFilter, setTagsFilter] = useState<string[]>([])
   /** ---- tags end ----*/
+
+  useEffect(() => {
+    if (!inViewport) return
+    ipcRenderer
+      .invoke('HTTPFlowsFieldGroup', { RefreshRequest: true, IsAll: true })
+      .then((rsp: HTTPFlowsFieldGroupResponse) => {
+        const suffixes = (rsp.Suffixes || []).filter((item) => item.Value)
+        setSuffixList(suffixes.map(({ Value }) => ({ label: Value, value: Value })))
+      })
+      .catch(() => {})
+  }, [inViewport])
 
   /** ---- 响应长度 start ----*/
   const [bodyLengthSort, setBodyLengthSort, getBodyLengthSort] = useGetSetState<'asc' | 'desc' | false>(false)
@@ -1167,6 +1180,14 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
         title: t('HTTPFlowTable.pathSuffix'),
         dataKey: 'PathSuffix',
         width: 100,
+        filterProps: {
+          filterKey: 'IncludeSuffix',
+          filtersType: 'select',
+          filterMultiple: true,
+          filterSearchInputProps: {size: "small"},
+          filterIcon: <OutlineSearchIcon className={styles['filter-icon']} />,
+          filters: suffixList,
+        },
         render: (_, rowData) => {
           return <div>{handlePathSuffix(rowData.Path || '')}</div>
         },
@@ -1345,6 +1366,7 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
     contentType,
     i18n.language,
     onlyFavorite,
+    suffixList,
   ])
   // #endregion
 

@@ -549,6 +549,7 @@ export interface HTTPFlowsToOnlineBatchResponse {
 export interface HTTPFlowsFieldGroupResponse {
   Tags: TagsCode[]
   StatusCode: TagsCode[]
+  Suffixes: TagsCode[]
 }
 
 export interface TagsCode {
@@ -743,6 +744,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
   const isOneceLoading = useRef<boolean>(true)
 
   const [total, setTotal] = useState<number>(0)
+  const [suffixList, setSuffixList] = useState<FiltersItemProps[]>([])
   const [loading, setLoading] = useState(false)
   const [selected, setSelected, getSelected] = useGetSetState<HTTPFlow>()
 
@@ -1078,6 +1080,17 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
         isOneceLoading.current = false
       })
   })
+  useEffect(() => {
+    if (!inViewport) return
+    ipcRenderer
+      .invoke('HTTPFlowsFieldGroup', { RefreshRequest: true, IsAll: true })
+      .then((rsp: HTTPFlowsFieldGroupResponse) => {
+        const suffixes = (rsp.Suffixes || []).filter((item) => item.Value)
+        setSuffixList(suffixes.map(({ Value }) => ({ label: Value, value: Value })))
+      })
+      .catch(() => {})
+  }, [inViewport])
+
   const onTableChange = useDebounceFn(
     (page: number, limit: number, sort: SortProps, filter: any) => {
       if (sort.order === 'none') {
@@ -2164,6 +2177,14 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
         title: t('HTTPFlowTable.pathSuffix'),
         dataKey: 'PathSuffix',
         width: 100,
+        filterProps: {
+          filterKey: 'IncludeSuffix',
+          filtersType: 'select',
+          filterMultiple: true,
+          filterSearchInputProps: {size: "small"},
+          filterIcon: <OutlineSearchIcon className={style['filter-icon']} />,
+          filters: suffixList,
+        },
         render: (_, rowData) => {
           return <div>{handlePathSuffix(rowData.Path || '')}</div>
         },
@@ -2326,6 +2347,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
     excludeColumnsKey,
     idFixed,
     i18n.language,
+    suffixList,
   ])
   // #endregion
 
