@@ -2225,7 +2225,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
                   className={classNames(style['favorite-icon-active'], style['icon-hover'])}
                   onClick={(e) => {
                     e.stopPropagation()
-                    toggleHTTPFlowFavorite(rowData, false, data, setData, onlyFavorite)
+                    toggleHTTPFlowFavorite(rowData, false, setData, onlyFavorite)
                   }}
                 />
               ) : (
@@ -2235,7 +2235,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
                   })}
                   onClick={(e) => {
                     e.stopPropagation()
-                    toggleHTTPFlowFavorite(rowData, true, data, setData, onlyFavorite)
+                    toggleHTTPFlowFavorite(rowData, true, setData, onlyFavorite)
                   }}
                 />
               )}
@@ -3112,7 +3112,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
         default: true,
         webSocket: true,
         number: 20,
-        onClickSingle: (v) => toggleHTTPFlowFavorite(v, !isHTTPFlowFavorite(v), data, setData, onlyFavorite),
+        onClickSingle: (v) => toggleHTTPFlowFavorite(v, !isHTTPFlowFavorite(v), setData, onlyFavorite),
         onClickBatch: (list, n) => toggleHTTPFlowFavoriteBatch(list, n, true),
       },
       {
@@ -3431,7 +3431,6 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
     codecSingleHistoryPluginCom,
     selectedRowKeysCom,
     selected?.Id,
-    data,
     onlyFavorite,
   ])
 
@@ -5251,13 +5250,7 @@ export const onRemoveCalloutColor = (flow: HTTPFlow, data: HTTPFlow[], setData) 
     })
 }
 
-export const toggleHTTPFlowFavorite = (
-  flow: HTTPFlow,
-  favorite: boolean,
-  data: HTTPFlow[],
-  setData,
-  removeWhenUnfavorite = false,
-) => {
+export const toggleHTTPFlowFavorite = (flow: HTTPFlow, favorite: boolean, setData, removeWhenUnfavorite = false) => {
   if (!flow) return
   const nextTags = buildFavoriteTags(flow.Tags, favorite)
   ipcRenderer
@@ -5267,14 +5260,16 @@ export const toggleHTTPFlowFavorite = (
       Tags: nextTags,
     })
     .then(() => {
-      const newData = data.map((item) => {
-        if (item.Hash !== flow.Hash) return item
-        return {
-          ...item,
-          Tags: nextTags.join('|'),
-        }
+      setData((prev: HTTPFlow[]) => {
+        const newData = prev.map((item) => {
+          if (item.Hash !== flow.Hash) return item
+          return {
+            ...item,
+            Tags: nextTags.join('|'),
+          }
+        })
+        return removeWhenUnfavorite && !favorite ? newData.filter(isHTTPFlowFavorite) : newData
       })
-      setData(removeWhenUnfavorite && !favorite ? newData.filter(isHTTPFlowFavorite) : newData)
     })
     .catch((e) => {
       yakitFailed(e + '')

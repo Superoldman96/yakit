@@ -1222,7 +1222,7 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
                   className={classNames(styles['favorite-icon-active'], styles['icon-hover'])}
                   onClick={(e) => {
                     e.stopPropagation()
-                    toggleHTTPFlowFavorite(rowData, false, data, setData, onlyFavorite)
+                    toggleHTTPFlowFavorite(rowData, false, setData, onlyFavorite)
                   }}
                 />
               ) : (
@@ -1232,7 +1232,7 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
                   })}
                   onClick={(e) => {
                     e.stopPropagation()
-                    toggleHTTPFlowFavorite(rowData, true, data, setData, onlyFavorite)
+                    toggleHTTPFlowFavorite(rowData, true, setData, onlyFavorite)
                   }}
                 />
               )}
@@ -1334,7 +1334,6 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
     bodyLengthUnit,
     contentType,
     i18n.language,
-    data,
     onlyFavorite,
   ])
   // #endregion
@@ -1399,7 +1398,7 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
         default: true,
         webSocket: true,
         number: 20,
-        onClickSingle: (v) => toggleHTTPFlowFavorite(v, !isHTTPFlowFavorite(v), data, setData, onlyFavorite),
+        onClickSingle: (v) => toggleHTTPFlowFavorite(v, !isHTTPFlowFavorite(v), setData, onlyFavorite),
         onClickBatch: (list, n) => toggleHTTPFlowFavoriteBatch(list, n, true),
       },
       {
