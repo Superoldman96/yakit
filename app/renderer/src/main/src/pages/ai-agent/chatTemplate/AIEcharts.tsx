@@ -817,9 +817,7 @@ const getTokenCountChartData = (contextStatsData?: AIContextStatsDetail['data'])
   const roleSeries = contextStatsData?.role_series || {}
 
   if (roleOrder.length > 0) {
-    const stackSums = times.map((_, i) =>
-      roleOrder.reduce((sum, key) => (sum + (Number(roleSeries[key]?.[i]) || 0)), 0),
-    )
+    const stackSums = times.map((_, i) => roleOrder.reduce((sum, key) => sum + (Number(roleSeries[key]?.[i]) || 0), 0))
     const maxValue = Math.max(0, ...totalSeries, ...stackSums)
     const normalizedMax = maxValue <= 100 ? 100 : Math.ceil(maxValue / 100) * 100
     return {
@@ -954,10 +952,7 @@ const getTokenCountOption = (
 
   const gridTop = tokenCountData.mode === 'dynamic' && tokenCountData.roles.length > 4 ? 52 : 42
 
-  const legendData =
-    tokenCountData.mode === 'dynamic'
-      ? [...tokenCountData.roles.map((r) => r.name)]
-      : ['总数']
+  const legendData = tokenCountData.mode === 'dynamic' ? [...tokenCountData.roles.map((r) => r.name)] : ['总数']
 
   const roleCount = tokenCountData.mode === 'dynamic' ? tokenCountData.roles.length : 0
   const seriesList =
