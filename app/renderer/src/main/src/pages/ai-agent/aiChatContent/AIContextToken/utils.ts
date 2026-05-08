@@ -55,13 +55,6 @@ export const isPerfDataChanged = (prev: PerfData, next: PerfData): boolean => {
     for (const role of order) {
       if (prevD?.role_series?.[role]?.length !== nextD?.role_series?.[role]?.length) return true
     }
-  } else {
-    if (
-      prevD?.system_prompt_bytes.length !== nextD?.system_prompt_bytes.length ||
-      prevD?.runtime_context_bytes.length !== nextD?.runtime_context_bytes.length ||
-      prevD?.user_input_bytes.length !== nextD?.user_input_bytes.length
-    )
-      return true
   }
 
   // 上下文成分
@@ -243,9 +236,6 @@ export const getContextStatsData = (contextStats?: AIContextStatsDetail['data'])
     return {
       times: [],
       prompt_bytes: [],
-      system_prompt_bytes: [],
-      runtime_context_bytes: [],
-      user_input_bytes: [],
       role_order: [],
       role_labels: {},
       role_series: {},
@@ -254,9 +244,6 @@ export const getContextStatsData = (contextStats?: AIContextStatsDetail['data'])
   return {
     times: contextStats.times || [],
     prompt_bytes: contextStats.prompt_bytes || [],
-    system_prompt_bytes: contextStats.system_prompt_bytes || [],
-    runtime_context_bytes: contextStats.runtime_context_bytes || [],
-    user_input_bytes: contextStats.user_input_bytes || [],
     role_order: contextStats.role_order || [],
     role_labels: contextStats.role_labels || {},
     role_series: contextStats.role_series || {},

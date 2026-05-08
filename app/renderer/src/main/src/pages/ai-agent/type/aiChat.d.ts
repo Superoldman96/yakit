@@ -9,10 +9,6 @@ export interface AIContextStatsDetail {
   data: {
     /** 各时刻总 prompt 字节（图表「总数」曲线） */
     prompt_bytes: number[]
-    /** 旧版固定四条曲线（无 role_stats 时使用） */
-    system_prompt_bytes: number[]
-    runtime_context_bytes: number[]
-    user_input_bytes: number[]
     times: number[]
     /** 首次非空 role_stats 锁定顺序；后续多余 role 丢弃 */
     role_order: string[]

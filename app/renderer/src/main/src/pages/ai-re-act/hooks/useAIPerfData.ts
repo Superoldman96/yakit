@@ -11,14 +11,8 @@ const trimContextStatsSeries = (d: AIContextStatsDetail['data']) => {
   while (d.times.length > CONTEXT_STATS_SERIES_MAX) {
     d.times.shift()
     d.prompt_bytes.shift()
-    if (d.role_order.length) {
-      for (const name of d.role_order) {
-        d.role_series[name]?.shift()
-      }
-    } else {
-      d.system_prompt_bytes.shift()
-      d.runtime_context_bytes.shift()
-      d.user_input_bytes.shift()
+    for (const name of d.role_order) {
+      d.role_series[name]?.shift()
     }
   }
 }
@@ -139,9 +133,6 @@ function useAIPerfData(params?: UseAIPerfDataParams) {
             if (d.times.length > 0) {
               d.times = []
               d.prompt_bytes = []
-              d.system_prompt_bytes = []
-              d.runtime_context_bytes = []
-              d.user_input_bytes = []
             }
             d.role_order = []
             d.role_labels = {}
@@ -169,10 +160,6 @@ function useAIPerfData(params?: UseAIPerfDataParams) {
               if (!d.role_series[name]) d.role_series[name] = []
               d.role_series[name].push(map.get(name) ?? 0)
             }
-          } else {
-            d.system_prompt_bytes.push(data.system_prompt_bytes ?? 0)
-            d.runtime_context_bytes.push(data.runtime_context_bytes ?? 0)
-            d.user_input_bytes.push(data.user_input_bytes ?? 0)
           }
 
           trimContextStatsSeries(d)

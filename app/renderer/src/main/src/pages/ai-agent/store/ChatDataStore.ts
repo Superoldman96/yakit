@@ -77,9 +77,6 @@ export class ChatDataStore {
           prompt_bytes: 0,
           data: {
             prompt_bytes: [],
-            system_prompt_bytes: [],
-            runtime_context_bytes: [],
-            user_input_bytes: [],
             times: [],
             role_order: [],
             role_labels: {},

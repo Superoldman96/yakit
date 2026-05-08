@@ -824,7 +824,6 @@ const getTokenCountChartData = (contextStatsData?: AIContextStatsDetail['data'])
       mode: 'dynamic' as const,
       xAxis: times,
       yAxisMax: normalizedMax,
-      total: totalSeries,
       roles: roleOrder.map((key) => ({
         key,
         name: roleLabels[key] || key,
@@ -833,20 +832,13 @@ const getTokenCountChartData = (contextStatsData?: AIContextStatsDetail['data'])
     }
   }
 
-  const systemPromptBytes = contextStatsData?.system_prompt_bytes || []
-  const runtimeContextBytes = contextStatsData?.runtime_context_bytes || []
-  const userInputBytes = contextStatsData?.user_input_bytes || []
-  const maxValue = Math.max(0, ...totalSeries, ...systemPromptBytes, ...runtimeContextBytes, ...userInputBytes)
+  const maxValue = Math.max(0, ...totalSeries)
   const normalizedMax = maxValue <= 100 ? 100 : Math.ceil(maxValue / 100) * 100
 
   return {
+    mode: 'total_only' as const,
     xAxis: times,
-    series: {
-      total: totalSeries,
-      systemPrompt: systemPromptBytes,
-      runtimeContext: runtimeContextBytes,
-      userInput: userInputBytes,
-    },
+    series: { total: totalSeries },
     yAxisMax: normalizedMax,
   }
 }
@@ -902,8 +894,6 @@ const getTokenCountOption = (
   const yAxisInterval = getNiceAxisInterval(tokenCountData.yAxisMax)
   const totalColor = colors['--yakit-colors-Success-50']
   const systemPromptColor = colors['--yakit-colors-Blue-50']
-  const runtimeContextColor = colors['--yakit-colors-Purple-50']
-  const userInputColor = colors['--yakit-colors-Magenta-50']
   const borderColor = colors['--Colors-Use-Neutral-Border']
   const textColor = colors['--Colors-Use-Neutral-Text-3-Secondary']
   const titleColor = colors['--Colors-Use-Neutral-Text-2-Primary']
@@ -954,13 +944,12 @@ const getTokenCountOption = (
 
   const legendData =
     tokenCountData.mode === 'dynamic'
-      ? ['总数', ...tokenCountData.roles.map((r) => r.name)]
-      : ['总数', '系统信息', '运行内容', '用户输入']
+      ? [...tokenCountData.roles.map((r) => r.name)]
+      : ['总数']
 
   const seriesList =
     tokenCountData.mode === 'dynamic'
       ? [
-          buildLine('总数', totalColor, tokenCountData.total, 0.12, 10 + tokenCountData.roles.length),
           ...tokenCountData.roles.map((r, i) => {
             const colorKey = TOKEN_COUNT_ROLE_COLOR_KEYS[i % TOKEN_COUNT_ROLE_COLOR_KEYS.length]
             const lineColor = colors[colorKey] || systemPromptColor
@@ -968,12 +957,7 @@ const getTokenCountOption = (
             return buildLine(r.name, lineColor, r.data, opacity, 9 - i)
           }),
         ]
-      : [
-          buildLine('总数', totalColor, tokenCountData.series.total, 0.12, 5),
-          buildLine('系统信息', systemPromptColor, tokenCountData.series.systemPrompt, 0.1, 4),
-          buildLine('运行内容', runtimeContextColor, tokenCountData.series.runtimeContext, 0.08, 3),
-          buildLine('用户输入', userInputColor, tokenCountData.series.userInput, 0.07, 2),
-        ]
+      : [buildLine('总数', totalColor, tokenCountData.series.total, 0.12, 5)]
 
   return {
     animation: false,
