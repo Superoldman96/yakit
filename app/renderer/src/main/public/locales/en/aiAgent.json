@@ -352,7 +352,8 @@
     "totalInput": "Total Input",
     "totalOutput": "Total Output",
     "input": "Input",
-    "output": "Output"
+    "output": "Output",
+    "cache": "Cache"
   },
   "InstallLlamaServerModelPrompt": {
     "installing": "Installing model environment",

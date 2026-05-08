@@ -245,10 +245,14 @@ export enum AITaskStatus {
 export declare namespace AIAgentGrpcApi {
   /** 上传/下载 Token 量 */
   export interface Consumption {
+    cache_hit_token: number
     input_consumption: number
     output_consumption: number
     consumption_uuid: string
-    tier_consumption: Record<AIModelTypeEnum, { input_consumption: number; output_consumption: number }>
+    tier_consumption: Record<
+      AIModelTypeEnum,
+      { cache_hit_token: number; input_consumption: number; output_consumption: number }
+    >
   }
 
   /** 上下文压力 */

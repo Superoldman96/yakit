@@ -67,6 +67,7 @@ function useAIPerfData(params?: UseAIPerfDataParams) {
           // 这里是直接使用引用设置的值，所以不需要在使用setContentMap设置回去
           consumption.input_consumption = data.input_consumption
           consumption.output_consumption = data.output_consumption
+          consumption.cache_hit_token = data.cache_hit_token
           consumption.tier_consumption = { ...data.tier_consumption }
         }
         return
