@@ -817,8 +817,10 @@ const getTokenCountChartData = (contextStatsData?: AIContextStatsDetail['data'])
   const roleSeries = contextStatsData?.role_series || {}
 
   if (roleOrder.length > 0) {
-    const roleRows = roleOrder.map((key) => roleSeries[key] || [])
-    const maxValue = Math.max(0, ...totalSeries, ...roleRows.flat())
+    const stackSums = times.map((_, i) =>
+      roleOrder.reduce((sum, key) => (sum + (Number(roleSeries[key]?.[i]) || 0)), 0),
+    )
+    const maxValue = Math.max(0, ...totalSeries, ...stackSums)
     const normalizedMax = maxValue <= 100 ? 100 : Math.ceil(maxValue / 100) * 100
     return {
       mode: 'dynamic' as const,
@@ -898,14 +900,20 @@ const getTokenCountOption = (
   const textColor = colors['--Colors-Use-Neutral-Text-3-Secondary']
   const titleColor = colors['--Colors-Use-Neutral-Text-2-Primary']
 
-  const buildLine = (name: string, color: string, data: number[], opacity: number, z = 2) => ({
+  const buildStackedAreaLine = (
+    name: string,
+    color: string,
+    data: number[],
+    areaOpacity: number,
+    options?: { showTopLabel?: boolean },
+  ) => ({
     name,
-    type: 'line',
+    type: 'line' as const,
+    stack: 'Total',
     smooth: false,
     symbol: 'circle',
     symbolSize: 6,
     showSymbol: false,
-    z,
     lineStyle: {
       width: 1.5,
       color,
@@ -916,10 +924,10 @@ const getTokenCountOption = (
       borderColor: color,
     },
     areaStyle: {
-      color: withAlpha(color, opacity),
+      color: withAlpha(color, areaOpacity),
     },
     emphasis: {
-      focus: 'none',
+      focus: 'series' as const,
       itemStyle: {
         color: '#fff',
         borderWidth: 1.5,
@@ -927,16 +935,20 @@ const getTokenCountOption = (
       },
     },
     blur: {
-      lineStyle: {
-        opacity: 1,
-      },
-      itemStyle: {
-        opacity: 1,
-      },
-      areaStyle: {
-        opacity: 1,
-      },
+      lineStyle: { opacity: 1 },
+      itemStyle: { opacity: 1 },
+      areaStyle: { opacity: 1 },
     },
+    ...(options?.showTopLabel
+      ? {
+          label: {
+            show: true,
+            position: 'top' as const,
+            color: titleColor,
+            fontSize: 11,
+          },
+        }
+      : {}),
     data,
   })
 
@@ -947,17 +959,23 @@ const getTokenCountOption = (
       ? [...tokenCountData.roles.map((r) => r.name)]
       : ['总数']
 
+  const roleCount = tokenCountData.mode === 'dynamic' ? tokenCountData.roles.length : 0
   const seriesList =
     tokenCountData.mode === 'dynamic'
-      ? [
-          ...tokenCountData.roles.map((r, i) => {
-            const colorKey = TOKEN_COUNT_ROLE_COLOR_KEYS[i % TOKEN_COUNT_ROLE_COLOR_KEYS.length]
-            const lineColor = colors[colorKey] || systemPromptColor
-            const opacity = Math.max(0.05, 0.1 - i * 0.01)
-            return buildLine(r.name, lineColor, r.data, opacity, 9 - i)
+      ? tokenCountData.roles.map((r, i) => {
+          const colorKey = TOKEN_COUNT_ROLE_COLOR_KEYS[i % TOKEN_COUNT_ROLE_COLOR_KEYS.length]
+          const lineColor = colors[colorKey] || systemPromptColor
+          const opacity = Math.max(0.15, 0.45 - i * 0.04)
+          const isLast = i === roleCount - 1
+          return buildStackedAreaLine(r.name, lineColor, r.data, opacity, {
+            showTopLabel: isLast && roleCount > 0,
+          })
+        })
+      : [
+          buildStackedAreaLine('总数', totalColor, tokenCountData.series.total, 0.25, {
+            showTopLabel: true,
           }),
         ]
-      : [buildLine('总数', totalColor, tokenCountData.series.total, 0.12, 5)]
 
   return {
     animation: false,
@@ -996,10 +1014,13 @@ const getTokenCountOption = (
         return `${timeLabel}<br/>${rows}`
       },
       axisPointer: {
-        type: 'line',
-        lineStyle: {
+        type: 'cross',
+        label: {
+          backgroundColor: colors['--yakit-colors-Gray-70'] || '#6a7985',
+          color: colors['--Colors-Use-Basic-Background'] || '#fff',
+        },
+        crossStyle: {
           color: borderColor,
-          type: 'dashed',
         },
       },
     },
@@ -1010,46 +1031,50 @@ const getTokenCountOption = (
       bottom: 8,
       containLabel: true,
     },
-    xAxis: {
-      type: 'category',
-      boundaryGap: false,
-      data: tokenCountData.xAxis,
-      axisLine: {
-        show: false,
-      },
-      axisTick: {
-        show: false,
-      },
-      axisLabel: {
-        color: textColor,
-        fontSize: 11,
-        margin: 10,
-        formatter: (value) => moment.unix(Number(value)).format('HH:mm'),
-      },
-    },
-    yAxis: {
-      type: 'value',
-      min: 0,
-      max: tokenCountData.yAxisMax,
-      interval: yAxisInterval,
-      splitNumber: 4,
-      axisLine: {
-        show: false,
-      },
-      axisTick: {
-        show: false,
-      },
-      axisLabel: {
-        color: textColor,
-        fontSize: 11,
-      },
-      splitLine: {
-        lineStyle: {
-          color: borderColor,
-          type: 'dashed',
+    xAxis: [
+      {
+        type: 'category',
+        boundaryGap: false,
+        data: tokenCountData.xAxis,
+        axisLine: {
+          show: false,
+        },
+        axisTick: {
+          show: false,
+        },
+        axisLabel: {
+          color: textColor,
+          fontSize: 11,
+          margin: 10,
+          formatter: (value) => moment.unix(Number(value)).format('HH:mm'),
         },
       },
-    },
+    ],
+    yAxis: [
+      {
+        type: 'value',
+        min: 0,
+        max: tokenCountData.yAxisMax,
+        interval: yAxisInterval,
+        splitNumber: 4,
+        axisLine: {
+          show: false,
+        },
+        axisTick: {
+          show: false,
+        },
+        axisLabel: {
+          color: textColor,
+          fontSize: 11,
+        },
+        splitLine: {
+          lineStyle: {
+            color: borderColor,
+            type: 'dashed',
+          },
+        },
+      },
+    ],
     series: seriesList,
   }
 }

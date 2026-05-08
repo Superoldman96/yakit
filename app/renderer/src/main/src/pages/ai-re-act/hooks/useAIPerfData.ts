@@ -7,6 +7,15 @@ import { AIAgentGrpcApi, AIOutputEvent } from './grpcApi'
 
 const CONTEXT_STATS_SERIES_MAX = 50
 
+/** 首次建立 role_order 时，若存在这些 role_name 则按此顺序排在前面 */
+const CONTEXT_STATS_ROLE_NAME_ORDER = [
+  'high_static',
+  'frozen_block',
+  'semi_dynamic',
+  'timelineOpen',
+  'dynamic',
+] as const
+
 const trimContextStatsSeries = (d: AIContextStatsDetail['data']) => {
   while (d.times.length > CONTEXT_STATS_SERIES_MAX) {
     d.times.shift()
@@ -137,11 +146,30 @@ function useAIPerfData(params?: UseAIPerfDataParams) {
             d.role_order = []
             d.role_labels = {}
             d.role_series = {}
+
+            const seenNames = new Set<string>()
+            const incomingOrder: string[] = []
+            const labels: Record<string, string> = {}
             for (const r of incomingRoles) {
               const name = r.role_name
-              if (!name || name in d.role_labels) continue
+              if (!name || seenNames.has(name)) continue
+              seenNames.add(name)
+              incomingOrder.push(name)
+              labels[name] = r.role_name_zh || name
+            }
+
+            const preferred = new Set<string>(CONTEXT_STATS_ROLE_NAME_ORDER)
+            const ordered: string[] = []
+            for (const name of CONTEXT_STATS_ROLE_NAME_ORDER) {
+              if (seenNames.has(name)) ordered.push(name)
+            }
+            for (const name of incomingOrder) {
+              if (!preferred.has(name)) ordered.push(name)
+            }
+
+            for (const name of ordered) {
               d.role_order.push(name)
-              d.role_labels[name] = r.role_name_zh || name
+              d.role_labels[name] = labels[name] ?? name
               d.role_series[name] = []
             }
           }
