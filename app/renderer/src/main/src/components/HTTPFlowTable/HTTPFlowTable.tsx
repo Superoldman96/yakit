@@ -749,9 +749,6 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
   const [total, setTotal] = useState<number>(0)
   const [loading, setLoading] = useState(false)
   const [selected, setSelected, getSelected] = useGetSetState<HTTPFlow>()
-  const getDisplayTotal = useMemoizedFn((visibleLength: number, backendTotal: number) => {
-    return onlyFavorite && tagsFilter.length > 0 ? visibleLength : backendTotal
-  })
 
   const { compareState, setCompareState, setCompareLeft, setCompareRight } = useHttpFlowStore()
 
@@ -1299,14 +1296,12 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
             const reverseData = copyData.reverse()
             const nextData = [...reverseData, ...data]
             setData(nextData)
-            setTotal(getDisplayTotal(nextData.length, rsp.Total))
             maxIdRef.current = reverseData[0].Id
           } else {
             // 升序
             if (rsp.Pagination.Limit - data.length >= 0) {
               const nextData = [...data, ...newData]
               setData(nextData)
-              setTotal(getDisplayTotal(nextData.length, rsp.Total))
               maxIdRef.current = newData[newData.length - 1].Id
             }
           }
@@ -1318,7 +1313,6 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
           }
           const arr = [...data, ...newData]
           setData(arr)
-          setTotal(getDisplayTotal(arr.length, rsp.Total))
           if (['desc', 'none'].includes(tableOrder)) {
             minIdRef.current = newData[newData.length - 1].Id
           } else {
@@ -1354,7 +1348,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
             maxIdRef.current = newData.length > 0 ? newData[newData.length - 1].Id : 0
             minIdRef.current = newData.length > 0 ? newData[0].Id : 0
           }
-          setTotal(getDisplayTotal(newData.length, rsp.Total))
+          setTotal(rsp.Total)
           // 开启定时器 用于算total和拿最新的最大id
           if (extraTimerRef.current) {
             clearInterval(extraTimerRef.current)
@@ -1398,7 +1392,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
       .then((rsp: YakQueryHTTPFlowResponse) => {
         const resData = rsp?.Data || []
         if (resData.length) {
-          setTotal(getDisplayTotal(data.length, rsp.Total))
+          setTotal(rsp.Total)
         }
       })
       .catch(() => {
