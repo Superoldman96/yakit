@@ -2169,7 +2169,6 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
           filterSearchInputProps: {
             size: 'small',
           },
-          filterIcon: <OutlineSearchIcon className={style['filter-icon']} />,
           filters: contentType,
         },
       },
@@ -2182,7 +2181,6 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
           filtersType: 'select',
           filterMultiple: true,
           filterSearchInputProps: { size: 'small' },
-          filterIcon: <OutlineSearchIcon className={style['filter-icon']} />,
           filters: suffixList,
         },
         render: (_, rowData) => {
