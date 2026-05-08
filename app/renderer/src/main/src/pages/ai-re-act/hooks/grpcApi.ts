@@ -700,14 +700,13 @@ export declare namespace AIAgentGrpcApi {
 
   /** http流量数据产生时的通知 */
   export interface HTTPTrafficNotice {
-    hidden_index: string
+    http_flow_count: number
     runtime_id: string
   }
   /** risk流量数据产生时的通知 */
   export interface RiskTrafficNotice {
-    risk_id: number
+    risk_count: number
     runtime_id: string
-    title: string
   }
 
   /** 上下文成分 */

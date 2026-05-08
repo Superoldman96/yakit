@@ -647,20 +647,23 @@ function useChatIPC(params?: UseChatIPCParams) {
         let ipcContent = Uint8ArrayToString(res.Content) || ''
         // console.log('onStart-res', res, ipcContent)
 
-        if (res.Type === 'yak_httpflow') {
+        if (res.Type === 'yak_httpflow_count') {
           // 产生一条http流量数据时的通知
           // 不能在这个if里return，因为这个数据在工具卡片中还要进行计数逻辑使用
           const httpNotice = JSON.parse(ipcContent) as AIAgentGrpcApi.HTTPTrafficNotice
+          console.log('httpNotice', httpNotice)
+
           setHttpRunTimeIDs((old) => {
             if (old.includes(httpNotice.runtime_id)) return old
             return [...old, httpNotice.runtime_id]
           })
         }
 
-        if (res.Type === 'yak_risk') {
+        if (res.Type === 'yak_risk_count') {
           // 产生一条risk流量数据时的通知
           // 不能在这个if里return，因为这个数据在工具卡片中还要进行计数逻辑使用
           const riskNotice = JSON.parse(ipcContent) as AIAgentGrpcApi.RiskTrafficNotice
+          console.log('riskNotice', riskNotice)
           setRiskRunTimeIDs((old) => {
             if (old.includes(riskNotice.runtime_id)) return old
             return [...old, riskNotice.runtime_id]
