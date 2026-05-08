@@ -1939,7 +1939,6 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
         setData(onlyFavorite && !favorite ? newData.filter(isHTTPFlowFavorite) : newData)
         setSelectedRowKeys([])
         setSelectedRows([])
-        setOnlyFavorite(false)
         yakitNotify('success', favorite ? t('HTTPFlowTable.favoriteSuccess') : t('HTTPFlowTable.cancelFavoriteSuccess'))
       })
       .catch((e) => {
