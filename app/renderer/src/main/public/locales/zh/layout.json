@@ -348,6 +348,7 @@
     "started": "MCP 服务已启动：{{serverUrl}}",
     "error": "MCP 服务错误：{{message}}",
     "stopped": "MCP 服务已停止：{{message}}",
+    "MCPStopped": "Yak Mcp服务已停用",
     "serviceStopped": "服务已停止",
     "urlRequired": "启动地址不能为空",
     "urlFormatError": "启动地址格式错误，例如：127.0.0.1:11432",

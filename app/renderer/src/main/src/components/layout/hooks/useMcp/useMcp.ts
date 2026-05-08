@@ -62,7 +62,7 @@ export default function useMcpStream(props: useMcpHooks) {
     const offError = yakitStream.onError(mcpToken, (error) => {
       setMcpServerUrl('')
       setMcpCurrent({ Status: 'error', Message: error + '', ServerUrl: '' })
-      yakitNotify('error', t('McpHook.enableFailed', { error: error + '' }))
+      yakitNotify('success', t('McpHook.MCPStopped'))
     })
 
     const offEnd = yakitStream.onEnd(mcpToken, () => {

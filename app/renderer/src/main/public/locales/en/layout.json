@@ -348,6 +348,7 @@
     "started": "MCP service started: {{serverUrl}}",
     "error": "MCP service error: {{message}}",
     "stopped": "MCP service stopped: {{message}}",
+    "MCPStopped": "Yak Mcp service stopped",
     "serviceStopped": "Service stopped",
     "urlRequired": "Startup address cannot be empty",
     "urlFormatError": "Startup address format error, e.g. 127.0.0.1:11432",

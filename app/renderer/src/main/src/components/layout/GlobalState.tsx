@@ -1037,7 +1037,7 @@ export const GlobalState: React.FC<GlobalReverseStateProp> = React.memo((props) 
                     <div className={styles['system-proxy-title']}>
                       {t('GlobalState.mcp')}
                       <YakitTag color={enableMcp ? 'success' : 'danger'}>
-                        {enableMcp ? t('GlobalState.enabled') : t('GlobalState.notEnabled')}
+                        {enableMcp ? t('YakitButton.enabled') : t('YakitButton.notEnabled')}
                       </YakitTag>
                     </div>
                     <div className={styles['subtitle-style']}>{t('GlobalState.mcpDesc')}</div>
