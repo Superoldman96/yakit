@@ -170,6 +170,14 @@ export const YakitMonacoDiffInline = memo(function YakitMonacoDiffInlineInner(pr
       const modMax = modifiedModel.getLineCount()
       const labels = pickLabels(lng)
 
+      const scrollToHunkIndex = (targetIdx: number) => {
+        if (targetIdx < 0 || targetIdx >= items.length) return
+        const max = modifiedModel.getLineCount()
+        const ln = modEndLineForHunk(items, targetIdx, max)
+        modEditor.revealLineInCenterIfOutsideViewport(ln)
+        requestAnimationFrame(() => updatePositions())
+      }
+
       items.forEach((h, i) => {
         const lineNumber = modEndLineForHunk(items, i, modMax)
         const stackIndex = stackByLine.get(lineNumber) ?? 0
@@ -178,9 +186,23 @@ export const YakitMonacoDiffInline = memo(function YakitMonacoDiffInlineInner(pr
         const bar = document.createElement('div')
         bar.className = styles.floatingBar
 
+        const prevBtn = document.createElement('button')
+        prevBtn.type = 'button'
+        prevBtn.className = styles.btnNav
+        prevBtn.setAttribute('aria-label', 'prev-hunk')
+        prevBtn.textContent = '‹'
+        prevBtn.disabled = items.length < 2 || i === 0
+
         const nav = document.createElement('span')
         nav.className = styles.floatingNav
         nav.textContent = labels.nav(i + 1, items.length)
+
+        const nextBtn = document.createElement('button')
+        nextBtn.type = 'button'
+        nextBtn.className = styles.btnNav
+        nextBtn.setAttribute('aria-label', 'next-hunk')
+        nextBtn.textContent = '›'
+        nextBtn.disabled = items.length < 2 || i === items.length - 1
 
         const sep = document.createElement('span')
         sep.className = styles.floatingSep
@@ -195,9 +217,20 @@ export const YakitMonacoDiffInline = memo(function YakitMonacoDiffInlineInner(pr
         keepBtn.className = styles.btnKeep
         keepBtn.textContent = labels.keep
 
-        bar.append(nav, sep, undoBtn, keepBtn)
+        bar.append(prevBtn, nav, nextBtn, sep, undoBtn, keepBtn)
         bar.style.pointerEvents = 'auto'
         bar.style.display = 'none'
+
+        prevBtn.addEventListener('click', (e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          scrollToHunkIndex(i - 1)
+        })
+        nextBtn.addEventListener('click', (e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          scrollToHunkIndex(i + 1)
+        })
 
         undoBtn.addEventListener('click', (e) => {
           e.preventDefault()

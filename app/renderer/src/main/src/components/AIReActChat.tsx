@@ -104,8 +104,7 @@ const HistroryAIReActChat: FC<HistoryAIReActChatProps> = (props) => {
   }, [inViewport])
 
   const resultRender = useMemo(() => {
-    // 未完成检查，不渲染任何业务 UI
-    if (loading) return null
+    if (loading && data === undefined) return null
 
     // 无模型 → 配置引导
     if (data) {
