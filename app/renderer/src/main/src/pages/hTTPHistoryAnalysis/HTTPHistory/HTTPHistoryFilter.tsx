@@ -1184,7 +1184,7 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
           filterKey: 'IncludeSuffix',
           filtersType: 'select',
           filterMultiple: true,
-          filterSearchInputProps: {size: "small"},
+          filterSearchInputProps: { size: 'small' },
           filterIcon: <OutlineSearchIcon className={styles['filter-icon']} />,
           filters: suffixList,
         },
