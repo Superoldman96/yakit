@@ -455,6 +455,7 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
   const [color, setColor] = useState<string[]>([])
   const [isShowColor, setIsShowColor] = useState<boolean>(false)
   const [suffixList, setSuffixList] = useState<FiltersItemProps[]>([])
+  const comSuffixList = useCampare(suffixList)
 
   // 表格相关变量
   const [isRefresh, setIsRefresh] = useState<boolean>(false)
@@ -712,16 +713,20 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
   const [tagsFilter, setTagsFilter] = useState<string[]>([])
   /** ---- tags end ----*/
 
-  useEffect(() => {
-    if (!inViewport) return
-    ipcRenderer
-      .invoke('HTTPFlowsFieldGroup', { RefreshRequest: true, IsAll: true })
-      .then((rsp: HTTPFlowsFieldGroupResponse) => {
-        const suffixes = (rsp.Suffixes || []).filter((item) => item.Value)
-        setSuffixList(suffixes.map(({ Value }) => ({ label: Value, value: Value })))
-      })
-      .catch(() => {})
-  }, [inViewport])
+  useDebounceEffect(
+    () => {
+      if (!inViewport) return
+      ipcRenderer
+        .invoke('HTTPFlowsFieldGroup', { RefreshRequest: true, IsAll: true })
+        .then((rsp: HTTPFlowsFieldGroupResponse) => {
+          const suffixes = (rsp.Suffixes || []).filter((item) => item.Value)
+          setSuffixList(suffixes.map(({ Value }) => ({ label: Value, value: Value })))
+        })
+        .catch(() => {})
+    },
+    [inViewport, refresh],
+    { wait: 300 },
+  )
 
   /** ---- 响应长度 start ----*/
   const [bodyLengthSort, setBodyLengthSort, getBodyLengthSort] = useGetSetState<'asc' | 'desc' | false>(false)
@@ -1364,7 +1369,7 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
     contentType,
     i18n.language,
     onlyFavorite,
-    suffixList,
+    comSuffixList,
   ])
   // #endregion
 

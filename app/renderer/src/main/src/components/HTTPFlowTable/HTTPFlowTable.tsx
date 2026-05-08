@@ -745,6 +745,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
 
   const [total, setTotal] = useState<number>(0)
   const [suffixList, setSuffixList] = useState<FiltersItemProps[]>([])
+  const comSuffixList = useCampare(suffixList)
   const [loading, setLoading] = useState(false)
   const [selected, setSelected, getSelected] = useGetSetState<HTTPFlow>()
 
@@ -772,6 +773,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
   const [afterBodyLength, setAfterBodyLength, getAfterBodyLength] = useGetSetState<number>()
   const [beforeBodyLength, setBeforeBodyLength, getBeforeBodyLength] = useGetSetState<number>()
   const [isReset, setIsReset] = useState<boolean>(false)
+  const [watchRefresh, setWatchRefresh] = useState<boolean>(false)
 
   const [checkBodyLength, setCheckBodyLength] = useState<boolean>(false) // 查询BodyLength大于0
 
@@ -1080,16 +1082,21 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
         isOneceLoading.current = false
       })
   })
-  useEffect(() => {
-    if (!inViewport) return
-    ipcRenderer
-      .invoke('HTTPFlowsFieldGroup', { RefreshRequest: true, IsAll: true })
-      .then((rsp: HTTPFlowsFieldGroupResponse) => {
-        const suffixes = (rsp.Suffixes || []).filter((item) => item.Value)
-        setSuffixList(suffixes.map(({ Value }) => ({ label: Value, value: Value })))
-      })
-      .catch(() => {})
-  }, [inViewport])
+
+  useDebounceEffect(
+    () => {
+      if (!inViewport) return
+      ipcRenderer
+        .invoke('HTTPFlowsFieldGroup', { RefreshRequest: true, IsAll: true })
+        .then((rsp: HTTPFlowsFieldGroupResponse) => {
+          const suffixes = (rsp.Suffixes || []).filter((item) => item.Value)
+          setSuffixList(suffixes.map(({ Value }) => ({ label: Value, value: Value })))
+        })
+        .catch(() => {})
+    },
+    [inViewport, refresh, watchRefresh],
+    { wait: 300 },
+  )
 
   const onTableChange = useDebounceFn(
     (page: number, limit: number, sort: SortProps, filter: any) => {
@@ -2345,7 +2352,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
     excludeColumnsKey,
     idFixed,
     i18n.language,
-    suffixList,
+    comSuffixList,
   ])
   // #endregion
 
@@ -3748,6 +3755,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
   const resetAllFun = useMemoizedFn(() => {
     sortRef.current = defSort
     setIsReset(!isReset)
+    setWatchRefresh((prev) => !prev)
     setColor([])
     setOnlyFavorite(false)
     setCheckBodyLength(false)
@@ -4534,6 +4542,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
                           onClick: ({ key }) => {
                             switch (key) {
                               case 'noResetRefresh':
+                                setWatchRefresh((prev) => !prev)
                                 updateData()
                                 break
                               case 'resetRefresh':
