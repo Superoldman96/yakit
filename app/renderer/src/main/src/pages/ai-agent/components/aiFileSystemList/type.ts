@@ -14,7 +14,7 @@ export interface AIFileSystemListProps {
   setActiveKey?: (key: TabKey) => void
 }
 
-export interface FileTreeSystemListWapperProps {
+export interface FileTreeSystemListWrapperProps {
   path: HistoryItem[]
   title: string
   isOpen?: boolean
@@ -37,10 +37,10 @@ export interface FileTreeSystemListProps {
   treeData?: FileNodeProps[]
   setTreeData?: Dispatch<SetStateAction<FileNodeProps[]>>
   isOpen?: boolean
-  selected?: FileTreeSystemListWapperProps['selected']
-  setSelected: FileTreeSystemListWapperProps['setSelected']
-  onTreeDragStart?: FileTreeSystemListWapperProps['onTreeDragStart']
-  onTreeDragEnd?: FileTreeSystemListWapperProps['onTreeDragEnd']
+  selected?: FileTreeSystemListWrapperProps['selected']
+  setSelected: FileTreeSystemListWrapperProps['setSelected']
+  onTreeDragStart?: FileTreeSystemListWrapperProps['onTreeDragStart']
+  onTreeDragEnd?: FileTreeSystemListWrapperProps['onTreeDragEnd']
   checkable?: boolean
   checkedKeys?: HistoryItem[]
   setCheckedKeys?: (v: boolean, nodeData: FileNodeProps) => void
@@ -63,8 +63,8 @@ export interface FileTreeSystemItemProps {
   checkable?: boolean
   checked?: boolean
   setChecked?: (checked: boolean) => void
-  selected?: FileTreeSystemListWapperProps['selected']
-  setSelected: FileTreeSystemListWapperProps['setSelected']
+  selected?: FileTreeSystemListWrapperProps['selected']
+  setSelected: FileTreeSystemListWrapperProps['setSelected']
 }
 
 export interface FileInfo {

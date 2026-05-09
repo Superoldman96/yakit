@@ -20,6 +20,9 @@ import useAISystemStream from '../hooks/useAISystemStream'
 import { ScrollText } from '@/pages/ai-agent/chatTemplate/TaskLoading/TaskLoading'
 import { YakitModal } from '@/components/yakitUI/YakitModal/YakitModal'
 import { YakitEditor } from '@/components/yakitUI/YakitEditor/YakitEditor'
+import useChatIPCDispatcher from '@/pages/ai-agent/useContext/ChatIPCContent/useDispatcher'
+import useAIAgentStore from '@/pages/ai-agent/useContext/useStore'
+import useLoadHistory from '../hooks/useLoadHistory'
 
 const getAIReferenceNodeByType = (contentType?: string) => {
   switch (contentType) {
@@ -99,23 +102,38 @@ export const AIStreamNode: React.FC<AIStreamNodeProps> = React.memo((props) => {
       return <AIStreamChatContent content={content} nodeIdVerbose={NodeIdVerbose} referenceNode={referenceNode} />
   }
 })
+const TYPE = 'chatID'
 export const AIReActChatContents: React.FC<AIReActChatContentsPProps> = React.memo((props) => {
   const { chats } = props
   const {
     casualStatus: { loading, title },
+    historyState: { chatsLoading },
     systemStream,
   } = useChatIPCStore().chatIPCData
+
+  const { activeChat } = useAIAgentStore()
+
+  const { fetchHasMore, loadMore } = useChatIPCDispatcher().chatIPCEvents
   const { virtuosoRef, setScrollerRef, setIsAtBottomRef, handleTotalListHeightChanged } = useVirtuosoAutoScroll({
     total: chats.elements.length,
   })
 
+  // 向上滚动加载
+  const { firstItemIndex, handleLoadMore } = useLoadHistory({
+    loading: chatsLoading,
+    dataLength: chats.elements.length,
+    SessionID: activeChat?.SessionID || '',
+    fetchHasMore: () => fetchHasMore(TYPE),
+    loadMore: () => loadMore(TYPE, activeChat?.SessionID || ''),
+  })
   const renderItem = useCallback(
     (index: number, item?: ReActChatRenderItem) => {
       if (!item?.token) return null
-      const hasNext = chats.elements.length - index > 1
-      return <AIChatListItem key={item.token} hasNext={hasNext} itemIndex={index} item={item} type="re-act" />
+      const arrayIndex = index - firstItemIndex
+      const hasNext = chats.elements.length - arrayIndex > 1
+      return <AIChatListItem key={item.token} hasNext={hasNext} itemIndex={arrayIndex} item={item} type="re-act" />
     },
-    [chats.elements.length],
+    [chats.elements.length, firstItemIndex],
   )
 
   const Item = useCallback(
@@ -163,13 +181,15 @@ export const AIReActChatContents: React.FC<AIReActChatContentsPProps> = React.me
       <Virtuoso
         ref={virtuosoRef}
         scrollerRef={setScrollerRef}
+        firstItemIndex={firstItemIndex}
         atBottomStateChange={setIsAtBottomRef}
         data={chats.elements}
         totalListHeightChanged={handleTotalListHeightChanged}
-        itemContent={(index, item) => renderItem(index, item)}
+        itemContent={renderItem}
         initialTopMostItemIndex={chats.elements.length > 1 ? chats.elements.length - 1 : 0}
         components={components}
         atBottomThreshold={50}
+        startReached={handleLoadMore}
         // increaseViewportBy={{top: 160, bottom: 160}}
         className={styles['re-act-contents-list']}
       />

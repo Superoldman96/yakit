@@ -2,7 +2,7 @@ import { bindExternalStoreHook, createExternalStore } from '@/utils/createExtern
 import { HistoryItem } from '../type'
 import { historyStore } from './useHistoryFolder'
 import { mergeOnePath } from '../utils'
-import { opfileNotify } from '../FileTreeSystemListWapper/FileTreeSystemListWapper'
+import { onFileNotify } from '../FileTreeSystemListWrapper/FileTreeSystemListWrapper'
 
 const SESSION_KEY = 'current-session-files'
 
@@ -67,7 +67,7 @@ export const customFolderStore = {
       try {
         const prev = store.getSnapshot()
         const finalResult = await mergeOnePath(prev, item)
-        opfileNotify({
+        onFileNotify({
           uniquePaths: prev,
           incoming: item,
           label: item.isFolder ? '文件夹' : '文件',

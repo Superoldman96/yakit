@@ -8,7 +8,7 @@ import {
   isToolStderrStream,
   isToolStdoutStream,
 } from './utils'
-import { UseChatContentEvents, UseChatContentParams } from './type'
+import { UpdateRenderDataParams, UseChatContentEvents, UseChatContentParams } from './type'
 import {
   AIStreamContentType,
   convertNodeIdToVerbose,
@@ -26,64 +26,60 @@ function useChatContent(params: UseChatContentParams) {
     params
 
   /** 更新触发渲染的UI数据项 */
-  const updateElements = useMemoizedFn(
-    (main: { mapKey: string; type: AIChatQSDataType }, sub?: { mapKey: string; type: AIChatQSDataType }) => {
-      // 先判断该项是否存在
-      const target = getElements().findIndex(
-        (item) => item.token === main.mapKey && item.type === main.type && (sub ? item.isGroup : true),
-      )
-      try {
-        if (target >= 0) {
-          const newArr = [...getElements()]
+  const updateElements = useMemoizedFn((main: UpdateRenderDataParams, sub?: UpdateRenderDataParams) => {
+    // 先判断该项是否存在
+    const target = getElements().findIndex(
+      (item) => item.token === main.mapKey && item.type === main.type && (sub ? item.isGroup : true),
+    )
+    try {
+      if (target >= 0) {
+        const newArr = [...getElements()]
 
-          const item = newArr[target]
-          const newItem = { ...item, renderNum: item.renderNum + 1 }
-          newArr[target] = newItem
+        const item = newArr[target]
+        const newItem = { ...item, renderNum: item.renderNum + 1 }
+        newArr[target] = newItem
 
-          if (!sub || !newItem.isGroup) {
-            setElements(newArr)
-            return newArr
-          }
-          const newChildren = [...newItem.children]
-          const subIndex = newChildren.findIndex((item) => item.token === sub.mapKey && item.type === sub.type)
-          if (subIndex >= 0) {
-            newChildren[subIndex] = {
-              ...newChildren[subIndex],
-              renderNum: newChildren[subIndex].renderNum + 1,
-            }
-          } else {
-            newChildren.push({
-              chatType: chatType,
-              token: sub.mapKey,
-              type: sub.type,
-              renderNum: 1,
-            })
-          }
-          newItem.children = newChildren
+        if (!sub || !newItem.isGroup) {
           setElements(newArr)
-        } else {
-          if (sub) {
-            setElements((old) =>
-              old.concat([
-                {
-                  chatType: chatType,
-                  token: main.mapKey,
-                  type: main.type,
-                  renderNum: 1,
-                  isGroup: true,
-                  children: [{ chatType: chatType, token: sub.mapKey, type: sub.type, renderNum: 1 }],
-                },
-              ]),
-            )
-          } else {
-            setElements((old) =>
-              old.concat([{ chatType: chatType, token: main.mapKey, type: main.type, renderNum: 1 }]),
-            )
-          }
+          return newArr
         }
-      } catch (error) {}
-    },
-  )
+        const newChildren = [...newItem.children]
+        const subIndex = newChildren.findIndex((item) => item.token === sub.mapKey && item.type === sub.type)
+        if (subIndex >= 0) {
+          newChildren[subIndex] = {
+            ...newChildren[subIndex],
+            renderNum: newChildren[subIndex].renderNum + 1,
+          }
+        } else {
+          newChildren.push({
+            chatType: chatType,
+            token: sub.mapKey,
+            type: sub.type,
+            renderNum: 1,
+          })
+        }
+        newItem.children = newChildren
+        setElements(newArr)
+      } else {
+        if (sub) {
+          setElements((old) =>
+            old.concat([
+              {
+                chatType: chatType,
+                token: main.mapKey,
+                type: main.type,
+                renderNum: 1,
+                isGroup: true,
+                children: [{ chatType: chatType, token: sub.mapKey, type: sub.type, renderNum: 1 }],
+              },
+            ]),
+          )
+        } else {
+          setElements((old) => old.concat([{ chatType: chatType, token: main.mapKey, type: main.type, renderNum: 1 }]))
+        }
+      }
+    } catch (error) {}
+  })
   /** 删除触发渲染的UI数据项 */
   // const deleteElements = useMemoizedFn((token: string, type: AIChatQSDataType) => {
   //     // 先判断该项是否存在

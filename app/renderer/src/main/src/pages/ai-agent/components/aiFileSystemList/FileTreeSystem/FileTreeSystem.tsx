@@ -2,7 +2,7 @@ import { YakitResizeBox } from '@/components/yakitUI/YakitResizeBox/YakitResizeB
 import { FileNodeProps } from '@/pages/yakRunner/FileTree/FileTreeType'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import FilePreview from '../FilePreview/FilePreview'
-import FileTreeSystemListWapper from '../FileTreeSystemListWapper/FileTreeSystemListWapper'
+import FileTreeSystemListWrapper from '../FileTreeSystemListWrapper/FileTreeSystemListWrapper'
 import { useCustomFolder } from '../store/useCustomFolder'
 import styles from './FileTreeSystem.module.scss'
 import FileTreeDrop from '@/pages/ai-agent/aiChatWelcome/FileTreeDrop/FileTreeDrop'
@@ -47,7 +47,7 @@ const FileTreeSystem = () => {
       firstNode={
         <div className={styles.fileTreeSystemLeft}>
           <div className={styles.topPanel}>
-            <FileTreeSystemListWapper
+            <FileTreeSystemListWrapper
               key="aiFolder"
               path={grpcFolders}
               selected={selected}
@@ -60,7 +60,7 @@ const FileTreeSystem = () => {
           <div className={styles.bottomPanel}>
             <FileTreeDrop>
               {({ setDragSource }) => (
-                <FileTreeSystemListWapper
+                <FileTreeSystemListWrapper
                   isOpen
                   key="customFolder"
                   title={t('FileTreeSystem.myOpenedFiles')}

@@ -341,7 +341,7 @@ export const AIAgentChatStream: React.FC<AIAgentChatStreamProps> = memo((props) 
         data={streams}
         totalListHeightChanged={handleTotalListHeightChanged}
         totalCount={streams.length}
-        itemContent={(index, item) => renderItem(index, item)}
+        itemContent={renderItem}
         atBottomThreshold={100}
         initialTopMostItemIndex={streams.length > 1 ? streams.length - 1 : 0}
         skipAnimationFrameInResizeObserver
