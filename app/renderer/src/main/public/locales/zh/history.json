@@ -188,6 +188,13 @@
     "deleteSuccess": "删除成功",
     "deduplicateSuccess": "去重成功"
   },
+  "HTTPFlowRuleDataFilter": {
+    "searchPlaceholder": "可输入ip、域名、url进行搜索",
+    "traceCount": "流量条数",
+    "selectOrSearchFirst": "请先勾选行或输入关键词以限定操作范围",
+    "deduplicateDone": "去重完成：已删除 {{n}} 条重复数据",
+    "deduplicateNoRepeat": "去重完成：当前范围内无重复项"
+  },
   "FuzzableParamList": {
     "parameterName": "参数名",
     "parameterLocation": "参数位置",

@@ -188,6 +188,13 @@
     "deleteSuccess": "Delete successful",
     "deduplicateSuccess": "Deduplicate successful"
   },
+  "HTTPFlowRuleDataFilter": {
+    "searchPlaceholder": "Search by IP, domain, URL",
+    "traceCount": "Flows",
+    "selectOrSearchFirst": "Please check rows or enter a keyword to limit the scope",
+    "deduplicateDone": "Dedup done: {{n}} duplicate record(s) removed",
+    "deduplicateNoRepeat": "Dedup done: no duplicates found in current scope"
+  },
   "FuzzableParamList": {
     "parameterName": "Parameter Name",
     "parameterLocation": "Parameter Location",

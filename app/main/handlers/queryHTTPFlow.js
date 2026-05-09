@@ -329,6 +329,21 @@ module.exports = (win, getClient) => {
     return await asyncQueryMITMRuleExtractedData(params)
   })
 
+  const asyncQueryMITMExtractedAggregate = (params) => {
+    return new Promise((resolve, reject) => {
+      getClient().QueryMITMExtractedAggregate(params, (err, data) => {
+        if (err) {
+          reject(err)
+          return
+        }
+        resolve(data)
+      })
+    })
+  }
+  ipcMain.handle('QueryMITMExtractedAggregate', async (e, params) => {
+    return await asyncQueryMITMExtractedAggregate(params)
+  })
+
   const asyncDeleteMITMRuleExtractedData = (params) => {
     return new Promise((resolve, reject) => {
       getClient().DeleteMITMRuleExtractedData(params, (err, data) => {

@@ -17,7 +17,7 @@ import {
   useUpdateEffect,
 } from 'ahooks'
 import { useStore } from '@/store/mitmState'
-import { YakQueryHTTPFlowRequest } from '@/utils/yakQueryHTTPFlow'
+import { MitmExtractAggregateFlowFilterRow, YakQueryHTTPFlowRequest } from '@/utils/yakQueryHTTPFlow'
 import { YakitResizeBox } from './yakitUI/YakitResizeBox/YakitResizeBox'
 import { getRemoteValue, setRemoteValue } from '@/utils/kv'
 import { v4 as uuidv4 } from 'uuid'
@@ -26,6 +26,7 @@ import emiter from '@/utils/eventBus/eventBus'
 import { WebTree } from './WebTree/WebTree'
 import {
   OutlineBotIcon,
+  OutlineFileSlidersIcon,
   OutlineFilterIcon,
   OutlineLog2Icon,
   OutlinePlusIcon,
@@ -88,6 +89,7 @@ import YakitCollapse from './yakitUI/YakitCollapse/YakitCollapse'
 import { YakitPopover } from './yakitUI/YakitPopover/YakitPopover'
 import { yakitNotify } from '@/utils/notification'
 import { FiltersItemProps } from './TableVirtualResize/TableVirtualResizeType'
+import { HTTPFlowRuleDataFilter } from './HTTPFlowTable/HTTPFlowRuleDataFilter'
 
 const { ipcRenderer } = window.require('electron')
 const { YakitPanel } = YakitCollapse
@@ -128,6 +130,11 @@ export const HistoryTab: YakitTabsProps[] = [
     icon: <OutlineFilterIcon />,
     label: 'RangeInputNumberTableWrapper.filter',
     value: 'process',
+  },
+  {
+    icon: <OutlineFileSlidersIcon />,
+    label: 'HTTPFlowExtractedDataTable.ruleData',
+    value: 'rules',
   },
   {
     icon: <OutlineBotIcon />,
@@ -175,13 +182,15 @@ const HTTPHistoryInner: React.FC<HTTPHistoryProp> = (props) => {
       secondRatio: '80%',
     }
 
-    if (openTabsFlag) {
+    if (activeKey === 'rules' && openTabsFlag) {
+      p.firstRatio = '470px'
+    } else if (openTabsFlag) {
       p.firstRatio = '20%'
     } else {
       p.firstRatio = '24px'
     }
     return p
-  }, [openTabsFlag])
+  }, [openTabsFlag, activeKey])
   // #endregion
 
   // #region 网站树、进程
@@ -194,6 +203,8 @@ const HTTPHistoryInner: React.FC<HTTPHistoryProp> = (props) => {
   const [curProcess, setCurProcess] = useState<string[]>([])
   const [processQueryparams, setProcessQueryparams] = useState<string>('')
   const [curTags, setCurTags] = useState<string[]>([])
+  const [rulesQueryparams, setRulesQueryparams] = useState<string>('')
+  const [mitmAggregateFilterRows, setMitmAggregateFilterRows] = useState<MitmExtractAggregateFlowFilterRow[]>([])
 
   const mitmContent = useContext(MITMContext)
 
@@ -213,6 +224,8 @@ const HTTPHistoryInner: React.FC<HTTPHistoryProp> = (props) => {
       delete processQuery.ProcessName
       delete processQuery.Tags
       setProcessQueryparams(JSON.stringify(processQuery))
+      setRulesQueryparams(queryParams || '')
+
       if (pageType === 'MITM') {
         emiter.emit(
           'onMITMLogProcessQuery',
@@ -305,6 +318,17 @@ const HTTPHistoryInner: React.FC<HTTPHistoryProp> = (props) => {
                   }}
                 ></HistoryProcess>
               </div>
+              <div className={styles['process-wrapper']} style={{ display: activeKey === 'rules' ? 'block' : 'none' }}>
+                <HTTPFlowRuleDataFilter
+                  baseParams={historyProps.params}
+                  queryparamsStr={rulesQueryparams}
+                  onSetFilterRows={setMitmAggregateFilterRows}
+                  resetTableAndEditorShow={(table, editor) => {
+                    setOnlyShowFirstNode(table)
+                    setSecondNodeVisible(editor)
+                  }}
+                />
+              </div>
               {activeKey === 'ai' &&
                 renderHistoryAIReActChat({
                   externalParameters: {
@@ -357,6 +381,7 @@ const HTTPHistoryInner: React.FC<HTTPHistoryProp> = (props) => {
               includeInUrl={includeInUrl}
               curProcess={curProcess}
               curTags={curTags}
+              mitmAggregateFilterRows={mitmAggregateFilterRows}
               onQueryParams={onQueryParams}
               setOnlyShowFirstNode={setOnlyShowFirstNode}
               setSecondNodeVisible={setSecondNodeVisible}
@@ -384,6 +409,7 @@ export const HTTPHistory: React.FC<HTTPHistoryProp> = (props) => (
 interface HTTPFlowRealTimeTableAndEditorProps extends HistoryTableTitleShow {
   pageType: HTTPHistorySourcePageType
   runtimeId?: string
+  mitmAggregateFilterRows?: MitmExtractAggregateFlowFilterRow[]
   filterTagDom?: ReactNode
   httpHistoryTableTitleStyle?: CSSProperties
   containerClassName?: string
@@ -409,6 +435,7 @@ export const HTTPFlowRealTimeTableAndEditor: React.FC<HTTPFlowRealTimeTableAndEd
   const {
     pageType,
     runtimeId,
+    mitmAggregateFilterRows = [],
     wrapperStyle,
     httpHistoryTableTitleStyle,
     titleHeight,
@@ -543,6 +570,7 @@ export const HTTPFlowRealTimeTableAndEditor: React.FC<HTTPFlowRealTimeTableAndEd
             <HTTPFlowTable
               containerClassName={containerClassName}
               runTimeId={runtimeId}
+              mitmAggregateFilterRows={mitmAggregateFilterRows}
               noTableTitle={noTableTitle}
               showSourceType={showSourceType}
               showAdvancedSearch={showAdvancedSearch}
