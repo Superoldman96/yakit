@@ -15,7 +15,7 @@ import {
   grpcInstallYak,
   grpcWriteEngineKeyToYakitProjects,
 } from '../../grpc'
-import { safeFormatDownloadProcessState } from '../../utils'
+import { DragHeaderHeight, safeFormatDownloadProcessState } from '../../utils'
 import { YaklangInstallHintSvgIcon } from '@/assets/newIcon'
 import { OutlineQuestionmarkcircleIcon } from '@/assets/outline'
 import { QuestionModal } from '../QuestionModal'
@@ -164,7 +164,7 @@ export const DownloadYaklang: React.FC<DownloadYaklangProps> = React.memo((props
     setBounds({
       left: -targetRect.left + uiData.x,
       right: clientWidth - (targetRect.right - uiData.x),
-      top: -targetRect.top + uiData.y + 50,
+      top: -targetRect.top + uiData.y + DragHeaderHeight,
       bottom: clientHeight - (targetRect.bottom - uiData.y),
     })
   })

@@ -28,6 +28,8 @@ export const SystemInfo: SystemInfoProps = {
   mode: undefined,
 }
 
+export const DragHeaderHeight = 50
+
 export const handleFetchSystemInfo = async () => {
   try {
     SystemInfo.system = await yakitSystem.fetchSystemName()

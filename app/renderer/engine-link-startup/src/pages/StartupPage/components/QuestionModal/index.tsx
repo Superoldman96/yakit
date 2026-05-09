@@ -7,6 +7,7 @@ import Draggable, { DraggableData, DraggableEvent } from 'react-draggable'
 import { MacUIOpCloseSvgIcon, WinUIOpCloseSvgIcon, YakitCopySvgIcon } from '@/assets/newIcon'
 import classNames from 'classnames'
 import { setClipboardText } from '@/utils/clipboard'
+import { DragHeaderHeight } from '../../utils'
 import styles from './QuestionModal.module.scss'
 
 export interface AgrAndQSModalProps {
@@ -63,7 +64,7 @@ export const QuestionModal: React.FC<AgrAndQSModalProps> = React.memo((props) =>
     setBounds({
       left: -targetRect.left + uiData.x,
       right: clientWidth - (targetRect.right - uiData.x),
-      top: -targetRect.top + uiData.y + 50,
+      top: -targetRect.top + uiData.y + DragHeaderHeight,
       bottom: clientHeight - (targetRect.bottom - uiData.y),
     })
   })

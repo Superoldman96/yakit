@@ -581,7 +581,7 @@ export const YakitLoading: React.FC<YakitLoadingProp> = (props) => {
     if (!yakitStatus) {
       return false
     }
-    return [
+    const statusArr: YakitStatusType[] = [
       'check_timeout',
       'old_version',
       'skipAgreement_InstallNetWork',
@@ -598,18 +598,35 @@ export const YakitLoading: React.FC<YakitLoadingProp> = (props) => {
       'start_timeout',
       'error',
       'break',
-    ].includes(yakitStatus)
+    ]
+    return statusArr.includes(yakitStatus)
   }, [yakitStatus])
   const logSuccess = useMemo(() => {
     if (!yakitStatus) {
       return false
     }
-    return ['reclaimDatabaseSpace_success'].includes(yakitStatus)
+    const statusArr: YakitStatusType[] = ['reclaimDatabaseSpace_success']
+    return statusArr.includes(yakitStatus)
   }, [yakitStatus])
 
   useEffect(() => {
     form.setFieldsValue({ newLinkport: port })
   }, [port])
+
+  const showAgreement = useMemo(() => {
+    const statusArr: YakitStatusType[] = ['install', 'installNetWork']
+    return statusArr.includes(yakitStatus)
+  }, [yakitStatus])
+
+  const showBreakBtn = useMemo(() => {
+    const statusArr: YakitStatusType[] = ['link', 'ready']
+    return !yakitStatus || statusArr.includes(yakitStatus)
+  }, [yakitStatus])
+
+  const showRemoteLinkBtn = useMemo(() => {
+    const statusArr: YakitStatusType[] = ['link', 'ready', 'init', 'reclaimDatabaseSpace_start']
+    return yakitStatus && !statusArr.includes(yakitStatus)
+  }, [yakitStatus])
 
   return (
     <YakitSpin spinning={disableYakitLoading} tip={yakitLoadingTip}>
@@ -679,7 +696,7 @@ export const YakitLoading: React.FC<YakitLoadingProp> = (props) => {
             <OutlineExitIcon className={styles['exit-icon']} />
             退出
           </span>
-          {['install', 'installNetWork'].includes(yakitStatus) ? (
+          {showAgreement ? (
             <>
               <Divider type="vertical"></Divider>
               {agreement()}
@@ -694,7 +711,7 @@ export const YakitLoading: React.FC<YakitLoadingProp> = (props) => {
                     打开引擎文件
                   </span>
                   {/* 中断连接按钮：在空状态或连接状态成功 时显示 */}
-                  {(!yakitStatus || ['link', 'ready'].includes(yakitStatus)) && (
+                  {showBreakBtn && (
                     <>
                       <Divider type="vertical"></Divider>
                       <span
@@ -707,40 +724,8 @@ export const YakitLoading: React.FC<YakitLoadingProp> = (props) => {
                       </span>
                     </>
                   )}
-                  {/* 回收数据库空间：部分状态下不显示 */}
-                  {/* {yakitStatus &&
-                                        ![
-                                            "link",
-                                            "install",
-                                            "installNetWork",
-                                            "old_version",
-                                            "softwareBasics",
-                                            "reclaimDatabaseSpace_start",
-                                            "ready",
-                                            "init"
-                                        ].includes(yakitStatus) && (
-                                            <>
-                                                <Divider type='vertical'></Divider>
-                                                <Tooltip
-                                                    title='回收所有数据库空间，预计耗时较长'
-                                                    align={{offset: [0, 5]}}
-                                                >
-                                                    <span
-                                                        className={classNames(styles["secondary-btn"])}
-                                                        onClick={() => {
-                                                            if (restartLoading) {
-                                                                return
-                                                            }
-                                                            btnClickCallback("reclaimDatabaseSpace_start")
-                                                        }}
-                                                    >
-                                                        回收数据库空间
-                                                    </span>
-                                                </Tooltip>
-                                            </>
-                                        )} */}
                   {/* 远程连接按钮：在非连接状态时显示 */}
-                  {yakitStatus && !['link', 'ready', 'init', 'reclaimDatabaseSpace_start'].includes(yakitStatus) && (
+                  {showRemoteLinkBtn && (
                     <>
                       <Divider type="vertical"></Divider>
                       <span
