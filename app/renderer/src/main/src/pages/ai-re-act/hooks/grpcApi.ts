@@ -245,10 +245,14 @@ export enum AITaskStatus {
 export declare namespace AIAgentGrpcApi {
   /** 上传/下载 Token 量 */
   export interface Consumption {
+    cache_hit_token: number
     input_consumption: number
     output_consumption: number
     consumption_uuid: string
-    tier_consumption: Record<AIModelTypeEnum, { input_consumption: number; output_consumption: number }>
+    tier_consumption: Record<
+      AIModelTypeEnum,
+      { cache_hit_token: number; input_consumption: number; output_consumption: number }
+    >
   }
 
   /** 上下文压力 */
@@ -696,14 +700,13 @@ export declare namespace AIAgentGrpcApi {
 
   /** http流量数据产生时的通知 */
   export interface HTTPTrafficNotice {
-    hidden_index: string
+    http_flow_count: number
     runtime_id: string
   }
   /** risk流量数据产生时的通知 */
   export interface RiskTrafficNotice {
-    risk_id: number
+    risk_count: number
     runtime_id: string
-    title: string
   }
 
   /** 上下文成分 */
@@ -711,6 +714,8 @@ export declare namespace AIAgentGrpcApi {
     key: string
     label: string
     role: string
+    /** 与 role 对应的中文名（新版 prompt_profile sections） */
+    role_zh?: string
     included: boolean
     can_compress: boolean
     bytes: number
@@ -719,21 +724,25 @@ export declare namespace AIAgentGrpcApi {
     children?: AIContextSections[]
   }
 
+  /** prompt_profile 中按 role 拆分的字节统计项 */
+  export interface PromptProfileRoleStat {
+    role_name: string
+    role_name_zh?: string
+    role_bytes: number
+  }
+
   /** 上下文字节统计和上下文成分 */
   export interface ContextStatsSections {
     loop_name: string
     nonce: string
     /** 总字节数 */
     prompt_bytes: number
+    prompt_tokens?: number
     prompt_lines: number
     section_count: number
     included_section_count: number
-    /** 系统信息 */
-    system_prompt_bytes: number
-    /** 运行内容 */
-    runtime_context_bytes: number
-    /** 用户输入 */
-    user_input_bytes: number
+    /** 按 role 的字节拆分 */
+    role_stats?: PromptProfileRoleStat[]
     compressible_bytes: number
     fixed_bytes: number
     sections: AIContextSections[]

@@ -78,10 +78,11 @@ const AIContextToken: FC<{
   // AI的Token消耗
   const token = useCreation(() => {
     const { consumption } = aiDataRef || {}
-    if (isEmpty(consumption)) return [0, 0]
+    if (isEmpty(consumption)) return [0, 0, 0]
     const input = consumption?.input_consumption || 0
     const output = consumption?.output_consumption || 0
-    return [formatNumberUnits(input), formatNumberUnits(output)]
+    const cacheHit = consumption?.cache_hit_token || 0
+    return [formatNumberUnits(input), formatNumberUnits(output), formatNumberUnits(cacheHit)]
   }, [renderNumber, aiDataRef?.consumption])
 
   const isShowCost = useCreation(() => {
@@ -177,11 +178,12 @@ const AIContextToken: FC<{
           <OutlineArrowdownIcon />
           {token[1]}
         </div>
+        <div className={classNames(styles['token-tag'], styles['download-token'])}>{token[2]}</div>
       </div>
       <YakitPopover
         content={
           <AIEchartsDetails
-            overallToken={[token[0], token[1]]}
+            overallToken={[token[0], token[1], token[2]]}
             tierConsumption={aiDataRef?.consumption?.tier_consumption}
             pressure={aiDataRef?.pressure}
             firstCost={aiDataRef?.firstCost}
@@ -214,7 +216,7 @@ interface CurrentModel {
   lightweightModels?: AIModelConfig
 }
 interface AIEchartsDetailsProps {
-  overallToken: [number | string, number | string]
+  overallToken: [number | string, number | string, number | string]
   /** ref */
   tierConsumption?: AIAgentGrpcApi.Consumption['tier_consumption']
   /** ref */
@@ -254,17 +256,19 @@ const AIEchartsDetails: React.FC<AIEchartsDetailsProps> = memo((props) => {
   }, [aiGlobalConfig.IntelligentModels, aiGlobalConfig.LightweightModels])
 
   const intelligentToken = useCreation(() => {
-    if (!tierConsumption?.intelligent) return [0, 0]
+    if (!tierConsumption?.intelligent) return [0, 0, 0]
     const input = tierConsumption.intelligent.input_consumption || 0
     const output = tierConsumption.intelligent.output_consumption || 0
-    return [formatNumberUnits(input), formatNumberUnits(output)]
+    const cacheHit = tierConsumption.intelligent.cache_hit_token || 0
+    return [formatNumberUnits(input), formatNumberUnits(output), formatNumberUnits(cacheHit)]
   }, [renderNumber, tierConsumption?.intelligent])
 
   const lightweightToken = useCreation(() => {
-    if (!tierConsumption?.lightweight) return [0, 0]
+    if (!tierConsumption?.lightweight) return [0, 0, 0]
     const input = tierConsumption.lightweight.input_consumption || 0
     const output = tierConsumption.lightweight.output_consumption || 0
-    return [formatNumberUnits(input), formatNumberUnits(output)]
+    const cacheHit = tierConsumption.lightweight.cache_hit_token || 0
+    return [formatNumberUnits(input), formatNumberUnits(output), formatNumberUnits(cacheHit)]
   }, [renderNumber, tierConsumption?.lightweight])
 
   // 上下文压力集合
@@ -283,6 +287,7 @@ const AIEchartsDetails: React.FC<AIEchartsDetailsProps> = memo((props) => {
   const contextStatsData = useCreation(() => {
     return getContextStatsData(contextStats?.data)
   }, [renderNumber, contextStats])
+
   // 上下文成分
   const contextSectionsData = useCreation(() => {
     if (!contextSections?.sections)
@@ -362,18 +367,22 @@ const AIEchartsDetails: React.FC<AIEchartsDetailsProps> = memo((props) => {
                   {overallToken[1]}
                 </div>
               </div>
+              <div className={styles['token-overall']}>
+                <span>{t('AIContextToken.cache')}</span>
+                <div className={classNames(styles['token-tag'], styles['download-token'])}>{overallToken[2]}</div>
+              </div>
             </div>
           </div>
           <div className={styles['token-content']}>
             <AITokens
               modelType={t('AiAgengt.intelligentModels')}
               aiModel={currentModel?.intelligentModels}
-              token={[intelligentToken[0], intelligentToken[1]]}
+              token={[intelligentToken[0], intelligentToken[1], intelligentToken[2]]}
             />
             <AITokens
               modelType={t('AiAgengt.lightweightModels')}
               aiModel={currentModel?.lightweightModels}
-              token={[lightweightToken[0], lightweightToken[1]]}
+              token={[lightweightToken[0], lightweightToken[1], lightweightToken[2]]}
             />
           </div>
         </div>
@@ -405,7 +414,7 @@ const AIEchartsDetails: React.FC<AIEchartsDetailsProps> = memo((props) => {
         )}
         {contextSectionsData?.sections.length > 0 && (
           <div style={{ height: '320px' }}>
-            <ContextTable contextSectionsData={contextSectionsData} />
+            <ContextTable contextSectionsData={contextSectionsData} roleLabelMap={contextStats?.data?.role_labels} />
           </div>
         )}
       </div>
@@ -416,7 +425,7 @@ const AIEchartsDetails: React.FC<AIEchartsDetailsProps> = memo((props) => {
 interface AITokensProps {
   modelType: string
   aiModel?: AIModelConfig
-  token: [number | string, number | string]
+  token: [number | string, number | string, number | string]
 }
 const AITokens: React.FC<AITokensProps> = memo((props) => {
   const { modelType, aiModel, token } = props
@@ -454,6 +463,11 @@ const AITokens: React.FC<AITokensProps> = memo((props) => {
             <OutlineArrowdownIcon />
           </div>
           <div className={classNames(styles['token-tag'], styles['download-token'])}>{token[1]}</div>
+        </div>
+        <div className={styles['diver']} />
+        <div className={styles['ai-tokens-item']}>
+          <div className={styles['token-item']}>{t('AIContextToken.cache')}</div>
+          <div className={classNames(styles['token-tag'], styles['download-token'])}>{token[2]}</div>
         </div>
       </div>
     </div>

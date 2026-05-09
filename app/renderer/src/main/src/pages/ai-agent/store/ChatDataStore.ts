@@ -36,19 +36,23 @@ export class ChatDataStore {
       yakExecResult: { card: [], execFileRecord: new Map(), yakExecResultLogs: [] },
       aiPerfData: {
         consumption: {
+          cache_hit_token: 0,
           input_consumption: 0,
           output_consumption: 0,
           consumption_uuid: '',
           tier_consumption: {
             [AIModelTypeEnum.TierIntelligent]: {
+              cache_hit_token: 0,
               input_consumption: 0,
               output_consumption: 0,
             },
             [AIModelTypeEnum.TierLightweight]: {
+              cache_hit_token: 0,
               input_consumption: 0,
               output_consumption: 0,
             },
             [AIModelTypeEnum.TierVision]: {
+              cache_hit_token: 0,
               input_consumption: 0,
               output_consumption: 0,
             },
@@ -72,11 +76,10 @@ export class ChatDataStore {
         contextStats: {
           prompt_bytes: 0,
           data: {
-            prompt_bytes: [],
-            system_prompt_bytes: [],
-            runtime_context_bytes: [],
-            user_input_bytes: [],
             times: [],
+            role_order: [],
+            role_labels: {},
+            role_series: {},
           },
         },
         contextSections: { summary: new Map(), sections: [] },

@@ -799,26 +799,43 @@ const getResponseSpeedDetailsOption = (
   return option
 }
 
+const TOKEN_COUNT_ROLE_COLOR_KEYS = [
+  '--yakit-colors-Blue-50',
+  '--yakit-colors-Purple-50',
+  '--yakit-colors-Magenta-50',
+  '--yakit-colors-Warn-50',
+  '--yakit-colors-Success-40',
+  '--yakit-colors-Orange-50',
+]
+
 // 上下文字节统计
 const getTokenCountChartData = (contextStatsData?: AIContextStatsDetail['data']) => {
-  const promptBytes = contextStatsData?.prompt_bytes || []
-  const systemPromptBytes = contextStatsData?.system_prompt_bytes || []
-  const runtimeContextBytes = contextStatsData?.runtime_context_bytes || []
-  const userInputBytes = contextStatsData?.user_input_bytes || []
   const times = contextStatsData?.times || []
+  const roleOrder = contextStatsData?.role_order || []
+  const roleLabels = contextStatsData?.role_labels || {}
+  const roleSeries = contextStatsData?.role_series || {}
 
-  const maxValue = Math.max(...promptBytes, ...systemPromptBytes, ...runtimeContextBytes, ...userInputBytes, 0)
-  const normalizedMax = maxValue <= 100 ? 100 : Math.ceil(maxValue / 100) * 100
+  if (roleOrder.length > 0) {
+    const stackSums = times.map((_, i) => roleOrder.reduce((sum, key) => sum + (Number(roleSeries[key]?.[i]) || 0), 0))
+    const maxValue = Math.max(0, ...stackSums)
+    const normalizedMax = maxValue <= 100 ? 100 : Math.ceil(maxValue / 100) * 100
+    return {
+      mode: 'dynamic' as const,
+      xAxis: times,
+      yAxisMax: normalizedMax,
+      roles: roleOrder.map((key) => ({
+        key,
+        name: roleLabels[key] || key,
+        data: roleSeries[key] || [],
+      })),
+    }
+  }
 
   return {
+    mode: 'total_only' as const,
     xAxis: times,
-    series: {
-      total: promptBytes,
-      systemPrompt: systemPromptBytes,
-      runtimeContext: runtimeContextBytes,
-      userInput: userInputBytes,
-    },
-    yAxisMax: normalizedMax,
+    series: { total: times.map(() => 0) },
+    yAxisMax: 100,
   }
 }
 
@@ -873,53 +890,83 @@ const getTokenCountOption = (
   const yAxisInterval = getNiceAxisInterval(tokenCountData.yAxisMax)
   const totalColor = colors['--yakit-colors-Success-50']
   const systemPromptColor = colors['--yakit-colors-Blue-50']
-  const runtimeContextColor = colors['--yakit-colors-Purple-50']
-  const userInputColor = colors['--yakit-colors-Magenta-50']
   const borderColor = colors['--Colors-Use-Neutral-Border']
   const textColor = colors['--Colors-Use-Neutral-Text-3-Secondary']
   const titleColor = colors['--Colors-Use-Neutral-Text-2-Primary']
 
-  const buildLine = (name: string, color: string, data: number[], opacity: number, z = 2) => ({
+  const buildStackedAreaLine = (
+    name: string,
+    color: string,
+    data: number[],
+    areaOpacity: number,
+    options?: { showTopLabel?: boolean },
+  ) => ({
     name,
-    type: 'line',
+    type: 'line' as const,
+    stack: 'Total',
     smooth: false,
     symbol: 'circle',
     symbolSize: 6,
     showSymbol: false,
-    z,
     lineStyle: {
       width: 1.5,
       color,
     },
     itemStyle: {
-      color: '#fff',
+      color: colors['--Colors-Use-Neutral-Bg'],
       borderWidth: 1.5,
       borderColor: color,
     },
     areaStyle: {
-      color: withAlpha(color, opacity),
+      color: withAlpha(color, areaOpacity),
     },
     emphasis: {
-      focus: 'none',
+      focus: 'series' as const,
       itemStyle: {
-        color: '#fff',
+        color: colors['--Colors-Use-Neutral-Bg'],
         borderWidth: 1.5,
         borderColor: color,
       },
     },
     blur: {
-      lineStyle: {
-        opacity: 1,
-      },
-      itemStyle: {
-        opacity: 1,
-      },
-      areaStyle: {
-        opacity: 1,
-      },
+      lineStyle: { opacity: 1 },
+      itemStyle: { opacity: 1 },
+      areaStyle: { opacity: 1 },
     },
+    ...(options?.showTopLabel
+      ? {
+          label: {
+            show: true,
+            position: 'top' as const,
+            color: titleColor,
+            fontSize: 11,
+          },
+        }
+      : {}),
     data,
   })
+
+  const gridTop = tokenCountData.mode === 'dynamic' && tokenCountData.roles.length > 4 ? 52 : 42
+
+  const legendData = tokenCountData.mode === 'dynamic' ? [...tokenCountData.roles.map((r) => r.name)] : ['总数']
+
+  const roleCount = tokenCountData.mode === 'dynamic' ? tokenCountData.roles.length : 0
+  const seriesList =
+    tokenCountData.mode === 'dynamic'
+      ? tokenCountData.roles.map((r, i) => {
+          const colorKey = TOKEN_COUNT_ROLE_COLOR_KEYS[i % TOKEN_COUNT_ROLE_COLOR_KEYS.length]
+          const lineColor = colors[colorKey] || systemPromptColor
+          const opacity = Math.max(0.15, 0.45 - i * 0.04)
+          const isLast = i === roleCount - 1
+          return buildStackedAreaLine(r.name, lineColor, r.data, opacity, {
+            showTopLabel: isLast && roleCount > 0,
+          })
+        })
+      : [
+          buildStackedAreaLine('总数', totalColor, tokenCountData.series.total, 0.25, {
+            showTopLabel: true,
+          }),
+        ]
 
   return {
     animation: false,
@@ -929,12 +976,13 @@ const getTokenCountOption = (
       itemWidth: 10,
       itemHeight: 10,
       icon: 'circle',
+      type: tokenCountData.mode === 'dynamic' && tokenCountData.roles.length > 5 ? 'scroll' : 'plain',
       textStyle: {
         color: titleColor,
         fontSize: 12,
         fontWeight: 500,
       },
-      data: ['总数', '系统信息', '运行内容', '用户输入'],
+      data: legendData,
     },
     tooltip: {
       trigger: 'axis',
@@ -957,66 +1005,68 @@ const getTokenCountOption = (
         return `${timeLabel}<br/>${rows}`
       },
       axisPointer: {
-        type: 'line',
-        lineStyle: {
+        type: 'cross',
+        label: {
+          backgroundColor: colors['--yakit-colors-Gray-70'],
+          color: colors['--Colors-Use-Basic-Background'],
+        },
+        crossStyle: {
           color: borderColor,
-          type: 'dashed',
         },
       },
     },
     grid: {
-      top: 42,
+      top: gridTop,
       left: 12,
       right: 16,
       bottom: 8,
       containLabel: true,
     },
-    xAxis: {
-      type: 'category',
-      boundaryGap: false,
-      data: tokenCountData.xAxis,
-      axisLine: {
-        show: false,
-      },
-      axisTick: {
-        show: false,
-      },
-      axisLabel: {
-        color: textColor,
-        fontSize: 11,
-        margin: 10,
-        formatter: (value) => moment.unix(Number(value)).format('HH:mm'),
-      },
-    },
-    yAxis: {
-      type: 'value',
-      min: 0,
-      max: tokenCountData.yAxisMax,
-      interval: yAxisInterval,
-      splitNumber: 4,
-      axisLine: {
-        show: false,
-      },
-      axisTick: {
-        show: false,
-      },
-      axisLabel: {
-        color: textColor,
-        fontSize: 11,
-      },
-      splitLine: {
-        lineStyle: {
-          color: borderColor,
-          type: 'dashed',
+    xAxis: [
+      {
+        type: 'category',
+        boundaryGap: false,
+        data: tokenCountData.xAxis,
+        axisLine: {
+          show: false,
+        },
+        axisTick: {
+          show: false,
+        },
+        axisLabel: {
+          color: textColor,
+          fontSize: 11,
+          margin: 10,
+          formatter: (value) => moment.unix(Number(value)).format('HH:mm'),
         },
       },
-    },
-    series: [
-      buildLine('总数', totalColor, tokenCountData.series.total, 0.12, 5),
-      buildLine('系统信息', systemPromptColor, tokenCountData.series.systemPrompt, 0.1, 4),
-      buildLine('运行内容', runtimeContextColor, tokenCountData.series.runtimeContext, 0.08, 3),
-      buildLine('用户输入', userInputColor, tokenCountData.series.userInput, 0.07, 2),
     ],
+    yAxis: [
+      {
+        type: 'value',
+        min: 0,
+        max: tokenCountData.yAxisMax,
+        interval: yAxisInterval,
+        splitNumber: 4,
+        axisLine: {
+          show: false,
+        },
+        axisTick: {
+          show: false,
+        },
+        axisLabel: {
+          color: textColor,
+          fontSize: 11,
+        },
+        splitLine: {
+          lineStyle: {
+            color: borderColor,
+            type: 'dashed',
+          },
+        },
+      },
+    ],
+    series: seriesList,
   }
 }
 

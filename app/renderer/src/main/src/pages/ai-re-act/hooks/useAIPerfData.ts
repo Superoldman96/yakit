@@ -1,8 +1,29 @@
 import { useCreation, useMemoizedFn } from 'ahooks'
 import { Uint8ArrayToString } from '@/utils/str'
+import type { AIContextStatsDetail } from '@/pages/ai-agent/type/aiChat'
 import { AIChatLogData, UseAIPerfDataEvents, UseAIPerfDataParams } from './type'
 import { handleGrpcDataPushLog } from './utils'
 import { AIAgentGrpcApi, AIOutputEvent } from './grpcApi'
+
+const CONTEXT_STATS_SERIES_MAX = 50
+
+/** 首次建立 role_order 时，若存在这些 role_name 则按此顺序排在前面 */
+const CONTEXT_STATS_ROLE_NAME_ORDER = [
+  'high_static',
+  'frozen_block',
+  'semi_dynamic',
+  'timelineOpen',
+  'dynamic',
+] as const
+
+const trimContextStatsSeries = (d: AIContextStatsDetail['data']) => {
+  while (d.times.length > CONTEXT_STATS_SERIES_MAX) {
+    d.times.shift()
+    for (const name of d.role_order) {
+      d.role_series[name]?.shift()
+    }
+  }
+}
 
 /** 递归上下文成分里的summary并归类到map对象后消除summary字段内容 */
 const handleSummarySectionsSummary = (
@@ -48,6 +69,7 @@ function useAIPerfData(params?: UseAIPerfDataParams) {
           // 这里是直接使用引用设置的值，所以不需要在使用setContentMap设置回去
           consumption.input_consumption = data.input_consumption
           consumption.output_consumption = data.output_consumption
+          consumption.cache_hit_token = data.cache_hit_token
           consumption.tier_consumption = { ...data.tier_consumption }
         }
         return
@@ -105,30 +127,73 @@ function useAIPerfData(params?: UseAIPerfDataParams) {
       }
 
       if (res.Type === 'prompt_profile') {
-        // 上下文字节统计 & 上下文成分
+        // 上下文字节统计 & 上下文成分（源头：AI 流式输出事件 prompt_profile，经 useChatIPC → handleSetData）
         const data = JSON.parse(ipcContent) as AIAgentGrpcApi.ContextStatsSections
-
         const stats = getChatDataStore?.()?.aiPerfData?.contextStats
         if (stats) {
-          // 这里是直接使用引用设置的值，所以不需要在使用setContentMap设置回去
-          stats.prompt_bytes = data.prompt_bytes
-          stats.data.prompt_bytes.push(data.prompt_bytes ?? 0)
-          if (stats.data.prompt_bytes.length > 50) stats.data.prompt_bytes.shift()
-          stats.data.system_prompt_bytes.push(data.system_prompt_bytes ?? 0)
-          if (stats.data.system_prompt_bytes.length > 50) stats.data.system_prompt_bytes.shift()
-          stats.data.runtime_context_bytes.push(data.runtime_context_bytes ?? 0)
-          if (stats.data.runtime_context_bytes.length > 50) stats.data.runtime_context_bytes.shift()
-          stats.data.user_input_bytes.push(data.user_input_bytes ?? 0)
-          if (stats.data.user_input_bytes.length > 50) stats.data.user_input_bytes.shift()
-          stats.data.times.push(Number(res.Timestamp) || 0)
-          if (stats.data.times.length > 50) stats.data.times.shift()
+          const d = stats.data
+          const incomingRoles = Array.isArray(data.role_stats) ? data.role_stats : []
+          const ts = Number(res.Timestamp) || 0
+
+          if (incomingRoles.length > 0 && d.role_order.length === 0) {
+            if (d.times.length > 0) {
+              d.times = []
+            }
+            d.role_order = []
+            d.role_labels = {}
+            d.role_series = {}
+
+            const seenNames = new Set<string>()
+            const incomingOrder: string[] = []
+            const labels: Record<string, string> = {}
+            for (const r of incomingRoles) {
+              const name = r.role_name
+              if (!name || seenNames.has(name)) continue
+              seenNames.add(name)
+              incomingOrder.push(name)
+              labels[name] = r.role_name_zh || name
+            }
+
+            const preferred = new Set<string>(CONTEXT_STATS_ROLE_NAME_ORDER)
+            const ordered: string[] = []
+            for (const name of CONTEXT_STATS_ROLE_NAME_ORDER) {
+              if (seenNames.has(name)) ordered.push(name)
+            }
+            for (const name of incomingOrder) {
+              if (!preferred.has(name)) ordered.push(name)
+            }
+
+            for (const name of ordered) {
+              d.role_order.push(name)
+              d.role_labels[name] = labels[name] ?? name
+              d.role_series[name] = []
+            }
+          }
+
+          stats.prompt_bytes = data.prompt_bytes ?? 0
+          d.times.push(ts)
+
+          if (d.role_order.length > 0) {
+            const map = new Map<string, number>()
+            for (const r of incomingRoles) {
+              if (!d.role_order.includes(r.role_name)) continue
+              map.set(r.role_name, r.role_bytes ?? 0)
+            }
+            for (const name of d.role_order) {
+              if (!d.role_series[name]) d.role_series[name] = []
+              d.role_series[name].push(map.get(name) ?? 0)
+            }
+          }
+
+          trimContextStatsSeries(d)
         }
 
         const sections = getChatDataStore?.()?.aiPerfData?.contextSections
         const sectionsData = data.sections || []
         if (sections) {
           // 这里是直接使用引用设置的值，所以不需要在使用setContentMap设置回去
-          const summaryMap = sections.summary || new Map<string, string>()
+          // 每次新的后端数据进来,需要重置上次数据逻辑处理的map对象,避免之前数据对当前数据处理造成影响
+          const summaryMap = new Map<string, string>()
           handleSummarySectionsSummary(sectionsData, summaryMap)
           sections.summary = summaryMap
           sections.sections = sectionsData

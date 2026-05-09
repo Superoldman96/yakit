@@ -7,11 +7,11 @@ import { AIChatQSData } from '@/pages/ai-re-act/hooks/aiRender'
 export interface AIContextStatsDetail {
   prompt_bytes: AIAgentGrpcApi.ContextStatsSections['prompt_bytes']
   data: {
-    prompt_bytes: number[]
-    system_prompt_bytes: number[]
-    runtime_context_bytes: number[]
-    user_input_bytes: number[]
     times: number[]
+    /** 首次非空 role_stats 锁定顺序；后续多余 role 丢弃 */
+    role_order: string[]
+    role_labels: Record<string, string>
+    role_series: Record<string, number[]>
   }
 }
 

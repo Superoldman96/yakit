@@ -753,9 +753,8 @@ function useChatContent(params: UseChatContentParams) {
   const handleTrafficCount = useMemoizedFn((res: AIOutputEvent) => {
     try {
       const ipcContent = Uint8ArrayToString(res.Content) || ''
-      const { runtime_id } = JSON.parse(ipcContent) as
-        | AIAgentGrpcApi.HTTPTrafficNotice
-        | AIAgentGrpcApi.RiskTrafficNotice
+      const data = JSON.parse(ipcContent) as AIAgentGrpcApi.HTTPTrafficNotice & AIAgentGrpcApi.RiskTrafficNotice
+      const { runtime_id } = data
 
       if (!runtime_id) {
         pushLog(genErrorLogData(res.Timestamp, `${res.Type}数据, runtime_id 为空`))
@@ -768,18 +767,24 @@ function useChatContent(params: UseChatContentParams) {
         )
         return
       }
-
+      let update = false
       switch (res.Type) {
-        case 'yak_httpflow':
-          toolResult.data.httpFlowDataCount += 1
+        case 'yak_httpflow_count':
+          if (data.http_flow_count !== toolResult.data.httpFlowDataCount) {
+            toolResult.data.httpFlowDataCount = data.http_flow_count ?? 0
+            update = true
+          }
           break
-        case 'yak_risk':
-          toolResult.data.riskFlowDataCount += 1
+        case 'yak_risk_count':
+          if (data.risk_count !== toolResult.data.riskFlowDataCount) {
+            toolResult.data.riskFlowDataCount = data.risk_count ?? 0
+            update = true
+          }
           break
         default:
           break
       }
-      updateElements({ mapKey: toolResult.id, type: toolResult.type })
+      if (update) updateElements({ mapKey: toolResult.id, type: toolResult.type })
     } catch (error) {
       handleGrpcDataPushLog({
         info: res,
@@ -975,7 +980,7 @@ function useChatContent(params: UseChatContentParams) {
       }
 
       // 产生一条(http|risk)流量数据时的通知
-      if (['yak_httpflow', 'yak_risk'].includes(res.Type)) {
+      if (['yak_httpflow_count', 'yak_risk_count'].includes(res.Type)) {
         handleTrafficCount(res)
       }
       // #endregion
