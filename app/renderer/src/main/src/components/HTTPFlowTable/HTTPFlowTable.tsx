@@ -2317,7 +2317,6 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
     downstreamProxyStr,
     pageType,
     queryParams,
-    data,
     onlyFavorite,
     columnsOrder,
     excludeColumnsKey,
