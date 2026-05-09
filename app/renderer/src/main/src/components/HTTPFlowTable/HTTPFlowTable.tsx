@@ -607,10 +607,6 @@ export const getClassNameData = (resData: HTTPFlow[]) => {
   return newData
 }
 
-export const handlePathSuffix = (path: string) => {
-  return formatHTTPFlowPathSuffix(path)
-}
-
 /**
  * @description 根据单位转为对应的值
  * @returns {number}
