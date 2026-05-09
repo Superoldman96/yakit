@@ -7,7 +7,6 @@ import { AIChatQSData } from '@/pages/ai-re-act/hooks/aiRender'
 export interface AIContextStatsDetail {
   prompt_bytes: AIAgentGrpcApi.ContextStatsSections['prompt_bytes']
   data: {
-    /** 各时刻总 prompt 字节（图表「总数」曲线） */
     times: number[]
     /** 首次非空 role_stats 锁定顺序；后续多余 role 丢弃 */
     role_order: string[]
