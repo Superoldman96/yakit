@@ -171,6 +171,25 @@
       }
     }
   }
+
+  .favorite-icon {
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  .favorite-icon-active {
+    margin-top: -3px;
+    margin-left: -2px;
+    width: 19px;
+    color: var(--Colors-Use-Yellow-Primary);
+
+    svg {
+      width: 19px;
+      height: 19px;
+    }
+  }
 }
 
 .http-history-table-color-popover {

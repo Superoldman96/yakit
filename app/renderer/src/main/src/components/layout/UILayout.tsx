@@ -92,6 +92,7 @@ import { JSONParseLog } from '@/utils/tool'
 import { LocalGVS } from '@/enums/localGlobal'
 import { useSoftMode } from '@/store/softMode'
 import { useI18nNamespaces } from '@/i18n/useI18nNamespaces'
+import useMcpStream from './hooks/useMcp/useMcp'
 import { YakParamProps } from '@/pages/plugins/pluginsType'
 import {
   yakitAI,
@@ -130,6 +131,7 @@ export interface UILayoutProp {
 
 const UILayout: React.FC<UILayoutProp> = (props) => {
   const { t, i18n } = useI18nNamespaces(['layout', 'yakitUi'])
+  const [mcpStreamInfo, mcpStreamEvent] = useMcpStream({})
   const { currentPageTabRouteKey } = usePageInfo(
     (s) => ({
       currentPageTabRouteKey: s.currentPageTabRouteKey,
@@ -1596,6 +1598,14 @@ const UILayout: React.FC<UILayoutProp> = (props) => {
   })
   const dropClassName = { [styles['header-title-drop']]: drop }
 
+  const mcp = useMemo(
+    () => ({
+      mcpStreamInfo,
+      mcpStreamEvent,
+    }),
+    [mcpStreamInfo, mcpStreamEvent],
+  )
+
   return (
     <div className={styles['ui-layout-wrapper']}>
       <div className={styles['ui-layout-container']}>
@@ -1676,6 +1686,7 @@ const UILayout: React.FC<UILayoutProp> = (props) => {
                         isEngineLink={engineLink}
                         engineMode={engineMode || 'remote'}
                         isRemoteMode={isRemoteEngine}
+                        mcp={mcp}
                         onEngineModeChange={handleOperations}
                         runDynamicControlRemote={runControlRemote}
                         typeCallback={handleOperations}
@@ -1687,7 +1698,7 @@ const UILayout: React.FC<UILayoutProp> = (props) => {
                       {!showProjectManage && (
                         <>
                           <div className={styles['divider-wrapper']}></div>
-                          <GlobalState isEngineLink={engineLink} system={system} />
+                          <GlobalState isEngineLink={engineLink} system={system} mcp={mcp} />
                         </>
                       )}
                     </>
@@ -1710,7 +1721,7 @@ const UILayout: React.FC<UILayoutProp> = (props) => {
                 <div className={styles['header-left']}>
                   {engineLink && (
                     <>
-                      {!showProjectManage && <GlobalState isEngineLink={engineLink} system={system} />}
+                      {!showProjectManage && <GlobalState isEngineLink={engineLink} system={system} mcp={mcp} />}
 
                       {!isEnpriTraceAgent() && (
                         <div
@@ -1730,6 +1741,7 @@ const UILayout: React.FC<UILayoutProp> = (props) => {
                           isReverse={true}
                           engineMode={engineMode || 'remote'}
                           isRemoteMode={isRemoteEngine}
+                          mcp={mcp}
                           onEngineModeChange={handleOperations}
                           runDynamicControlRemote={runControlRemote}
                           typeCallback={handleOperations}

@@ -20,6 +20,7 @@ import {
   OutlineReplyIcon,
   OutlineSearchIcon,
   OutlineSelectorIcon,
+  OutlineStarIcon,
   OutlineXIcon,
 } from '@/assets/icon/outline'
 import classNames from 'classnames'
@@ -28,14 +29,18 @@ import { TableVirtualResize } from '@/components/TableVirtualResize/TableVirtual
 import {
   AdvancedSet,
   availableColors,
+  buildFavoriteTags,
+  buildHTTPFlowQueryTags,
   CalloutColor,
   ColorSearch,
   ColumnAllInfoItem,
   contentType,
   ExportHTTPFlowStreamRequest,
+  filterHTTPFlowsByFavoriteAndTags,
   getClassNameData,
   getHTTPFlowReqAndResToString,
   HistorySearch,
+  HTTP_FLOW_FAVORITE_TAG,
   HTTPFlow,
   ImportExportProgress,
   onConvertBodySizeByUnit,
@@ -43,12 +48,14 @@ import {
   onRemoveCalloutColor,
   onSendToTab,
   RangeInputNumberTableWrapper,
+  isHTTPFlowFavorite,
   SourceType,
+  toggleHTTPFlowFavorite,
   YakQueryHTTPFlowResponse,
 } from '@/components/HTTPFlowTable/HTTPFlowTable'
 import { YakQueryHTTPFlowRequest } from '@/utils/yakQueryHTTPFlow'
 import { ColumnsTypeProps, FiltersItemProps, SortProps } from '@/components/TableVirtualResize/TableVirtualResizeType'
-import { filterColorTag, isCellRedSingleColor } from '@/components/TableVirtualResize/utils'
+import { filterColorTag, getSingleColorType, isCellRedSingleColor } from '@/components/TableVirtualResize/utils'
 import { yakitNotify } from '@/utils/notification'
 import { ArrowCircleRightSvgIcon, CheckCircleIcon, ChromeFrameSvgIcon, ColorSwatchIcon } from '@/assets/newIcon'
 import { formatTimestamp } from '@/utils/timeUtil'
@@ -95,6 +102,7 @@ import {
   ShortcutKeyFocusType,
 } from '@/utils/globalShortcutKey/events/global'
 import { useI18nNamespaces } from '@/i18n/useI18nNamespaces'
+import { SolidStarIcon } from '@/assets/icon/solid'
 
 import styles from './HTTPHistoryFilter.module.scss'
 import useGetSetState from '@/pages/pluginHub/hooks/useGetSetState'
@@ -457,6 +465,8 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
     Order: 'desc',
     OrderBy: 'Id',
   })
+  const [onlyFavorite, setOnlyFavorite] = useState(false)
+  const campareOnlyFavorite = useCampare(onlyFavorite)
 
   // #region 网站树、进程
   const refreshTabsContRef = useRef<boolean>(false)
@@ -483,11 +493,11 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
       setQuery((prev) => {
         return {
           ...prev,
-          Tags: nextTags,
+          Tags: buildHTTPFlowQueryTags(nextTags, onlyFavorite),
         }
       })
     },
-    [campareTagsFilter],
+    [campareTagsFilter, campareOnlyFavorite],
     { wait: 500 },
   )
   // #endregion
@@ -759,7 +769,7 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
       const newQuery = {
         ...prev,
         ...filter,
-        Tags: [...tagsFilter],
+        Tags: buildHTTPFlowQueryTags([...tagsFilter], onlyFavorite),
         bodyLength: !!(afterBodyLength || beforeBodyLength || getBodyLengthSort() || checkBodyLength), // 主要是用来响应长度icon显示颜色
       }
 
@@ -988,7 +998,7 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
           return text
             ? `${text}`
                 .split('|')
-                .filter((i) => !i.startsWith('YAKIT_COLOR_'))
+                .filter((i) => !i.startsWith('YAKIT_COLOR_') && i !== HTTP_FLOW_FAVORITE_TAG)
                 .join(', ')
             : ''
         },
@@ -1195,12 +1205,38 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
       {
         title: t('YakitTable.action'),
         dataKey: 'action',
-        width: 80,
+        width: 104,
         fixed: 'right',
         render: (_, rowData) => {
           if (!rowData.Hash) return <></>
+          const colorType = getSingleColorType(rowData.cellClassName)
+          const favorite = isHTTPFlowFavorite(rowData)
           return (
-            <div className={styles['action-btn-group']}>
+            <div
+              className={classNames(styles['action-btn-group'], {
+                [styles[`hover-${colorType}-row`]]: !!colorType,
+              })}
+            >
+              {favorite ? (
+                <SolidStarIcon
+                  className={classNames(styles['favorite-icon-active'], styles['icon-hover'])}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    toggleHTTPFlowFavorite(rowData, false, setData, onlyFavorite)
+                  }}
+                />
+              ) : (
+                <OutlineStarIcon
+                  className={classNames(styles['favorite-icon'], styles['icon-hover'], {
+                    [styles['icon-style']]: !colorType,
+                  })}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    toggleHTTPFlowFavorite(rowData, true, setData, onlyFavorite)
+                  }}
+                />
+              )}
+              <div className={styles['divider-style']} />
               <ChromeFrameSvgIcon
                 className={classNames(styles['icon-hover'], {
                   [styles['icon-style']]: !isCellRedSingleColor(rowData.cellClassName),
@@ -1298,6 +1334,7 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
     bodyLengthUnit,
     contentType,
     i18n.language,
+    onlyFavorite,
   ])
   // #endregion
 
@@ -1354,6 +1391,23 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
           },
         ],
         onClickBatch: () => {},
+      },
+      {
+        key: 'favorite',
+        label: t('HTTPFlowTable.RowContextMenu.favorite'),
+        default: true,
+        webSocket: true,
+        number: 20,
+        onClickSingle: (v) => toggleHTTPFlowFavorite(v, !isHTTPFlowFavorite(v), setData, onlyFavorite),
+        onClickBatch: (list, n) => toggleHTTPFlowFavoriteBatch(list, n, true),
+      },
+      {
+        key: 'cancelFavorite',
+        label: t('HTTPFlowTable.RowContextMenu.cancelFavorite'),
+        default: false,
+        webSocket: false,
+        number: 20,
+        onClickBatch: (list, n) => toggleHTTPFlowFavoriteBatch(list, n, false),
       },
       {
         key: '复制 URL',
@@ -1504,7 +1558,7 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
         },
       },
     ]
-  }, [data, compareState, i18n.language])
+  }, [data, compareState, i18n.language, onlyFavorite])
 
   const contextMenuKeybindingHandle = useMemoizedFn((data) => {
     const menus: any = []
@@ -1545,8 +1599,13 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
     return contextMenuKeybindingHandle(menuData)
       .filter((item) => (rowData.IsWebsocket ? item.webSocket : item.default))
       .map((ele) => {
+        const isFavoriteMenu = ele.key === 'favorite'
         return {
-          label: ele.label,
+          label: isFavoriteMenu
+            ? isHTTPFlowFavorite(rowData)
+              ? t('HTTPFlowTable.RowContextMenu.cancelFavorite')
+              : t('HTTPFlowTable.RowContextMenu.favorite')
+            : ele.label,
           key: ele.key,
           children: ele.children || [],
         }
@@ -1850,6 +1909,43 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
       })
   })
 
+  const toggleHTTPFlowFavoriteBatch = useMemoizedFn((flowList: HTTPFlow[], number: number, favorite: boolean) => {
+    if (flowList.length === 0) {
+      yakitNotify('warning', t('HTTPFlowTable.pleaseSelectData'))
+      return
+    }
+    if (flowList.length > number) {
+      yakitNotify('warning', t('HTTPFlowTable.maxOperateData', { number }))
+      return
+    }
+    const newList = flowList.map((flow) => ({
+      Id: flow.Id,
+      Hash: flow.Hash,
+      Tags: buildFavoriteTags(flow.Tags, favorite),
+    }))
+    ipcRenderer
+      .invoke('SetTagForHTTPFlow', {
+        CheckTags: newList,
+      })
+      .then(() => {
+        const newData = data.map((item) => {
+          const find = newList.find((ele) => ele.Hash === item.Hash)
+          if (!find) return item
+          return {
+            ...item,
+            Tags: find.Tags.join('|'),
+          }
+        })
+        setData(onlyFavorite && !favorite ? newData.filter(isHTTPFlowFavorite) : newData)
+        setSelectedRowKeys([])
+        setSelectedRows([])
+        yakitNotify('success', favorite ? t('HTTPFlowTable.favoriteSuccess') : t('HTTPFlowTable.cancelFavoriteSuccess'))
+      })
+      .catch((e) => {
+        yakitNotify('error', `${e}`)
+      })
+  })
+
   // 导出为EXCEL
   const [exportDataKey, setExportDataKey] = useState<string[]>([])
   const onExcelExport = (list: number[]) => {
@@ -2088,6 +2184,18 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
     { wait: 500 },
   ).run
 
+  const onToggleOnlyFavorite = useMemoizedFn(() => {
+    const nextOnlyFavorite = !onlyFavorite
+    setOnlyFavorite(nextOnlyFavorite)
+    setQuery((prev) => ({
+      ...prev,
+      Tags: buildHTTPFlowQueryTags(tagsFilter, nextOnlyFavorite),
+    }))
+    setIsAllSelect(false)
+    setSelectedRowKeys([])
+    setSelectedRows([])
+  })
+
   useUpdateEffect(() => {
     queyChangeUpdateData()
   }, [query, refresh])
@@ -2159,10 +2267,14 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
       .invoke('QueryHTTPFlows', params)
       .then((res: YakQueryHTTPFlowResponse) => {
         const resData = res?.Data || []
-        const dataHasClassName: HTTPFlow[] = getClassNameData(resData)
+        const dataHasClassName: HTTPFlow[] = filterHTTPFlowsByFavoriteAndTags(
+          getClassNameData(resData),
+          tagsFilter,
+          onlyFavorite,
+        )
         const d = isInit ? dataHasClassName : mergeHTTPFlowsById(data, dataHasClassName)
         setData(d)
-        setTotal(res.Total)
+        setTotal(onlyFavorite && tagsFilter.length > 0 ? d.length : res.Total)
 
         const page = { ...res.Pagination }
         delete page['AfterId']
@@ -2218,6 +2330,16 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
     { wait: 300 },
   )
 
+  const onlyFavoriteTag = useMemo(
+    () =>
+      onlyFavorite && (
+        <YakitTag closable onClose={() => onToggleOnlyFavorite()} style={{ marginLeft: 8 }}>
+          {t('HTTPFlowTable.onlyFavorites')}
+        </YakitTag>
+      ),
+    [onlyFavorite, i18n.language],
+  )
+
   return (
     <div className={styles['HTTPFlowFilterTable']} ref={hTTPFlowFilterTableRef}>
       <TableVirtualResize<HTTPFlow>
@@ -2259,6 +2381,7 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
                   </YakitCheckableTag>
                 ))}
                 <TableTotalAndSelectNumber total={total} selectNum={isAllSelect ? total : selectedRowKeys.length} />
+                {onlyFavoriteTag}
               </div>
               <div className={styles['http-history-table-right']}>
                 {webFuzzerPageId && toWebFuzzer && closable && (
@@ -2360,6 +2483,16 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
                     })
                   })}
                 />
+                <Tooltip title={t('HTTPFlowTable.favorites')} placement="top">
+                  <YakitButton
+                    type={onlyFavorite ? 'outline1' : 'outline2'}
+                    icon={<SolidStarIcon />}
+                    onClick={(e) => {
+                      e.currentTarget.blur()
+                      onToggleOnlyFavorite()
+                    }}
+                  />
+                </Tooltip>
                 <div className={styles['http-history-table-color-swatch']}>
                   <YakitPopover
                     overlayClassName={styles['http-history-table-color-popover']}
@@ -2414,13 +2547,7 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
                   trigger="click"
                   placement="bottomLeft"
                 >
-                  <YakitButton
-                    type="outline2"
-                    disabled={selectedRowKeys.length === 0}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                    }}
-                  >
+                  <YakitButton type="outline2" disabled={selectedRowKeys.length === 0}>
                     {t('YakitButton.batchOperation')}
                     <OutlineChevrondownIcon />
                   </YakitButton>

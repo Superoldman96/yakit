@@ -612,6 +612,23 @@
   .icon-hover:hover {
     color: var(--Colors-Use-Main-Primary);
   }
+
+  .favorite-icon svg {
+    height: 16px;
+    width: 16px;
+  }
+
+  .favorite-icon-active {
+    margin-top: -3px;
+    margin-left: -2px;
+    width: 19px;
+    color: var(--Colors-Use-Yellow-Primary) !important;
+
+    svg {
+      height: 19px;
+      width: 19px;
+    }
+  }
 }
 
 .hover-grey-row {

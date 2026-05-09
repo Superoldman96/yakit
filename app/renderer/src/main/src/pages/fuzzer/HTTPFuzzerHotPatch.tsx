@@ -87,6 +87,53 @@ const HotPatchParamsGetterDefault = `__getParams__ = func() {
 
 const { ipcRenderer } = window.require('electron')
 
+const getSharedHotReloadEnabled = async () => {
+  try {
+    const raw = await getRemoteValue(FuzzerRemoteGV.FuzzerHotCodeSwitchAndCode)
+    return raw === 'true'
+  } catch (error) {
+    return false
+  }
+}
+
+const setSharedHotReloadEnabled = (enabled: boolean) => {
+  setRemoteValue(FuzzerRemoteGV.FuzzerHotCodeSwitchAndCode, `${enabled}`)
+}
+
+const getWebFuzzerPageList = () => {
+  return usePageInfo.getState().pages.get(YakitRoute.HTTPFuzzer)?.pageList || []
+}
+
+const syncSharedHotReloadOwner = (ownerPageId?: string) => {
+  const pageInfoStore = usePageInfo.getState()
+  const fuzzerPages = getWebFuzzerPageList()
+
+  fuzzerPages.forEach((item) => {
+    const webFuzzerPageInfo = item.pageParamsInfo?.webFuzzerPageInfo
+    if (!webFuzzerPageInfo) return
+
+    const nextShared = !!ownerPageId && item.pageId === ownerPageId
+    if (!!webFuzzerPageInfo.sharedHotReloadCode === nextShared) return
+
+    pageInfoStore.updatePagesDataCacheById(YakitRoute.HTTPFuzzer, {
+      ...item,
+      pageParamsInfo: {
+        ...item.pageParamsInfo,
+        webFuzzerPageInfo: {
+          ...webFuzzerPageInfo,
+          sharedHotReloadCode: nextShared,
+        },
+      },
+    })
+  })
+}
+
+const getSharedHotReloadOwnerPageInfo = () => {
+  const fuzzerPages = getWebFuzzerPageList()
+  const owner = fuzzerPages.find((item) => item.pageParamsInfo?.webFuzzerPageInfo?.sharedHotReloadCode)
+  return owner?.pageParamsInfo?.webFuzzerPageInfo
+}
+
 export const HTTPFuzzerHotPatch: React.FC<HTTPFuzzerHotPatchProp> = (props) => {
   const { t, i18n } = useI18nNamespaces(['webFuzzer', 'yakitUi'])
   const { queryPagesDataById } = usePageInfo(
@@ -463,29 +510,24 @@ export const HTTPFuzzerHotPatch: React.FC<HTTPFuzzerHotPatchProp> = (props) => {
   )
 }
 
-export const getHotPatchCodeInfo = async (currentWebFuzzerPageInfo?: WebFuzzerPageInfoProps) => {
-  if (!currentWebFuzzerPageInfo) {
+export const getHotPatchCodeInfo = async () => {
+  const sharedHotReloadCode = await getSharedHotReloadEnabled()
+  if (!sharedHotReloadCode) {
     return { hotPatchCode: HotPatchDefaultContent, hotPatchOpen: false }
   }
 
-  let sharedHotReloadCode = false
-  try {
-    const raw = await getRemoteValue(FuzzerRemoteGV.FuzzerHotCodeSwitchAndCode)
-    if (raw) {
-      sharedHotReloadCode = raw === 'true'
-    }
-  } catch (error) {}
-
-  if (sharedHotReloadCode) {
-    const disableHotPatch = currentWebFuzzerPageInfo.advancedConfigValue?.disableHotPatch
-    const hotPatchOpen = typeof disableHotPatch === 'boolean' ? !disableHotPatch : false
-    return {
-      hotPatchCode: currentWebFuzzerPageInfo.hotPatchCode || HotPatchDefaultContent,
-      hotPatchOpen,
-    }
+  const ownerPageInfo = getSharedHotReloadOwnerPageInfo()
+  if (!ownerPageInfo) {
+    setSharedHotReloadEnabled(false)
+    return { hotPatchCode: HotPatchDefaultContent, hotPatchOpen: false }
   }
 
-  return { hotPatchCode: HotPatchDefaultContent, hotPatchOpen: false }
+  const disableHotPatch = ownerPageInfo.advancedConfigValue?.disableHotPatch
+  const hotPatchOpen = typeof disableHotPatch === 'boolean' ? !disableHotPatch : false
+  return {
+    hotPatchCode: ownerPageInfo.hotPatchCode || HotPatchDefaultContent,
+    hotPatchOpen,
+  }
 }
 
 interface HTTPFuzzerHotPatchSidebarProp {
@@ -563,8 +605,11 @@ export const HTTPFuzzerHotPatchSidebar: React.FC<HTTPFuzzerHotPatchSidebarProp> 
     if (!visible || !props.inViewport) {
       return
     }
-    setRemoteValue(FuzzerRemoteGV.FuzzerHotCodeSwitchAndCode, `${sharedHotReloadCode}`)
-  }, [visible, props.inViewport])
+
+    const currentPageInfo = usePageInfo.getState().queryPagesDataById(YakitRoute.HTTPFuzzer, props.pageId)
+      ?.pageParamsInfo?.webFuzzerPageInfo
+    setSharedHotReloadCodeState(!!currentPageInfo?.sharedHotReloadCode)
+  }, [visible, props.inViewport, props.pageId])
 
   useEffect(() => {
     tempNameRef.current = selectedTemplateNameProp || ''
@@ -721,7 +766,10 @@ export const HTTPFuzzerHotPatchSidebar: React.FC<HTTPFuzzerHotPatchSidebarProp> 
 
   const setSharedHotReloadCode = useMemoizedFn((checked: boolean) => {
     setSharedHotReloadCodeState(checked)
-    setRemoteValue(FuzzerRemoteGV.FuzzerHotCodeSwitchAndCode, `${checked}`)
+
+    // 仅允许一个页面开启：打开时抢占当前页，关闭时清空全部
+    syncSharedHotReloadOwner(checked ? props.pageId : undefined)
+    setSharedHotReloadEnabled(checked)
   })
 
   useShortcutKeyTrigger(
