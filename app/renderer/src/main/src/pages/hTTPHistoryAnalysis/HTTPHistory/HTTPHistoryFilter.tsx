@@ -11,6 +11,8 @@ import {
 } from 'ahooks'
 import { getRemoteValue, setRemoteValue } from '@/utils/kv'
 import { getHTTPFlowExportFields } from '@/components/HTTPFlowTable/HTTPFlowExportFields'
+import { HTTPFlowsFieldGroupResponse } from '@/components/HTTPFlowTable/HTTPFlowTable'
+import { buildHTTPFlowSuffixOptions, formatHTTPFlowPathSuffix } from '@/components/HTTPFlowTable/HTTPFlowPathSuffix'
 import {
   OutlineChevrondownIcon,
   OutlineCogIcon,
@@ -390,6 +392,7 @@ export const defalutColumnsOrder = [
   'HtmlTitle',
   'GetParamsTotal',
   'ContentType',
+  'PathSuffix',
   'DurationMs',
   'UpdatedAt',
   'RequestSizeVerbose',
@@ -451,6 +454,8 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
   })
   const [color, setColor] = useState<string[]>([])
   const [isShowColor, setIsShowColor] = useState<boolean>(false)
+  const [suffixList, setSuffixList] = useState<FiltersItemProps[]>([])
+  const comSuffixList = useCampare(suffixList)
 
   // 表格相关变量
   const [isRefresh, setIsRefresh] = useState<boolean>(false)
@@ -707,6 +712,20 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
   const [tagSearchVal, setTagSearchVal] = useState<string>('')
   const [tagsFilter, setTagsFilter] = useState<string[]>([])
   /** ---- tags end ----*/
+
+  useDebounceEffect(
+    () => {
+      if (!inViewport) return
+      ipcRenderer
+        .invoke('HTTPFlowsFieldGroup', { RefreshRequest: true, IsAll: true })
+        .then((rsp: HTTPFlowsFieldGroupResponse) => {
+          setSuffixList(buildHTTPFlowSuffixOptions(rsp.Suffixes || []))
+        })
+        .catch(() => {})
+    },
+    [inViewport, refresh],
+    { wait: 500 },
+  )
 
   /** ---- 响应长度 start ----*/
   const [bodyLengthSort, setBodyLengthSort, getBodyLengthSort] = useGetSetState<'asc' | 'desc' | false>(false)
@@ -1157,8 +1176,22 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
           filterSearchInputProps: {
             size: 'small',
           },
-          filterIcon: <OutlineSearchIcon className={styles['filter-icon']} />,
           filters: contentType,
+        },
+      },
+      {
+        title: t('HTTPFlowTable.pathSuffix'),
+        dataKey: 'PathSuffix',
+        width: 100,
+        filterProps: {
+          filterKey: 'IncludeSuffix',
+          filtersType: 'select',
+          filterMultiple: true,
+          filterSearchInputProps: { size: 'small' },
+          filters: suffixList,
+        },
+        render: (_, rowData) => {
+          return <div>{formatHTTPFlowPathSuffix(rowData.Path || '', rowData.PathSuffix)}</div>
         },
       },
       {
@@ -1335,6 +1368,7 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
     contentType,
     i18n.language,
     onlyFavorite,
+    comSuffixList,
   ])
   // #endregion
 
@@ -1993,6 +2027,9 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
         }
         if (j === 'UpdatedAt') {
           return formatTimestamp(v[j])
+        }
+        if (j === 'PathSuffix') {
+          return formatHTTPFlowPathSuffix(v['Path'], v['PathSuffix'])
         }
         return v[j]
       }),

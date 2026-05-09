@@ -1,4 +1,6 @@
-export const getHTTPFlowExportFields = (t: (key: string) => string) => {
+import { TFunction } from '@/i18n/useI18nNamespaces'
+
+export const getHTTPFlowExportFields = (t: TFunction) => {
   return [
     {
       title: t('YakitTable.order'),
@@ -69,6 +71,11 @@ export const getHTTPFlowExportFields = (t: (key: string) => string) => {
       title: t('HTTPFlowTable.contentType'),
       key: 'content_type',
       dataKey: 'ContentType',
+    },
+    {
+      title: t('HTTPFlowTable.pathSuffix'),
+      key: 'path_suffix',
+      dataKey: 'PathSuffix',
     },
     {
       title: t('HTTPFlowTable.durationMs'),

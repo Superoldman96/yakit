@@ -6,6 +6,7 @@ import { HTTPFlowDetail, HTTPFlowDetailProp } from '../HTTPFlowDetail'
 import { info, yakitNotify, yakitFailed } from '../../utils/notification'
 import style from './HTTPFlowTable.module.scss'
 import { formatTimestamp } from '../../utils/timeUtil'
+import { buildHTTPFlowSuffixOptions, formatHTTPFlowPathSuffix } from './HTTPFlowPathSuffix'
 import {
   useControllableValue,
   useCreation,
@@ -184,6 +185,7 @@ export interface HTTPFlow {
   HostPort?: string
   IPAddress?: string
   HtmlTitle?: string
+  PathSuffix?: string
 
   GetParams: FuzzableParams[]
   PostParams: FuzzableParams[]
@@ -548,6 +550,7 @@ export interface HTTPFlowsToOnlineBatchResponse {
 export interface HTTPFlowsFieldGroupResponse {
   Tags: TagsCode[]
   StatusCode: TagsCode[]
+  Suffixes: TagsCode[]
 }
 
 export interface TagsCode {
@@ -602,18 +605,6 @@ export const getClassNameData = (resData: HTTPFlow[]) => {
     newData.push(newItem)
   }
   return newData
-}
-
-export const filterData = (filterArr: HTTPFlow[], key: keyof HTTPFlow) => {
-  const uniqueData: HTTPFlow[] = []
-  const idSet = new Set<HTTPFlow[keyof HTTPFlow]>()
-  filterArr.forEach((item) => {
-    if (!idSet.has(item[key])) {
-      idSet.add(item[key])
-      uniqueData.push(item)
-    }
-  })
-  return uniqueData
 }
 
 /**
@@ -747,6 +738,8 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
   const isOneceLoading = useRef<boolean>(true)
 
   const [total, setTotal] = useState<number>(0)
+  const [suffixList, setSuffixList] = useState<FiltersItemProps[]>([])
+  const comSuffixList = useCampare(suffixList)
   const [loading, setLoading] = useState(false)
   const [selected, setSelected, getSelected] = useGetSetState<HTTPFlow>()
 
@@ -774,6 +767,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
   const [afterBodyLength, setAfterBodyLength, getAfterBodyLength] = useGetSetState<number>()
   const [beforeBodyLength, setBeforeBodyLength, getBeforeBodyLength] = useGetSetState<number>()
   const [isReset, setIsReset] = useState<boolean>(false)
+  const [watchRefresh, setWatchRefresh] = useState<boolean>(false)
 
   const [checkBodyLength, setCheckBodyLength] = useState<boolean>(false) // 查询BodyLength大于0
 
@@ -1082,6 +1076,20 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
         isOneceLoading.current = false
       })
   })
+  useDebounceEffect(
+    () => {
+      if (!inViewport) return
+      ipcRenderer
+        .invoke('HTTPFlowsFieldGroup', { RefreshRequest: true, IsAll: true })
+        .then((rsp: HTTPFlowsFieldGroupResponse) => {
+          setSuffixList(buildHTTPFlowSuffixOptions(rsp.Suffixes || []))
+        })
+        .catch(() => {})
+    },
+    [inViewport, refresh, watchRefresh],
+    { wait: 500 },
+  )
+
   const onTableChange = useDebounceFn(
     (page: number, limit: number, sort: SortProps, filter: any) => {
       if (sort.order === 'none') {
@@ -1596,6 +1604,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
         }
       }
     } catch (error) {}
+    setWatchRefresh((prev) => !prev)
     setIsLoop(true)
   })
   useEffect(() => {
@@ -2160,8 +2169,22 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
           filterSearchInputProps: {
             size: 'small',
           },
-          filterIcon: <OutlineSearchIcon className={style['filter-icon']} />,
           filters: contentType,
+        },
+      },
+      {
+        title: t('HTTPFlowTable.pathSuffix'),
+        dataKey: 'PathSuffix',
+        width: 100,
+        filterProps: {
+          filterKey: 'IncludeSuffix',
+          filtersType: 'select',
+          filterMultiple: true,
+          filterSearchInputProps: { size: 'small' },
+          filters: suffixList,
+        },
+        render: (_, rowData) => {
+          return <div>{formatHTTPFlowPathSuffix(rowData.Path || '', rowData.PathSuffix)}</div>
         },
       },
       {
@@ -2322,6 +2345,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
     excludeColumnsKey,
     idFixed,
     i18n.language,
+    comSuffixList,
   ])
   // #endregion
 
@@ -2581,6 +2605,9 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
         }
         if (j === 'UpdatedAt') {
           return formatTimestamp(v[j])
+        }
+        if (j === 'PathSuffix') {
+          return formatHTTPFlowPathSuffix(v['Path'], v['PathSuffix'])
         }
         return v[j]
       }),
@@ -3721,6 +3748,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
   const resetAllFun = useMemoizedFn(() => {
     sortRef.current = defSort
     setIsReset(!isReset)
+    setWatchRefresh((prev) => !prev)
     setColor([])
     setOnlyFavorite(false)
     setCheckBodyLength(false)
@@ -4082,6 +4110,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
 
   const onMitmNoResetRefresh = useMemoizedFn((version: string) => {
     if (version !== mitmVersion) return
+    setWatchRefresh((prev) => !prev)
     updateData()
   })
 
@@ -4507,6 +4536,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
                           onClick: ({ key }) => {
                             switch (key) {
                               case 'noResetRefresh':
+                                setWatchRefresh((prev) => !prev)
                                 updateData()
                                 break
                               case 'resetRefresh':
