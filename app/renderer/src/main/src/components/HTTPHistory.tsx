@@ -235,17 +235,6 @@ const HTTPHistoryInner: React.FC<HTTPHistoryProp> = (props) => {
     } catch (error) {}
   })
 
-  const mergedMITMParams = useMemo(() => {
-    const merged: YakQueryHTTPFlowRequest = {
-      ...(historyProps.params || {}),
-      MitmExtractAggregateFilterRows: mitmAggregateFilterRows.length > 0 ? mitmAggregateFilterRows : [],
-    }
-    if (mitmAggregateFilterRows.length > 0) {
-      delete merged.HiddenIndex
-    }
-    return merged
-  }, [historyProps.params, mitmAggregateFilterRows])
-
   // 跳转网站树指定节点
   const onJumpWebTree = useMemoizedFn((value) => {
     if (webTreeRef.current) {
@@ -392,12 +381,12 @@ const HTTPHistoryInner: React.FC<HTTPHistoryProp> = (props) => {
               includeInUrl={includeInUrl}
               curProcess={curProcess}
               curTags={curTags}
+              mitmAggregateFilterRows={mitmAggregateFilterRows}
               onQueryParams={onQueryParams}
               setOnlyShowFirstNode={setOnlyShowFirstNode}
               setSecondNodeVisible={setSecondNodeVisible}
               showHistoryAnalysisBtn
               {...historyProps}
-              params={mergedMITMParams}
             />
           </div>
         }
@@ -420,6 +409,7 @@ export const HTTPHistory: React.FC<HTTPHistoryProp> = (props) => (
 interface HTTPFlowRealTimeTableAndEditorProps extends HistoryTableTitleShow {
   pageType: HTTPHistorySourcePageType
   runtimeId?: string
+  mitmAggregateFilterRows?: MitmExtractAggregateFlowFilterRow[]
   filterTagDom?: ReactNode
   httpHistoryTableTitleStyle?: CSSProperties
   containerClassName?: string
@@ -445,6 +435,7 @@ export const HTTPFlowRealTimeTableAndEditor: React.FC<HTTPFlowRealTimeTableAndEd
   const {
     pageType,
     runtimeId,
+    mitmAggregateFilterRows = [],
     wrapperStyle,
     httpHistoryTableTitleStyle,
     titleHeight,
@@ -579,6 +570,7 @@ export const HTTPFlowRealTimeTableAndEditor: React.FC<HTTPFlowRealTimeTableAndEd
             <HTTPFlowTable
               containerClassName={containerClassName}
               runTimeId={runtimeId}
+              mitmAggregateFilterRows={mitmAggregateFilterRows}
               noTableTitle={noTableTitle}
               showSourceType={showSourceType}
               showAdvancedSearch={showAdvancedSearch}

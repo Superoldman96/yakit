@@ -1,6 +1,10 @@
 import React, { ReactNode, Ref, useEffect, useMemo, useRef, useState, useContext } from 'react'
 import { Divider, Form, Input, Tooltip, Badge, Progress, Modal } from 'antd'
-import { HistoryPluginSearchType, YakQueryHTTPFlowRequest } from '../../utils/yakQueryHTTPFlow'
+import {
+  HistoryPluginSearchType,
+  MitmExtractAggregateFlowFilterRow,
+  YakQueryHTTPFlowRequest,
+} from '../../utils/yakQueryHTTPFlow'
 import { PaginationSchema, YakScript } from '../../pages/invoker/schema'
 import { HTTPFlowDetail, HTTPFlowDetailProp } from '../HTTPFlowDetail'
 import { info, yakitNotify, yakitFailed } from '../../utils/notification'
@@ -296,6 +300,7 @@ export interface HistoryTableTitleShow {
 export interface HTTPFlowTableProp extends HistoryTableTitleShow {
   onSelected?: (i?: HTTPFlow) => any
   params?: YakQueryHTTPFlowRequest
+  mitmAggregateFilterRows?: MitmExtractAggregateFlowFilterRow[]
   inViewport?: boolean
   onSearch?: (i: string) => any
   title?: string
@@ -713,23 +718,22 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
   const [color, setColor] = useState<string[]>([])
   const [onlyFavorite, setOnlyFavorite] = useState(false)
   const [isShowColor, setIsShowColor] = useState<boolean>(false)
+  const mitmAggregateFilterRows = props.mitmAggregateFilterRows || []
   const [params, setParams, getParams] = useGetSetState<YakQueryHTTPFlowRequest>({
-    ...(props.params || {}),
     SourceType: props.params?.SourceType || 'mitm',
     ...getRunTimeIdObj(runTimeId),
-    FromPlugin: props.params?.FromPlugin ?? '',
-    Full: props.params?.Full ?? false,
-    Tags: props.params?.Tags ?? [],
+    FromPlugin: '',
+    Full: false,
+    Tags: [],
   })
-  const comparePropsParams = useCampare(props.params)
+
+  const campareMitmAggregateFilterRows = useCampare(mitmAggregateFilterRows)
   useUpdateEffect(() => {
-    if (props.params) {
-      setParams((pre) => ({
-        ...pre,
-        ...props.params,
-      }))
-    }
-  }, [comparePropsParams])
+    setParams((prev) => ({
+      ...prev,
+      MitmExtractAggregateFilterRows: mitmAggregateFilterRows,
+    }))
+  }, [campareMitmAggregateFilterRows])
   useEffect(() => {
     setParams((pre) => ({
       ...pre,
@@ -3735,7 +3739,6 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
   /**@description 重置查询条件并刷新 */
   const resetParams = useMemo(() => {
     const obj: YakQueryHTTPFlowRequest = {
-      ...(props.params || {}),
       // 这里是外界传进来的条件重置时需要保留
       SourceType: props.params?.SourceType || 'mitm',
       ...getRunTimeIdObj(runTimeId),

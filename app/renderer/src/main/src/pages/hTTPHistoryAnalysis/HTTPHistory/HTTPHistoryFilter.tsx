@@ -76,7 +76,7 @@ import ReactResizeDetector from 'react-resize-detector'
 import { HistoryProcess, HistoryTab } from '@/components/HTTPHistory'
 import { useCampare } from '@/hook/useCompare/useCompare'
 import { v4 as uuidv4 } from 'uuid'
-import { cloneDeep, isEqual, toArray, update } from 'lodash'
+import { cloneDeep, isEqual, toArray } from 'lodash'
 import { MitmExtractAggregateFlowFilterRow } from '@/utils/yakQueryHTTPFlow'
 import { showByRightContext } from '@/components/yakitUI/YakitMenu/showByRightContext'
 import { randomString } from '@/utils/randomUtil'
@@ -2378,15 +2378,11 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
   })
 
   useEffect(() => {
-    update(1)
-  }, [update])
-
-  useEffect(() => {
     emiter.on('onDeleteToUpdateHTTPHistoryFilter', onDeleteToUpdateHTTPHistoryFilter)
     return () => {
       emiter.off('onDeleteToUpdateHTTPHistoryFilter', onDeleteToUpdateHTTPHistoryFilter)
     }
-  }, [onDeleteToUpdateHTTPHistoryFilter])
+  }, [])
 
   useDebounceEffect(
     () => {
