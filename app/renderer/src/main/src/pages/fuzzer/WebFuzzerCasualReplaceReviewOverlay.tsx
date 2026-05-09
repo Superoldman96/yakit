@@ -9,6 +9,7 @@ import { computeCasualLineHunks, mergeCasualLineHunks } from '@/pages/fuzzer/web
 import styles from './WebFuzzerCasualReplaceReviewOverlay.module.scss'
 import { CopyComponents } from '@/components/yakitUI/YakitTag/YakitTag'
 import classNames from 'classnames'
+import { YakitButton } from '@/components/yakitUI/YakitButton/YakitButton'
 
 function norm(s: string): string {
   return s.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
@@ -200,19 +201,17 @@ const WebFuzzerCasualReplaceReviewOverlay = memo(function WebFuzzerCasualReplace
       </div>
       {hunks.length > 0 && (
         <div className={styles['bulkBar']}>
-          <button type="button" className={styles['bulkReject']} onClick={handleRejectAll}>
+          <YakitButton type="text2" onClick={handleRejectAll}>
             {t('HTTPFuzzerPage.aiCasualRejectAll')}
-          </button>
+          </YakitButton>
           <div className={styles['bulkAcceptWrap']}>
-            <button
-              type="button"
-              className={styles['bulkAccept']}
+            <YakitButton
               onClick={handleAcceptAll}
               onMouseEnter={handleAcceptMetaEnter}
               onMouseLeave={handleAcceptMetaLeave}
             >
               {t('HTTPFuzzerPage.aiCasualAcceptAll')}
-            </button>
+            </YakitButton>
             {showAcceptMeta && (
               <div
                 className={styles['acceptMetaCard']}

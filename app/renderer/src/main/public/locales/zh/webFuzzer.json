@@ -100,21 +100,9 @@
     "parameter": "参数",
     "trafficAnalysisMode": "流量分析模式",
     "trafficAnalysis": "流量分析",
-    "aiCasualReplaceReviewHintLine": "与「问答开始前请求」的内联对比；每处变更旁有「放弃 / 引用」按钮。全部选完后点「应用本轮合并」；⌘Y / Ctrl+Y 应用，⌘N / Ctrl+N 放弃本轮。",
     "aiCasualRejectAll": "全部放弃",
-    "aiCasualAcceptAll": "全部引用",
-    "aiCasualAbandonRound": "放弃本轮",
-    "aiCasualApplyRound": "应用本轮合并",
-    "aiCasualHunkInsert": "插入：{{lines}}",
-    "aiCasualHunkDelete": "删除：{{lines}}",
-    "aiCasualHunkModify": "由「{{from}}」改为「{{to}}」",
-    "aiCasualHunkReject": "放弃",
-    "aiCasualHunkAccept": "引用",
-    "aiCasualHunkChosenAccept": "已引用",
-    "aiCasualHunkChosenReject": "已放弃",
-    "aiCasualInlineNav": "{{current}} / {{total}}",
-    "aiCasualInlineKeep": "保留",
-    "aiCasualInlineUndo": "撤销",
+    "aiCasualAcceptAll": "全部应用",
+
     "aiCasualAcceptAllMetaTitle": "即将应用的配置"
   },
   "FuzzerExtraShow": {

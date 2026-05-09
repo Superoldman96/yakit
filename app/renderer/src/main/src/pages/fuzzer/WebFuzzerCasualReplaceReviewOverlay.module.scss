@@ -29,39 +29,6 @@
   box-shadow: 0 6px 24px var(--Colors-Use-Basic-Shadow);
 }
 
-.bulkReject,
-.bulkAccept {
-  height: 28px;
-  border: none;
-  border-radius: 6px;
-  padding: 0 12px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.bulkReject {
-  color: var(--Colors-Use-Neutral-Text-3-Secondary);
-  background: transparent;
-}
-
-.bulkReject:hover {
-  color: var(--Colors-Use-Neutral-Text-1-Title);
-  background: var(--Colors-Use-Neutral-Bg-Hover);
-}
-
-.bulkAcceptWrap {
-  position: relative;
-}
-
-.bulkAccept {
-  color: var(--Colors-Use-Main-On-Primary);
-  background: var(--Colors-Use-Main-Primary);
-}
-
-.bulkAccept:hover {
-  filter: brightness(1.05);
-}
-
 .acceptMetaCard {
   position: absolute;
   right: -8px;
