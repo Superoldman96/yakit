@@ -301,7 +301,6 @@ const HTTPHistoryFilterInner: React.FC<HTTPHistoryFilterProps> = React.memo((pro
               <div className={styles['process-wrapper']} style={{ display: activeKey === 'rules' ? 'block' : 'none' }}>
                 <HTTPFlowRuleDataFilter
                   queryparamsStr={rulesQueryparams}
-                  refreshRuleFlag={refreshFlag}
                   onSetFilterRows={setMitmAggregateFilterRows}
                 />
               </div>

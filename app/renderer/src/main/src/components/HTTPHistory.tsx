@@ -333,7 +333,6 @@ const HTTPHistoryInner: React.FC<HTTPHistoryProp> = (props) => {
                 <HTTPFlowRuleDataFilter
                   baseParams={historyProps.params}
                   queryparamsStr={rulesQueryparams}
-                  refreshRuleFlag={refreshFlag}
                   onSetFilterRows={setMitmAggregateFilterRows}
                   resetTableAndEditorShow={(table, editor) => {
                     setOnlyShowFirstNode(table)

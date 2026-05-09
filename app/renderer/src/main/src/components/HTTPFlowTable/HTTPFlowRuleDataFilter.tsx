@@ -46,7 +46,6 @@ interface RuleSummaryItem {
 interface HTTPFlowRuleDataFilterProps {
   baseParams?: YakQueryHTTPFlowRequest
   queryparamsStr: string
-  refreshRuleFlag: boolean
   onSetFilterRows: (rows: MitmExtractAggregateFlowFilterRow[]) => void
   resetTableAndEditorShow?: (table: boolean, editor: boolean) => void
 }
@@ -103,7 +102,7 @@ const buildScopeFilterFromRows = (rows: RuleSummaryItem[], keyword?: string) => 
 })
 
 export const HTTPFlowRuleDataFilter: React.FC<HTTPFlowRuleDataFilterProps> = React.memo((props) => {
-  const { baseParams, queryparamsStr, refreshRuleFlag, onSetFilterRows, resetTableAndEditorShow } = props
+  const { baseParams, queryparamsStr, onSetFilterRows, resetTableAndEditorShow } = props
   const { t } = useI18nNamespaces(['history', 'yakitUi'])
   const wrapperRef = useRef<HTMLDivElement>(null)
   const tableContainerRef = useRef<HTMLDivElement>(null)
@@ -123,7 +122,7 @@ export const HTTPFlowRuleDataFilter: React.FC<HTTPFlowRuleDataFilterProps> = Rea
   const requestIdRef = useRef(0)
   const ruleNameRequestIdRef = useRef(0)
   const [searchQueryTick, setSearchQueryTick] = useState(0)
-  const [needTableReset, setNeedTableReset] = useState(false)
+  const [isRefresh, setIsRefresh] = useState(false)
   const [ruleNameOptions, setRuleNameOptions] = useState<string[]>([])
 
   const flowFilterForRuleList = useMemo(() => {
@@ -143,12 +142,8 @@ export const HTTPFlowRuleDataFilter: React.FC<HTTPFlowRuleDataFilterProps> = Rea
     return stripMitmAggregateHttpFlowLiveWindow((tableOnlyQuery || {}) as YakQueryHTTPFlowRequest)
   }, [queryparamsStr, baseParams])
 
-  const flowFilterStableKey = useMemo(() => JSON.stringify(flowFilterForRuleList), [flowFilterForRuleList])
+  const queryKey = useMemo(() => JSON.stringify(flowFilterForRuleList), [flowFilterForRuleList])
   const hasFlowFilter = useMemo(() => hasHTTPFlowFilterCriteria(flowFilterForRuleList), [flowFilterForRuleList])
-  const queryKey = useMemo(
-    () => `${flowFilterStableKey}|${Number(refreshRuleFlag)}`,
-    [flowFilterStableKey, refreshRuleFlag],
-  )
   const activeKeyword = searchValue.trim() || keywordFilter.trim()
   const tableWrapWidth = Math.max(0, Math.floor(Number(tableContainerSize?.width || 0)) - TABLE_HORIZONTAL_PADDING)
   const tableInitReady = tableWrapWidth > 0
@@ -170,10 +165,8 @@ export const HTTPFlowRuleDataFilter: React.FC<HTTPFlowRuleDataFilterProps> = Rea
   const resetTableState = useMemoizedFn(() => {
     requestIdRef.current += 1
     setLoading(false)
-    setTotal(0)
     setRuleList([])
     setCheckedRows([])
-    setNeedTableReset((prev) => !prev)
   })
 
   const reloadFirstPage = useMemoizedFn(() => {
@@ -235,9 +228,12 @@ export const HTTPFlowRuleDataFilter: React.FC<HTTPFlowRuleDataFilterProps> = Rea
   }, [checkedFilterRows, checkedFilterRowsKey, onSetFilterRows])
 
   const refreshRuleData = useMemoizedFn(async (nextPage: number) => {
+    if (nextPage === 1) {
+      setLoading(true)
+      setIsRefresh((prev) => !prev)
+    }
     const requestId = requestIdRef.current + 1
     requestIdRef.current = requestId
-    setLoading(true)
 
     try {
       const req: Record<string, unknown> = {
@@ -279,7 +275,7 @@ export const HTTPFlowRuleDataFilter: React.FC<HTTPFlowRuleDataFilterProps> = Rea
     }
   })
 
-  // 分页/搜索/onSearch 变化时查询；外部条件变化(flowFilterStableKey/refreshRuleFlag)时自动重置并查询
+  // 分页/搜索/onSearch 变化时查询；外部条件变化(queryKey)时自动重置并查询
   const prevQueryKeyRef = useRef('')
   const skipFirstQueryRef = useRef(true)
   useDebounceEffect(
@@ -534,7 +530,7 @@ export const HTTPFlowRuleDataFilter: React.FC<HTTPFlowRuleDataFilterProps> = Rea
           {tableInitReady && (
             <TableVirtualResize<RuleSummaryItem>
               renderKey="RowKey"
-              isRefresh={needTableReset}
+              isRefresh={isRefresh}
               isShowTitle={false}
               data={ruleList}
               columns={columns}
@@ -551,12 +547,7 @@ export const HTTPFlowRuleDataFilter: React.FC<HTTPFlowRuleDataFilterProps> = Rea
                 page,
                 limit: PAGE_SIZE,
                 total,
-                onChange: (nextPage) => {
-                  if (loading) return
-                  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE))
-                  if (nextPage < 1 || nextPage > pageCount) return
-                  setPage(nextPage)
-                },
+                onChange: (nextPage) => setPage(nextPage),
               }}
               onChange={onTableChange}
               onRowClick={onRowClickToggle}
