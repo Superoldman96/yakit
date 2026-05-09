@@ -16,4 +16,6 @@ export interface YakitDiffEditorProps {
   leftReadOnly?: boolean
   /** 右侧是否只读 */
   rightReadOnly?: boolean
+  /** `false` 时为上下内联 diff（非左右分栏），默认 `true` */
+  renderSideBySide?: boolean
 }

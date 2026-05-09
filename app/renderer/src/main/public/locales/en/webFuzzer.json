@@ -80,7 +80,6 @@
     "webFuzzerDemo": "WebFuzzer Brute-Force Animation Demo",
     "bruteForceExample": "Brute-Force Example",
     "AI_new_conversation": "New conversation",
-    "ai_auto_patch_request": "AI auto-update request",
     "followRedirects": "Follow Redirects",
     "generatePathTemplate": "Generate as Path Template",
     "generateRawTemplate": "Generate as Raw Template",
@@ -100,7 +99,11 @@
     "send_request": "Send Request",
     "parameter": "Parameter",
     "trafficAnalysisMode": "TrafficAnalysis Mode",
-    "trafficAnalysis": "TrafficAnalysis"
+    "trafficAnalysis": "TrafficAnalysis",
+    "aiCasualRejectAll": "Reject all",
+    "aiCasualAcceptAll": "Accept all",
+
+    "aiCasualAcceptAllMetaTitle": "Setting to apply"
   },
   "FuzzerExtraShow": {
     "responsesDiscarded": "Discarded [{{droppedCount}}] responses",

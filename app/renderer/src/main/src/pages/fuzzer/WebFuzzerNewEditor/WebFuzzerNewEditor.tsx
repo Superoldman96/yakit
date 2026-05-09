@@ -1,21 +1,16 @@
-import React, { useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import React, { useImperativeHandle, useMemo, useState } from 'react'
 import { IMonacoEditor, NewHTTPPacketEditor } from '@/utils/editors'
 import { insertFileFuzzTag, insertTemporaryFileFuzzTag } from '../InsertFileFuzzTag'
 import { monacoEditorWrite } from '../fuzzerTemplates'
 import { OtherMenuListProps } from '@/components/yakitUI/YakitEditor/YakitEditorType'
-import { execCodec } from '@/utils/encodec'
 import { copyAsUrl, ByteCountTag, showDictsAndSelect } from '../HTTPFuzzerPage'
-import styles from './WebFuzzerNewEditor.module.scss'
 import { showYakitModal } from '@/components/yakitUI/YakitModal/YakitModalConfirm'
 import { setRemoteValue } from '@/utils/kv'
 import { useMemoizedFn } from 'ahooks'
 import { HTTPFuzzerHotPatch } from '../HTTPFuzzerHotPatch'
 import { yakitNotify } from '@/utils/notification'
 import { openExternalWebsite, openPacketNewWindow } from '@/utils/openWebsite'
-import { setClipboardText } from '@/utils/clipboard'
-import { setEditorContext } from '@/utils/monacoSpec/yakEditor'
 import { FuzzerRemoteGV } from '@/enums/fuzzer'
-import { YakitTag } from '@/components/yakitUI/YakitTag/YakitTag'
 import { useSelectionByteCount } from '@/components/yakitUI/YakitEditor/useSelectionByteCount'
 import { useI18nNamespaces } from '@/i18n/useI18nNamespaces'
 const { ipcRenderer } = window.require('electron')
@@ -23,6 +18,8 @@ const { ipcRenderer } = window.require('electron')
 export interface WebFuzzerNewEditorProps {
   ref?: any
   refreshTrigger: boolean
+  /** casual 审阅分段写回时递增，与 refreshTrigger 组合以强制请求编辑器同步 `requestRef`（避免仅 ref 更新子组件未吃到新 props） */
+  casualEditorApplyNonce?: number
   request: string
   hex: boolean
   isHttps: boolean
@@ -42,6 +39,7 @@ export const WebFuzzerNewEditor: React.FC<WebFuzzerNewEditorProps> = React.memo(
   React.forwardRef((props, ref) => {
     const {
       refreshTrigger,
+      casualEditorApplyNonce = 0,
       request,
       setRequest,
       isHttps,
@@ -162,7 +160,7 @@ export const WebFuzzerNewEditor: React.FC<WebFuzzerNewEditorProps> = React.memo(
         defaultHttps={isHttps}
         isShowBeautifyRender={false}
         showDefaultExtra={false}
-        refreshTrigger={refreshTrigger}
+        refreshTrigger={`${refreshTrigger}_${casualEditorApplyNonce}`}
         noMinimap={true}
         utf8={true}
         originValue={request}

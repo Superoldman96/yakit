@@ -21,6 +21,7 @@ export const YakitDiffEditor: React.FC<YakitDiffEditorProps> = memo((props) => {
     noWrap,
     leftReadOnly = false,
     rightReadOnly = false,
+    renderSideBySide = true,
   } = props
 
   const { t, i18n } = useI18nNamespaces(['yakitUi'])
@@ -119,6 +120,7 @@ export const YakitDiffEditor: React.FC<YakitDiffEditorProps> = memo((props) => {
 
     diffEditorRef.current = monaco.createDiffEditor(diffDivRef.current, {
       enableSplitViewResizing: false,
+      renderSideBySide,
       originalEditable: !leftReadOnly,
       readOnly: rightReadOnly,
       automaticLayout: true,
@@ -185,13 +187,14 @@ export const YakitDiffEditor: React.FC<YakitDiffEditorProps> = memo((props) => {
   useUpdateEffect(() => {
     if (diffEditorRef.current) {
       diffEditorRef.current.updateOptions({
+        renderSideBySide,
         originalEditable: !leftReadOnly,
         readOnly: rightReadOnly,
         wordWrap: !!noWrap ? 'off' : 'on',
         fontSize: fontSize,
       })
     }
-  }, [noWrap, leftReadOnly, rightReadOnly, fontSize])
+  }, [noWrap, leftReadOnly, rightReadOnly, fontSize, renderSideBySide])
 
   // 强制更新默认值
   useUpdateEffect(() => {

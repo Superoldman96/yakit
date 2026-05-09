@@ -1,4 +1,4 @@
-import React, { CSSProperties, useEffect, useLayoutEffect, useMemo, useRef, useState, createRef } from 'react'
+import React, { CSSProperties, memo, useEffect, useLayoutEffect, useMemo, useRef, useState, createRef } from 'react'
 import { Form, Result, Space, Popover, Tooltip, Divider, Descriptions } from 'antd'
 import {
   IMonacoEditor,
@@ -108,10 +108,11 @@ import emiter from '@/utils/eventBus/eventBus'
 import { HistoryAIReActChatProvider, useHistoryAIReActChat } from '@/components/historyAIReActChat'
 import { WebFuzzerAiStore } from '@/pages/ai-agent/store/ChatDataStore'
 import {
-  clearWebFuzzerLastAiAutoApplySnapshot,
-  registerWebFuzzerPageAiAutoApplyEnabled,
+  applyHttpFuzzRequestChangeToWebFuzzerPage,
   registerWebFuzzerPageApplyRequestFromCard,
+  registerWebFuzzerPageCasualReplaceReview,
   registerWebFuzzerPageGetRequestString,
+  type WebFuzzerCasualReplaceReviewPayload,
 } from './webFuzzerAiRequestApplyBridge'
 import useChatIPCDispatcher from '@/pages/ai-agent/useContext/ChatIPCContent/useDispatcher'
 import { AIInputInnerFeatureEnum } from '@/pages/ai-agent/template/type'
@@ -125,6 +126,7 @@ import { PayloadGroupNodeProps, ReadOnlyNewPayload } from '../payloadManager/new
 import { createRoot, Root } from 'react-dom/client'
 import { SolidPauseIcon, SolidPlayIcon } from '@/assets/icon/solid'
 import { YakitEditor } from '@/components/yakitUI/YakitEditor/YakitEditor'
+import { WebFuzzerCasualReplaceReviewOverlay } from '@/pages/fuzzer/WebFuzzerCasualReplaceReviewOverlay'
 import blastingIdmp4 from '@/assets/blasting-id.mp4'
 import blastingPwdmp4 from '@/assets/blasting-pwd.mp4'
 import blastingCountmp4 from '@/assets/blasting-count.mp4'
@@ -754,6 +756,7 @@ export interface SelectOptionProps {
   label: string
   value: string
 }
+
 /*LINK - app\renderer\src\main\src\defaultConstants\HTTPFuzzerPage.ts*/
 /*为避免文件相互引用造成数据问题,请将 HTTPFuzzerPage 页面的常用变量放在 app\renderer\src\main\src\defaultConstants\HTTPFuzzerPage.ts */
 const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
@@ -787,12 +790,6 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
 
   // 切换【配置】/【规则】/【热加载】/ 【Ai】高级内容显示 type
   const [advancedConfigShowType, setAdvancedConfigShowType] = useState<WebFuzzerType>('config')
-  const [aiAutoApplyRequest, setAiAutoApplyRequest] = useState(false)
-  /** 仅看勾选态：选项只在 AI 子页展示，但勾选后切到「配置/规则」时仍应自动写回，避免漏应用 */
-  const aiAutoApplyWantRef = useRef(false)
-  useEffect(() => {
-    aiAutoApplyWantRef.current = aiAutoApplyRequest
-  }, [aiAutoApplyRequest])
   const [currentFuzzerPage, setCurrentFuzzerPage] = useGetSetState<boolean>(true)
   const [redirectedResponse, setRedirectedResponse] = useState<FuzzerResponse>()
   const [affixSearch, setAffixSearch] = useState('')
@@ -844,6 +841,14 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
 
   // first Node
   const firstNodeRef = useRef(null)
+  const casualReviewQueueIdRef = useRef(0)
+  /** 同一次 casual 问答内仅一条审阅；多次 `replace` 只刷新为「快照 vs 最新 raw」 */
+  const casualReviewSessionIdRef = useRef<string | null>(null)
+  const [casualReviewQueue, setCasualReviewQueue] = useState<
+    { id: string; payload: WebFuzzerCasualReplaceReviewPayload }[]
+  >([])
+  /** casual 审阅写回后递增，驱动 WebFuzzerNewEditor 内 refreshTrigger 变化以同步 requestRef */
+  const [casualEditorApplyNonce, setCasualEditorApplyNonce] = useState(0)
   const firstNodeSize = useSize(firstNodeRef)
   // second Node
   const secondNodeRef = useRef(null)
@@ -1847,20 +1852,76 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
     sendFuzzerSettingInfo()
   })
 
+  const onCasualReplaceReviewEnqueued = useMemoizedFn((payload: WebFuzzerCasualReplaceReviewPayload) => {
+    /** 提案与基线完全一致时不入队，避免 mount→自动 done 闪一帧 overlay */
+    const incoming = payload.change.request?.raw ?? ''
+    const normIncoming = String(incoming).replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+    const normOriginal = String(payload.original ?? '')
+      .replace(/\r\n/g, '\n')
+      .replace(/\r/g, '\n')
+    if (normOriginal === normIncoming) {
+      if (casualReviewSessionIdRef.current != null) {
+        setCasualReviewQueue([])
+        casualReviewSessionIdRef.current = null
+      }
+      return
+    }
+
+    if (casualReviewSessionIdRef.current == null) {
+      casualReviewQueueIdRef.current += 1
+      casualReviewSessionIdRef.current = `r-${casualReviewQueueIdRef.current}`
+    }
+    const id = casualReviewSessionIdRef.current
+    setCasualReviewQueue([{ id, payload }])
+  })
+
+  const onCasualRoundApplyMerged = useMemoizedFn((mergedRaw: string, done?: boolean) => {
+    const head = casualReviewQueue[0]
+    if (!head) return
+    applyHttpFuzzRequestChangeToWebFuzzerPage(
+      props.id,
+      {
+        ...head.payload.change,
+        request: { ...head.payload.change.request, raw: mergedRaw },
+      },
+      { skipReplaceDedup: true },
+    )
+    setCasualEditorApplyNonce((n) => n + 1)
+    if (done) {
+      setCasualReviewQueue([])
+      casualReviewSessionIdRef.current = null
+    }
+  })
+
   useLayoutEffect(() => {
     if (!props.id) return
-    const unregisterApply = registerWebFuzzerPageApplyRequestFromCard(props.id, (raw) => {
+    const unregisterApply = registerWebFuzzerPageApplyRequestFromCard(props.id, (raw, extras) => {
+      if (extras?.isHttps !== undefined) {
+        setAdvancedConfigValue((prev) => {
+          if (prev.isHttps === extras.isHttps) return prev
+          return {
+            ...prev,
+            isHttps: extras.isHttps!,
+            ...(!extras.isHttps
+              ? {
+                  isGmTLS: false,
+                  randomJA3: false,
+                }
+              : {}),
+          }
+        })
+      }
       onSetRequest(raw)
       refreshRequest()
     })
     const unregisterGet = registerWebFuzzerPageGetRequestString(props.id, () => requestRef.current)
-    const unregisterAuto = registerWebFuzzerPageAiAutoApplyEnabled(props.id, () => aiAutoApplyWantRef.current)
+    const unregisterCasualReview = registerWebFuzzerPageCasualReplaceReview(props.id, onCasualReplaceReviewEnqueued)
     return () => {
       unregisterApply()
       unregisterGet()
-      unregisterAuto()
+      unregisterCasualReview()
     }
-  }, [props.id, onSetRequest, refreshRequest])
+  }, [props.id, onSetRequest, refreshRequest, onCasualReplaceReviewEnqueued])
   const onInsertYakFuzzerFun = useMemoizedFn(() => {
     if (webFuzzerNewEditorRef.current) onInsertYakFuzzer(webFuzzerNewEditorRef.current.reqEditor)
   })
@@ -2608,24 +2669,6 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
                         })
                       }}
                     />
-                    {advancedConfigShowType === 'ai' && (
-                      <>
-                        <Divider type="vertical" style={{ marginRight: 0, top: 1 }} />
-                        <span className={styles['fuzzer-heard-https']} style={{ marginLeft: 8, whiteSpace: 'nowrap' }}>
-                          {t('HTTPFuzzerPage.ai_auto_patch_request')}
-                        </span>
-                        <YakitCheckbox
-                          checked={aiAutoApplyRequest}
-                          onChange={(e) => {
-                            const v = e.target.checked
-                            setAiAutoApplyRequest(v)
-                            if (!v && props.id) {
-                              clearWebFuzzerLastAiAutoApplySnapshot(props.id)
-                            }
-                          }}
-                        />
-                      </>
-                    )}
                   </div>
                   <Divider type="vertical" style={{ margin: 0, top: 1 }} />
                   <div className={styles['display-flex']}>
@@ -2788,10 +2831,11 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
                 firstNodeStyle={{ padding: secondFull ? 0 : undefined, display: secondFull ? 'none' : '' }}
                 {...ResizeBoxProps}
                 firstNode={
-                  <div ref={firstNodeRef} style={{ height: '100%', overflow: 'hidden' }}>
+                  <div ref={firstNodeRef} style={{ height: '100%', overflow: 'hidden', position: 'relative' }}>
                     <WebFuzzerNewEditor
                       ref={webFuzzerNewEditorRef}
                       refreshTrigger={refreshTrigger}
+                      casualEditorApplyNonce={casualEditorApplyNonce}
                       request={requestRef.current}
                       setRequest={onSetRequest}
                       hex={hex}
@@ -2812,6 +2856,13 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
                       }
                       privacy={privacy}
                     />
+                    {casualReviewQueue[0] ? (
+                      <WebFuzzerCasualReplaceReviewOverlay
+                        roundKey={casualReviewQueue[0].id}
+                        payload={casualReviewQueue[0].payload}
+                        onApplyRound={onCasualRoundApplyMerged}
+                      />
+                    ) : null}
                   </div>
                 }
                 secondNode={

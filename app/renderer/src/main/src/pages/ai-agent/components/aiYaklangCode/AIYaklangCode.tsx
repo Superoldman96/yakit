@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { WebFuzzerAiStoreCardRightHeader } from '@/pages/ai-agent/components/WebFuzzerAiStoreCardRightHeader'
 import { AIYaklangCodeProps } from './type'
 import ChatCard from '../ChatCard'
@@ -7,7 +7,6 @@ import { YakitEditor } from '@/components/yakitUI/YakitEditor/YakitEditor'
 import ModalInfo from '../ModelInfo'
 import styles from './AIYaklangCode.module.scss'
 import { useCreation, useMemoizedFn, useThrottleEffect } from 'ahooks'
-import { tryWebFuzzerAutoApplyRequestFromAiYaklangCode } from '@/pages/fuzzer/webFuzzerAiRequestApplyBridge'
 import { NewHTTPPacketEditor } from '@/utils/editors'
 import useChatIPCDispatcher from '../../useContext/ChatIPCContent/useDispatcher'
 import {
@@ -20,16 +19,8 @@ import {
 } from '@/pages/ai-agent/store/ChatDataStore'
 
 export const AIYaklangCode: React.FC<AIYaklangCodeProps> = React.memo((props) => {
-  const {
-    content: defContent,
-    autoApplyStreamId,
-    autoApplyChatSessionId,
-    listItemIndex,
-    nodeLabel,
-    modalInfo,
-    contentType,
-    referenceNode,
-  } = props
+  const { content: defContent, nodeLabel, modalInfo, contentType, referenceNode } = props
+
   const [content, setContent] = useState(defContent)
   useThrottleEffect(
     () => {
@@ -44,7 +35,15 @@ export const AIYaklangCode: React.FC<AIYaklangCodeProps> = React.memo((props) =>
   const renderCode = useMemoizedFn(() => {
     switch (type) {
       case 'http-request':
-        return <NewHTTPPacketEditor originValue={content} readOnly={true} onlyBasicMenu={false} noMinimap={true} />
+        return (
+          <NewHTTPPacketEditor
+            originValue={content}
+            readOnly={true}
+            onlyBasicMenu={false}
+            noMinimap={true}
+            noLineNumber={true}
+          />
+        )
       default:
         // case AIStreamContentType.CODE_YAKLANG:
         // case AIStreamContentType.CODE_PYTHON:
@@ -52,10 +51,12 @@ export const AIYaklangCode: React.FC<AIYaklangCodeProps> = React.memo((props) =>
     }
   })
   const { chatIPCEvents } = useChatIPCDispatcher()
+
   const webFuzzerAiStoreFuzzerPageId = useMemo((): string | undefined => {
     const store = chatIPCEvents.fetchChatDataStore()
     return store instanceof WebFuzzerAiStore ? store.fuzzerPageId : undefined
   }, [chatIPCEvents])
+
   const chatDataStoreKey = useMemo((): ChatDataStoreKey => {
     const store = chatIPCEvents.fetchChatDataStore()
     switch (store) {
@@ -76,24 +77,6 @@ export const AIYaklangCode: React.FC<AIYaklangCodeProps> = React.memo((props) =>
   const isWebFuzzerAiStore = useMemo(() => {
     return chatDataStoreKey === 'WebFuzzerAiStore'
   }, [chatDataStoreKey])
-
-  useEffect(() => {
-    if (!isWebFuzzerAiStore || !webFuzzerAiStoreFuzzerPageId) return
-    tryWebFuzzerAutoApplyRequestFromAiYaklangCode(
-      webFuzzerAiStoreFuzzerPageId,
-      defContent,
-      autoApplyStreamId,
-      autoApplyChatSessionId,
-      listItemIndex,
-    )
-  }, [
-    defContent,
-    isWebFuzzerAiStore,
-    webFuzzerAiStoreFuzzerPageId,
-    autoApplyStreamId,
-    autoApplyChatSessionId,
-    listItemIndex,
-  ])
 
   const titleExtra = useMemo(() => {
     if (!modalInfo) return null

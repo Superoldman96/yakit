@@ -1360,29 +1360,43 @@ export const HttpQueryAdvancedConfig: React.FC<HttpQueryAdvancedConfigProps> = R
         return <></>
     }
   })
+  const isAiTab = showFormContentType === 'ai'
+
   return (
     <div className={classNames(styles['http-query-advanced-config'])} style={advancedConfigRootStyle} ref={queryRef}>
-      {showFormContentType === 'ai' ? (
-        <div className={styles['fuzzer-ai-slot-wrap']}>{fuzzerAiSlot}</div>
-      ) : (
-        <Form
-          form={form}
-          colon={false}
-          onValuesChange={(changedFields, allFields) => {
-            onSetValue(allFields)
-          }}
-          size="small"
-          labelCol={{ span: 10 }}
-          wrapperCol={{ span: 14 }}
-          style={{ overflowY: 'auto', flex: 1, minHeight: 0 }}
-          initialValues={{
-            ...advancedConfigValue,
-          }}
-        >
-          {renderContent()}
-          <div className={styles['to-end']}>{t('YakitEmpty.end_of_list')}</div>
-        </Form>
-      )}
+      {/*
+        AI 与表单同时挂载、用 display 切换，避免切走「配置/规则/…」再回 AI 时整树卸载，
+        Virtuoso / useRequest 重跑导致「空白 → 内容 → 空白 → 正常」的闪烁。
+      */}
+      <div
+        className={styles['fuzzer-ai-slot-wrap']}
+        style={{ display: isAiTab ? 'flex' : 'none' }}
+        aria-hidden={!isAiTab}
+      >
+        {fuzzerAiSlot}
+      </div>
+      <Form
+        form={form}
+        colon={false}
+        onValuesChange={(changedFields, allFields) => {
+          onSetValue(allFields)
+        }}
+        size="small"
+        labelCol={{ span: 10 }}
+        wrapperCol={{ span: 14 }}
+        style={{
+          overflowY: 'auto',
+          flex: 1,
+          minHeight: 0,
+          ...(isAiTab ? { display: 'none' } : {}),
+        }}
+        initialValues={{
+          ...advancedConfigValue,
+        }}
+      >
+        {renderContent()}
+        <div className={styles['to-end']}>{t('YakitEmpty.end_of_list')}</div>
+      </Form>
       <MatcherAndExtractionDrawer
         visibleDrawer={visibleDrawer}
         defActiveType={type}
