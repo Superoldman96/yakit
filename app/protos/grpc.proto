@@ -638,6 +638,8 @@ service Yak {
 
   // 从规则中提取数据
   rpc QueryMITMRuleExtractedData(QueryMITMRuleExtractedDataRequest) returns (QueryMITMRuleExtractedDataResponse);
+  // 按规则名 + 提取内容聚合（JOIN http_flows，可按 Host / RuntimeId 等过滤）
+  rpc QueryMITMExtractedAggregate(QueryMITMExtractedAggregateRequest) returns (QueryMITMExtractedAggregateResponse);
   rpc ExportMITMRuleExtractedData(ExportMITMRuleExtractedDataRequest) returns (stream ExportMITMRuleExtractedDataResponse);
   rpc DeleteMITMRuleExtractedData(DeleteMITMRuleExtractedDataRequest) returns (Empty);
   rpc DeduplicateMITMRuleExtractedData(DeduplicateMITMRuleExtractedDataRequest) returns (DeduplicateMITMRuleExtractedDataResponse);
@@ -1955,7 +1957,7 @@ message AIEventFilter {
 
   repeated string NodeId = 8;
 
-  bool UseOR = 9; //默认是AND关系，也就是多条件同时满足，如果UseOR是true，那是满足任一条件即可
+  bool UseOR = 9; // 默认是 AND 关系，也就是多条件同时满足，如果 UseOR 是 true，那么就是满足任一条件即可
 }
 
 message AIEventQueryRequest {
@@ -2845,6 +2847,15 @@ message ThirdPartyApplicationConfig {
   string Endpoint = 14;
   bool EnableEndpoint = 15;
   repeated KVPair Headers = 16;
+  bool EnableThinking = 17;
+  // 以下为模型采样/推理相关可选参数；未设置时不写入上游请求（由模型或网关默认行为决定）
+  optional int64 MaxTokens = 18;
+  optional double Temperature = 19;
+  optional double TopP = 20;
+  optional int64 TopK = 21;
+  optional double FrequencyPenalty = 22;
+  optional string ReasoningEffort = 23;
+  optional bool EnableThinkingOpt = 24;
 }
 
 message DiagnoseNetworkRequest {
@@ -3329,6 +3340,36 @@ message DeduplicateMITMRuleExtractedDataRequest {
 
 message DeduplicateMITMRuleExtractedDataResponse {
   int64 DeletedCount = 1;
+}
+
+// MITM 提取聚合。规则组维度：RuleGroup、RuleGroupKeyword、OnlyUncategorizedRules 互斥（实现上精确 RuleGroup 优先）。
+message QueryMITMExtractedAggregateRequest {
+  Paging Pagination = 1;
+  string HostContains = 2;
+  string RuntimeId = 3;
+  repeated string RuleVerbose = 4;
+  string RuleVerboseKeyword = 5;
+  int64 UpdatedAtSince = 6;
+  string RuleGroup = 7;
+  bool OnlyUncategorizedRules = 8;
+  bool IncludeDistinctRuleGroups = 9;
+  QueryHTTPFlowRequest HttpFlowFilter = 10;
+  string RuleGroupKeyword = 11;
+}
+
+message MITMExtractedAggregateRow {
+  string RuleVerbose = 1;
+  string DisplayData = 2;
+  int64 HitCount = 3;
+  int64 LatestUpdatedAt = 4;
+  repeated string SampleTraceIds = 5;
+}
+
+message QueryMITMExtractedAggregateResponse {
+  repeated MITMExtractedAggregateRow Data = 1;
+  int64 Total = 2;
+  Paging Pagination = 3;
+  repeated string DistinctRuleGroups = 4;
 }
 
 message ExportProjectRequest {
@@ -6546,6 +6587,11 @@ message GetHTTPFlowBodyByIdRequest {
   bool IsRisk = 5;
 }
 
+message MITMExtractAggregateFlowFilterRow {
+  string RuleVerbose = 1;
+  string DisplayData = 2;
+}
+
 message QueryHTTPFlowRequest {
   Paging Pagination = 1;
   string SourceType = 2;
@@ -6614,6 +6660,7 @@ message QueryHTTPFlowRequest {
 
   // 高级配置的hostname过滤（模糊匹配）
   repeated string HostnameFilter = 49;
+  repeated MITMExtractAggregateFlowFilterRow MitmExtractAggregateFilterRows = 50;
 }
 
 message HTTPFlowsToOnlineRequest {
