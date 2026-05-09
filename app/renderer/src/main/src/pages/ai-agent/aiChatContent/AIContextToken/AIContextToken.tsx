@@ -78,7 +78,7 @@ const AIContextToken: FC<{
   // AI的Token消耗
   const token = useCreation(() => {
     const { consumption } = aiDataRef || {}
-    if (isEmpty(consumption)) return [0, 0]
+    if (isEmpty(consumption)) return [0, 0, 0]
     const input = consumption?.input_consumption || 0
     const output = consumption?.output_consumption || 0
     const cacheHit = consumption?.cache_hit_token || 0
@@ -256,7 +256,7 @@ const AIEchartsDetails: React.FC<AIEchartsDetailsProps> = memo((props) => {
   }, [aiGlobalConfig.IntelligentModels, aiGlobalConfig.LightweightModels])
 
   const intelligentToken = useCreation(() => {
-    if (!tierConsumption?.intelligent) return [0, 0]
+    if (!tierConsumption?.intelligent) return [0, 0, 0]
     const input = tierConsumption.intelligent.input_consumption || 0
     const output = tierConsumption.intelligent.output_consumption || 0
     const cacheHit = tierConsumption.intelligent.cache_hit_token || 0
@@ -264,7 +264,7 @@ const AIEchartsDetails: React.FC<AIEchartsDetailsProps> = memo((props) => {
   }, [renderNumber, tierConsumption?.intelligent])
 
   const lightweightToken = useCreation(() => {
-    if (!tierConsumption?.lightweight) return [0, 0]
+    if (!tierConsumption?.lightweight) return [0, 0, 0]
     const input = tierConsumption.lightweight.input_consumption || 0
     const output = tierConsumption.lightweight.output_consumption || 0
     const cacheHit = tierConsumption.lightweight.cache_hit_token || 0

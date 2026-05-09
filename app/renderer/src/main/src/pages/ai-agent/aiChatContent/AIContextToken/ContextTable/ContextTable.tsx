@@ -102,8 +102,17 @@ const ContextTable: FC<{
   }, [roleLabelMap, contextSectionsData?.sections])
 
   const resolveRoleText = useCallback(
-    (role: string, row: AIAgentGrpcApi.AIContextSections) =>
-      roleLabelMap?.[role] ?? row.role_zh ?? LEGACY_ROLE_LABELS[role] ?? role,
+    (role: string, row: AIAgentGrpcApi.AIContextSections) => {
+      if (roleLabelMap?.[role] && roleLabelMap?.[role] !== '') {
+        return roleLabelMap?.[role]
+      } else if (row.role_zh && row.role_zh !== '') {
+        return row.role_zh
+      } else if (LEGACY_ROLE_LABELS[role] && LEGACY_ROLE_LABELS[role] !== '') {
+        return LEGACY_ROLE_LABELS[role]
+      } else {
+        return role
+      }
+    },
     [roleLabelMap],
   )
 
