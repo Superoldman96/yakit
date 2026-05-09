@@ -757,7 +757,7 @@ function useChatContent(params: UseChatContentParams) {
   const handleTrafficCount = useMemoizedFn((res: AIOutputEvent) => {
     try {
       const ipcContent = Uint8ArrayToString(res.Content) || ''
-      const data = JSON.parse(ipcContent) as AIAgentGrpcApi.HTTPTrafficNotice | AIAgentGrpcApi.RiskTrafficNotice
+      const data = JSON.parse(ipcContent) as AIAgentGrpcApi.HTTPTrafficNotice & AIAgentGrpcApi.RiskTrafficNotice
       const { runtime_id } = data
 
       if (!runtime_id) {
@@ -771,17 +771,24 @@ function useChatContent(params: UseChatContentParams) {
         )
         return
       }
+      let update = false
       switch (res.Type) {
         case 'yak_httpflow_count':
-          toolResult.data.httpFlowDataCount = (data as AIAgentGrpcApi.HTTPTrafficNotice).http_flow_count ?? 0
+          if (data.http_flow_count !== toolResult.data.httpFlowDataCount) {
+            toolResult.data.httpFlowDataCount = data.http_flow_count ?? 0
+            update = true
+          }
           break
         case 'yak_risk_count':
-          toolResult.data.riskFlowDataCount = (data as AIAgentGrpcApi.RiskTrafficNotice).risk_count ?? 0
+          if (data.risk_count !== toolResult.data.riskFlowDataCount) {
+            toolResult.data.riskFlowDataCount = data.risk_count ?? 0
+            update = true
+          }
           break
         default:
           break
       }
-      updateElements({ mapKey: toolResult.id, type: toolResult.type })
+      if (update) updateElements({ mapKey: toolResult.id, type: toolResult.type })
     } catch (error) {
       handleGrpcDataPushLog({
         info: res,

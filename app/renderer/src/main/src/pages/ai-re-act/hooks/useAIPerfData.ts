@@ -19,7 +19,6 @@ const CONTEXT_STATS_ROLE_NAME_ORDER = [
 const trimContextStatsSeries = (d: AIContextStatsDetail['data']) => {
   while (d.times.length > CONTEXT_STATS_SERIES_MAX) {
     d.times.shift()
-    d.prompt_bytes.shift()
     for (const name of d.role_order) {
       d.role_series[name]?.shift()
     }
@@ -139,7 +138,6 @@ function useAIPerfData(params?: UseAIPerfDataParams) {
           if (incomingRoles.length > 0 && d.role_order.length === 0) {
             if (d.times.length > 0) {
               d.times = []
-              d.prompt_bytes = []
             }
             d.role_order = []
             d.role_labels = {}
@@ -174,7 +172,6 @@ function useAIPerfData(params?: UseAIPerfDataParams) {
 
           stats.prompt_bytes = data.prompt_bytes ?? 0
           d.times.push(ts)
-          d.prompt_bytes.push(data.prompt_bytes ?? 0)
 
           if (d.role_order.length > 0) {
             const map = new Map<string, number>()

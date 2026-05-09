@@ -811,14 +811,13 @@ const TOKEN_COUNT_ROLE_COLOR_KEYS = [
 // 上下文字节统计
 const getTokenCountChartData = (contextStatsData?: AIContextStatsDetail['data']) => {
   const times = contextStatsData?.times || []
-  const totalSeries = contextStatsData?.prompt_bytes || []
   const roleOrder = contextStatsData?.role_order || []
   const roleLabels = contextStatsData?.role_labels || {}
   const roleSeries = contextStatsData?.role_series || {}
 
   if (roleOrder.length > 0) {
     const stackSums = times.map((_, i) => roleOrder.reduce((sum, key) => sum + (Number(roleSeries[key]?.[i]) || 0), 0))
-    const maxValue = Math.max(0, ...totalSeries, ...stackSums)
+    const maxValue = Math.max(0, ...stackSums)
     const normalizedMax = maxValue <= 100 ? 100 : Math.ceil(maxValue / 100) * 100
     return {
       mode: 'dynamic' as const,
@@ -832,14 +831,11 @@ const getTokenCountChartData = (contextStatsData?: AIContextStatsDetail['data'])
     }
   }
 
-  const maxValue = Math.max(0, ...totalSeries)
-  const normalizedMax = maxValue <= 100 ? 100 : Math.ceil(maxValue / 100) * 100
-
   return {
     mode: 'total_only' as const,
     xAxis: times,
-    series: { total: totalSeries },
-    yAxisMax: normalizedMax,
+    series: { total: times.map(() => 0) },
+    yAxisMax: 100,
   }
 }
 
@@ -917,7 +913,7 @@ const getTokenCountOption = (
       color,
     },
     itemStyle: {
-      color: '#fff',
+      color: colors['--Colors-Use-Neutral-Bg'],
       borderWidth: 1.5,
       borderColor: color,
     },
@@ -927,7 +923,7 @@ const getTokenCountOption = (
     emphasis: {
       focus: 'series' as const,
       itemStyle: {
-        color: '#fff',
+        color: colors['--Colors-Use-Neutral-Bg'],
         borderWidth: 1.5,
         borderColor: color,
       },
@@ -1011,8 +1007,8 @@ const getTokenCountOption = (
       axisPointer: {
         type: 'cross',
         label: {
-          backgroundColor: colors['--yakit-colors-Gray-70'] || '#6a7985',
-          color: colors['--Colors-Use-Basic-Background'] || '#fff',
+          backgroundColor: colors['--yakit-colors-Gray-70'],
+          color: colors['--Colors-Use-Basic-Background'],
         },
         crossStyle: {
           color: borderColor,

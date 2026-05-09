@@ -76,7 +76,6 @@ export class ChatDataStore {
         contextStats: {
           prompt_bytes: 0,
           data: {
-            prompt_bytes: [],
             times: [],
             role_order: [],
             role_labels: {},

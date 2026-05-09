@@ -44,7 +44,6 @@ export const isPerfDataChanged = (prev: PerfData, next: PerfData): boolean => {
   const prevD = prevStats?.data
   const nextD = nextStats?.data
   if (prevD?.times.length !== nextD?.times.length) return true
-  if (prevD?.prompt_bytes.length !== nextD?.prompt_bytes.length) return true
 
   const prevOrderLen = prevD?.role_order?.length ?? 0
   const nextOrderLen = nextD?.role_order?.length ?? 0
@@ -235,7 +234,6 @@ export const getContextStatsData = (contextStats?: AIContextStatsDetail['data'])
   if (!contextStats) {
     return {
       times: [],
-      prompt_bytes: [],
       role_order: [],
       role_labels: {},
       role_series: {},
@@ -243,7 +241,6 @@ export const getContextStatsData = (contextStats?: AIContextStatsDetail['data'])
   }
   return {
     times: contextStats.times || [],
-    prompt_bytes: contextStats.prompt_bytes || [],
     role_order: contextStats.role_order || [],
     role_labels: contextStats.role_labels || {},
     role_series: contextStats.role_series || {},
