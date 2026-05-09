@@ -6,6 +6,7 @@ import { HTTPFlowDetail, HTTPFlowDetailProp } from '../HTTPFlowDetail'
 import { info, yakitNotify, yakitFailed } from '../../utils/notification'
 import style from './HTTPFlowTable.module.scss'
 import { formatTimestamp } from '../../utils/timeUtil'
+import { buildHTTPFlowSuffixOptions, formatHTTPFlowPathSuffix } from './HTTPFlowPathSuffix'
 import {
   useControllableValue,
   useCreation,
@@ -607,10 +608,7 @@ export const getClassNameData = (resData: HTTPFlow[]) => {
 }
 
 export const handlePathSuffix = (path: string) => {
-  const cleanPath = path.split('?')[0].replace(/\/+$/, '')
-  const match = cleanPath.match(/\.([a-zA-Z0-9]+)$/)
-  const ext = match ? match[1] : ''
-  return ext || '-'
+  return formatHTTPFlowPathSuffix(path)
 }
 
 /**
@@ -1082,15 +1080,13 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
         isOneceLoading.current = false
       })
   })
-
   useDebounceEffect(
     () => {
       if (!inViewport) return
       ipcRenderer
         .invoke('HTTPFlowsFieldGroup', { RefreshRequest: true, IsAll: true })
         .then((rsp: HTTPFlowsFieldGroupResponse) => {
-          const suffixes = (rsp.Suffixes || []).filter((item) => item.Value)
-          setSuffixList(suffixes.map(({ Value }) => ({ label: Value, value: Value })))
+          setSuffixList(buildHTTPFlowSuffixOptions(rsp.Suffixes || []))
         })
         .catch(() => {})
     },
@@ -2192,7 +2188,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
           filters: suffixList,
         },
         render: (_, rowData) => {
-          return <div>{handlePathSuffix(rowData.Path || '')}</div>
+          return <div>{formatHTTPFlowPathSuffix(rowData.Path || '', rowData.PathSuffix)}</div>
         },
       },
       {
@@ -2615,7 +2611,7 @@ export const HTTPFlowTable = React.memo<HTTPFlowTableProp>((props) => {
           return formatTimestamp(v[j])
         }
         if (j === 'PathSuffix') {
-          return handlePathSuffix(v['Path'])
+          return formatHTTPFlowPathSuffix(v['Path'], v['PathSuffix'])
         }
         return v[j]
       }),

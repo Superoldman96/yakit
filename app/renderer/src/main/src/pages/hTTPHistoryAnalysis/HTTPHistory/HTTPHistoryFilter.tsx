@@ -12,6 +12,7 @@ import {
 import { getRemoteValue, setRemoteValue } from '@/utils/kv'
 import { getHTTPFlowExportFields } from '@/components/HTTPFlowTable/HTTPFlowExportFields'
 import { HTTPFlowsFieldGroupResponse } from '@/components/HTTPFlowTable/HTTPFlowTable'
+import { buildHTTPFlowSuffixOptions, formatHTTPFlowPathSuffix } from '@/components/HTTPFlowTable/HTTPFlowPathSuffix'
 import {
   OutlineChevrondownIcon,
   OutlineCogIcon,
@@ -40,7 +41,6 @@ import {
   filterHTTPFlowsByFavoriteAndTags,
   getClassNameData,
   getHTTPFlowReqAndResToString,
-  handlePathSuffix,
   HistorySearch,
   HTTP_FLOW_FAVORITE_TAG,
   HTTPFlow,
@@ -719,8 +719,7 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
       ipcRenderer
         .invoke('HTTPFlowsFieldGroup', { RefreshRequest: true, IsAll: true })
         .then((rsp: HTTPFlowsFieldGroupResponse) => {
-          const suffixes = (rsp.Suffixes || []).filter((item) => item.Value)
-          setSuffixList(suffixes.map(({ Value }) => ({ label: Value, value: Value })))
+          setSuffixList(buildHTTPFlowSuffixOptions(rsp.Suffixes || []))
         })
         .catch(() => {})
     },
@@ -1192,7 +1191,7 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
           filters: suffixList,
         },
         render: (_, rowData) => {
-          return <div>{handlePathSuffix(rowData.Path || '')}</div>
+          return <div>{formatHTTPFlowPathSuffix(rowData.Path || '', rowData.PathSuffix)}</div>
         },
       },
       {
@@ -2030,7 +2029,7 @@ const HTTPFlowFilterTable: React.FC<HTTPFlowTableProps> = React.memo((props) => 
           return formatTimestamp(v[j])
         }
         if (j === 'PathSuffix') {
-          return handlePathSuffix(v['Path'])
+          return formatHTTPFlowPathSuffix(v['Path'], v['PathSuffix'])
         }
         return v[j]
       }),
