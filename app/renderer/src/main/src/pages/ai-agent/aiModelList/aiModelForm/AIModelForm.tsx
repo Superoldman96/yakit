@@ -28,7 +28,7 @@ import {
 import { YakitAutoComplete } from '@/components/yakitUI/YakitAutoComplete/YakitAutoComplete'
 import { YakitAutoCompleteProps } from '@/components/yakitUI/YakitAutoComplete/YakitAutoCompleteType'
 import { YakitSpin } from '@/components/yakitUI/YakitSpin/YakitSpin'
-import { AIModelTypeEnum, AIModelTypeInterFileNameEnum } from '../../defaultConstant'
+import { AIModelTypeEnum, AIModelTypeEnumType, AIModelTypeInterFileNameEnum } from '../../defaultConstant'
 import { YakitInput } from '@/components/yakitUI/YakitInput/YakitInput'
 import { yakitNotify } from '@/utils/notification'
 import emiter from '@/utils/eventBus/eventBus'
@@ -64,7 +64,7 @@ export const isEqualAIModel = (item: AIModelConfig, newItem: AIModelConfig) => {
 }
 
 /**获取ai模型对应的键名,通过模型类型 */
-const getFileNameByModelType = (type: AIModelTypeEnum) => {
+export const getFileNameByModelType = (type: AIModelTypeEnumType) => {
   let fileName: AIModelTypeFileName | null = null
   switch (type) {
     case AIModelTypeEnum.TierIntelligent:
@@ -83,7 +83,7 @@ const getFileNameByModelType = (type: AIModelTypeEnum) => {
 }
 /**通过键名获取对应的模型类型 */
 export const getModelTypeByFileName = (fileName: string) => {
-  let modelType: AIModelTypeEnum | null = null
+  let modelType: AIModelTypeEnumType | null = null
   switch (fileName) {
     case AIModelTypeInterFileNameEnum.IntelligentModels:
       modelType = AIModelTypeEnum.TierIntelligent
@@ -98,6 +98,24 @@ export const getModelTypeByFileName = (fileName: string) => {
       break
   }
   return modelType
+}
+export const getModelLabelByModelType = (type: AIModelTypeEnumType) => {
+  let label: string = ''
+  switch (type) {
+    case AIModelTypeEnum.TierIntelligent:
+      label = '高质模型'
+      break
+    case AIModelTypeEnum.TierLightweight:
+      label = '轻量模型'
+      break
+    case AIModelTypeEnum.TierVision:
+      label = '视觉模型'
+      break
+    default:
+      label = '未知类型'
+      break
+  }
+  return label
 }
 export const buildAIConfigHealthCheckConfig = (values): ThirdPartyApplicationConfig => {
   const config: ThirdPartyApplicationConfig = {
