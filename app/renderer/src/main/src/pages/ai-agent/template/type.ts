@@ -2,11 +2,11 @@ import { ReactNode } from 'react'
 import { TextAreaProps } from 'antd/lib/input'
 import { AIMentionCommandParams } from '../components/aiMilkdownInput/aiMilkdownMention/aiMentionPlugin'
 import { EditorMilkdownProps } from '@/components/MilkdownEditor/MilkdownEditorType'
-import { AIReActChatProps } from '@/pages/ai-re-act/aiReActChat/AIReActChatType'
 import { AIChatMentionProps } from '../components/aiChatMention/type'
 import { AIReviewRuleSelectProps } from '@/pages/ai-re-act/aiReviewRuleSelect/type'
 import { AIModelSelectProps } from '../aiModelList/aiModelSelect/AIModelSelectType'
 import { AIFocusModeProps } from '@/pages/ai-re-act/aiFocusMode/type'
+import { ChatDataStoreKey } from '../store/ChatDataStore'
 
 export interface QSInputTextareaProps extends Omit<TextAreaProps, 'bordered' | 'autoSize'> {}
 
@@ -16,7 +16,11 @@ export interface AIChatTextareaSubmit {
   /**前端展示的md格式 */
   showQS?: string
   mentionList?: AIMentionCommandParams[]
+  /**图片 */
+  imageList?: string[]
   focusMode?: string
+  /** 新建会话得 默认sessionId */
+  sessionId?: string
 }
 export interface AIChatTextareaRefProps {
   setMention: (v: AIMentionCommandParams) => void
@@ -57,6 +61,7 @@ export interface AIChatTextareaProps {
   isOpen?: boolean
   filterMentionType?: AIChatMentionProps['filterMode']
   footerLeftTypes?: (AIInputInnerFeature | FooterLeftTypesComponentProps)[]
+  chatDataStoreKey: ChatDataStoreKey
 }
 
 export interface FileToChatQuestionList {

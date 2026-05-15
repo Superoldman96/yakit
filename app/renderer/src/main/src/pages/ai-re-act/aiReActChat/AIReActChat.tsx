@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle, useRef } from 'react'
+import React, { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 
 import styles from './AIReActChat.module.scss'
 import { AIHandleStartResProps, AINotifyMessageProps, AIReActChatProps, AISendResProps } from './AIReActChatType'
@@ -18,11 +18,12 @@ import { AITaskQuery } from '@/pages/ai-agent/components/aiTaskQuery/AITaskQuery
 import { HandleStartParams } from '@/pages/ai-agent/aiAgentChat/type'
 import { formatAIAgentSetting, getAIReActRequestParams } from '@/pages/ai-agent/utils'
 import { YakitTag } from '@/components/yakitUI/YakitTag/YakitTag'
-import { v4 as uuidv4 } from 'uuid'
 import { AISession } from '@/pages/ai-agent/type/aiChat'
 import useAIAgentDispatcher from '@/pages/ai-agent/useContext/useDispatcher'
 import { randomString } from '@/utils/randomUtil'
 import useAINodeLabel from '../hooks/useAINodeLabel'
+import useSessionId from '../hooks/useSessionId'
+import useGetChatDataStoreKey from '../hooks/useGetChatDataStoreKey'
 
 export const AIReActChat: React.FC<AIReActChatProps> = React.memo(
   forwardRef((props, ref) => {
@@ -52,6 +53,7 @@ export const AIReActChat: React.FC<AIReActChatProps> = React.memo(
     })
 
     const { activeChat, setting } = useAIAgentStore()
+    const { getSession } = useSessionId()
 
     const questionQueue = useCreation(() => chatIPCData.questionQueue, [chatIPCData.questionQueue])
 
@@ -66,6 +68,11 @@ export const AIReActChat: React.FC<AIReActChatProps> = React.memo(
         handleStart: (value) => handleStart(value),
       }
     }, [])
+    useEffect(() => {
+      if (!!activeChat?.SessionID) {
+        aiChatTextareaRef.current.setValue('')
+      }
+    }, [activeChat?.SessionID])
     // #region 问题相关逻辑
     // 初始化 AI ReAct
     const handleSubmit = useMemoizedFn((value: AIChatTextareaSubmit) => {
@@ -82,7 +89,7 @@ export const AIReActChat: React.FC<AIReActChatProps> = React.memo(
     })
 
     const handleStart = useMemoizedFn((value: HandleStartParams) => {
-      const { qs } = value
+      const { qs, sessionId } = value
       const sessionID = activeChat?.SessionID || '' // 判断历史还是新建
 
       const request: AIStartParams = {
@@ -92,14 +99,8 @@ export const AIReActChat: React.FC<AIReActChatProps> = React.memo(
         Sequence: 1,
       }
 
-      let session = ''
-      if (!!sessionID) {
-        session = sessionID
-      } else if (!!setting.TimelineSessionID) {
-        session = setting.TimelineSessionID
-      } else {
-        session = uuidv4().replace(/-/g, '').substring(0, 16)
-      }
+      const session = getSession(sessionId)
+
       request.TimelineSessionID = session
       const { extra, attachedResourceInfo } = getAIReActRequestParams(value)
       // 发送初始化参数
@@ -220,6 +221,7 @@ export const AIReActChat: React.FC<AIReActChatProps> = React.memo(
     const onSetQuestion = useMemoizedFn((value: string) => {
       aiChatTextareaRef?.current?.setValue(value ?? '')
     })
+    const { chatDataStoreKey } = useGetChatDataStoreKey()
     return (
       <>
         <div
@@ -269,6 +271,7 @@ export const AIReActChat: React.FC<AIReActChatProps> = React.memo(
                         </div>
                       }
                       footerLeftTypes={externalParameters?.footerLeftTypes}
+                      chatDataStoreKey={chatDataStoreKey}
                     />
                   </div>
                 </div>

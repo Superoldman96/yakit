@@ -25,6 +25,7 @@ import {
   OutlineCodeIcon,
   OutlineCogIcon,
   OutlineHandIcon,
+  OutlinePhotographIcon,
 } from '@/assets/icon/outline'
 import { useCreation, useInViewport, useMemoizedFn } from 'ahooks'
 import { TextAreaRef } from 'antd/lib/input/TextArea'
@@ -52,7 +53,6 @@ import { isString } from 'lodash'
 import OpenFileDropdown, { OpenFileDropdownItem } from '../aiChatWelcome/OpenFileDropdown/OpenFileDropdown'
 import { UploadFileButton } from '@/pages/ai-re-act/aiReActChat/AIReActComponent'
 import { insertAtCurrentPosition } from '../components/aiMilkdownInput/customPlugin'
-import useAIAgentDispatcher from '../useContext/useDispatcher'
 import { YakitTag } from '@/components/yakitUI/YakitTag/YakitTag'
 import useChatIPCStore from '../useContext/ChatIPCContent/useStore'
 import useAIGlobalConfig from '@/pages/ai-re-act/hooks/useAIGlobalConfig'
@@ -63,6 +63,7 @@ import {
   AIManualAdditionPopover,
 } from '@/pages/ai-re-act/aiReActTaskChat/AIReActTaskChat'
 import { useI18nNamespaces } from '@/i18n/useI18nNamespaces'
+import { AIMilkdownInputRef } from '../components/aiMilkdownInput/type'
 
 /** @name AI-Agent专用Textarea组件,行高为20px */
 export const QSInputTextarea: React.FC<QSInputTextareaProps & RefAttributes<TextAreaRef>> = memo(
@@ -98,6 +99,7 @@ export const AIChatTextarea: React.FC<AIChatTextareaProps> = memo(
       defaultValue,
       isOpen,
       filterMentionType,
+      chatDataStoreKey,
     } = props
     const { t } = useI18nNamespaces(['aiAgent', 'yakitUi'])
     const { chatIPCData } = useChatIPCStore()
@@ -142,7 +144,6 @@ export const AIChatTextarea: React.FC<AIChatTextareaProps> = memo(
     }, [props.footerLeftTypes, isOpen])
 
     const { setting } = useAIAgentStore()
-    const { setSetting } = useAIAgentDispatcher()
     const [disabled, setDisabled] = useState<boolean>(false)
 
     const { isHovering, dropRef } = useAIChatDrop({
@@ -185,15 +186,18 @@ export const AIChatTextarea: React.FC<AIChatTextareaProps> = memo(
       } catch (error) {}
     })
 
+    const aiMilkdownInputRef = useRef<AIMilkdownInputRef>(null)
     const handleSubmit = useMemoizedFn(() => {
       const qs = getMarkdownValue()
       if (!qs.trim() || !editorMilkdown.current) return
-      const { mentions, plainText } = extractDataWithMilkdown(editorMilkdown.current)
+      const { mentions, imageList, plainText } = extractDataWithMilkdown(editorMilkdown.current)
       const value: AIChatTextareaSubmit = {
         qs,
         mentionList: mentions,
+        imageList,
         showQS: qs,
         focusMode,
+        sessionId: aiMilkdownInputRef.current?.getSessionId(),
       }
       onSubmit && onSubmit(value)
     })
@@ -324,6 +328,11 @@ export const AIChatTextarea: React.FC<AIChatTextareaProps> = memo(
 
     const aiGlobalConfig = useCreation(() => aiGlobalConfigData.aiGlobalConfig, [aiGlobalConfigData.aiGlobalConfig])
     const updateLoading = useCreation(() => aiGlobalConfigData.updateLoading, [aiGlobalConfigData.updateLoading])
+
+    const onSelectImage = useMemoizedFn(() => {
+      aiMilkdownInputRef.current?.setImage()
+    })
+
     return (
       <div
         className={classNames(
@@ -348,11 +357,13 @@ export const AIChatTextarea: React.FC<AIChatTextareaProps> = memo(
         </AIGlobalCommandPopover>
         <div className={classNames(styles['textarea-wrapper'])} onKeyDown={handleTextareaKeyDown}>
           <AIMilkdownInput
+            ref={aiMilkdownInputRef}
             defaultValue={defaultValue}
             onUpdateEditor={onUpdateEditor}
             onUpdateContent={onUpdateContent}
             onMemfitExtra={onMemfitExtra}
             filterMode={filterMentionType}
+            chatDataStoreKey={chatDataStoreKey}
           />
           <div className={styles['footer']}>
             {inputFooterLeft ?? (
@@ -377,6 +388,13 @@ export const AIChatTextarea: React.FC<AIChatTextareaProps> = memo(
                     isHover={inputSettingVisible}
                   />
                 </AIInputSettingPopover>
+                <YakitButton
+                  type="text2"
+                  radius="50%"
+                  icon={<OutlinePhotographIcon />}
+                  onClick={onSelectImage}
+                  className={styles['btn-base']}
+                />
                 {execute && (
                   <AIManualAdditionPopover
                     chatType="reAct"

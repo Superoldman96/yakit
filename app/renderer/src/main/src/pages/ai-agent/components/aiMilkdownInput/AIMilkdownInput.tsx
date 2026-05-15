@@ -3,12 +3,12 @@ import { Milkdown, MilkdownProvider, useEditor } from '@milkdown/react'
 import { ProsemirrorAdapterProvider } from '@prosemirror-adapter/react'
 import { $remark, callCommand, getMarkdown } from '@milkdown/kit/utils'
 import { AIMilkdownInputBaseProps, AIMilkdownInputProps } from './type'
-import { defaultValueCtx, Editor, editorViewCtx, editorViewOptionsCtx, rootCtx } from '@milkdown/kit/core'
+import { defaultValueCtx, Editor, editorViewOptionsCtx, rootCtx } from '@milkdown/kit/core'
 import { listener, listenerCtx } from '@milkdown/kit/plugin/listener'
 import { useNodeViewFactory, usePluginViewFactory } from '@prosemirror-adapter/react'
 import { $view } from '@milkdown/kit/utils'
 import { Ctx } from '@milkdown/kit/ctx'
-import { codeBlockSchema, commonmark } from '@milkdown/kit/preset/commonmark'
+import { codeBlockSchema, commonmark, imageSchema, insertImageCommand } from '@milkdown/kit/preset/commonmark'
 import { gfm } from '@milkdown/kit/preset/gfm'
 import classNames from 'classnames'
 import styles from './AIMilkdownInput.module.scss'
@@ -28,29 +28,98 @@ import { useMemoizedFn } from 'ahooks'
 import { aiCustomPlugin } from './customPlugin'
 import { customShiftEnterPlugin } from '@/components/MilkdownEditor/utils/utils'
 import { useI18nNamespaces } from '@/i18n/useI18nNamespaces'
+import { upload, uploadConfig } from '@milkdown/kit/plugin/upload'
+import { Node } from '@milkdown/kit/prose/model'
+import { AICustomFile } from './aiCustomFile/AICustomFile'
+import { yakitNotify } from '@/utils/notification'
+import useSessionId from '@/pages/ai-re-act/hooks/useSessionId'
 
 import { AICustomCode } from './aiCustomCode/AICustomCode'
+import { handleOpenFileSystemDialog } from '@/utils/fileSystemDialog'
+import { getAIImageSuffix } from './utils'
 
 const remarkDirective = $remark(`remark-directive`, () => directive)
 
 export const AIMilkdownInputBase: React.FC<AIMilkdownInputBaseProps> = React.memo(
   React.forwardRef((props, ref) => {
-    const { readonly, defaultValue, onUpdateContent, onUpdateEditor, classNameWrapper, onMemfitExtra, filterMode } =
-      props
+    const {
+      readonly,
+      defaultValue,
+      onUpdateContent,
+      onUpdateEditor,
+      classNameWrapper,
+      onMemfitExtra,
+      filterMode,
+      chatDataStoreKey,
+    } = props
     const { t, i18n } = useI18nNamespaces(['aiAgent'])
     const nodeViewFactory = useNodeViewFactory()
     const pluginViewFactory = usePluginViewFactory()
+
+    const { getSession } = useSessionId()
+
+    const sessionIdRef = React.useRef<string>('') // 作为当前对话得文件路径
+
     useImperativeHandle(
       ref,
       () => ({
         setMention: (v: AIMentionCommandParams) => {
           onSetMention(v)
         },
+        setImage: () => {
+          onSetImage()
+        },
+        getSessionId: () => sessionIdRef.current,
       }),
       [],
     )
     const { get, loading } = useEditor(
       (root) => {
+        const uploadPlugins = [
+          upload,
+          $view(imageSchema.node, () =>
+            nodeViewFactory({
+              component: () => <AICustomFile sessionId={sessionIdRef.current} chatDataStoreKey={chatDataStoreKey} />,
+            }),
+          ),
+          (ctx: Ctx) => () => {
+            ctx.update(uploadConfig.key, (prev) => ({
+              ...prev,
+              uploader: async (files, schema) => {
+                const images: File[] = []
+                for (let i = 0; i < files.length; i++) {
+                  const file = files.item(i)
+                  if (!file) {
+                    continue
+                  }
+                  // You can handle whatever the file type you want, we handle image here.
+                  if (!file.type.includes('image')) {
+                    continue
+                  }
+                  if (file.size > 1 * 1024 * 1024) {
+                    yakitNotify('error', '图片大小不能超过1M')
+                    continue
+                  }
+                  images.push(file)
+                }
+
+                const nodes: Node[] = await Promise.all(
+                  images.map((image) => {
+                    const src = URL.createObjectURL(image)
+                    return schema.nodes.image.createAndFill({
+                      src,
+                      alt: image.name,
+                      title: '',
+                    }) as unknown as Node
+                  }),
+                )
+                const session = getSession(sessionIdRef.current)
+                sessionIdRef.current = session
+                return nodes
+              },
+            }))
+          },
+        ].flat()
         const mentionPlugin = [
           ...aiMentionCustomPlugin(),
           aiMentionFactory,
@@ -115,6 +184,8 @@ export const AIMilkdownInputBase: React.FC<AIMilkdownInputBaseProps> = React.mem
             .use(clipboard)
             // placeholder
             .use(placeholder)
+            // uploadPlugins
+            .use(uploadPlugins)
             // listener
             .use(listener)
             // mention 提及@
@@ -133,25 +204,6 @@ export const AIMilkdownInputBase: React.FC<AIMilkdownInputBaseProps> = React.mem
       if (editor) {
         onUpdateEditor?.(editor)
       }
-      const handlePaste = (e: Event) => {
-        const clipboardEvent = e as ClipboardEvent
-        const clipboardData = clipboardEvent.clipboardData
-        if (clipboardData?.types.includes('Files')) {
-          clipboardEvent.preventDefault()
-        }
-      }
-      editor?.action((ctx) => {
-        // 简单阻止所有文件粘贴
-        ctx.get(editorViewCtx).dom.addEventListener('paste', handlePaste)
-      })
-      return () => {
-        editor?.action((ctx) => {
-          const dom = ctx.get(editorViewCtx)?.dom
-          if (dom) {
-            dom.removeEventListener('paste', handlePaste)
-          }
-        })
-      }
     }, [loading, get])
     useEffect(() => {
       return () => {
@@ -162,6 +214,29 @@ export const AIMilkdownInputBase: React.FC<AIMilkdownInputBaseProps> = React.mem
 
     const onSetMention = useMemoizedFn((params: AIMentionCommandParams) => {
       get()?.action(callCommand<AIMentionCommandParams>(aiMentionCommand.key, params))
+    })
+    const onSetImage = useMemoizedFn(() => {
+      handleOpenFileSystemDialog({
+        properties: ['openFile', 'multiSelections'],
+        filters: [
+          { name: '图片', extensions: getAIImageSuffix() }, // 关键：设置文件过滤器
+        ],
+      }).then((data) => {
+        if (data.filePaths.length > 8) {
+          yakitNotify('warning', '一次最多只能上传8张图片')
+        }
+        const filePaths = data.filePaths.slice(0, 8)
+        const filesLength = filePaths.length
+        for (let index = 0; index < filesLength; index++) {
+          const element = filePaths[index]
+          get()?.action(
+            callCommand(insertImageCommand.key, {
+              src: element,
+              alt: element,
+            }),
+          )
+        }
+      })
     })
     return (
       <div className={classNames(styles['ai-milkdown-input'], classNameWrapper)}>

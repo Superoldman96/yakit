@@ -2,28 +2,36 @@ import { EditorMilkdownProps } from '@/components/MilkdownEditor/MilkdownEditorT
 import { editorViewCtx, parserCtx } from '@milkdown/kit/core'
 import { AIMentionCommandParams, aiMentionCustomId } from './aiMilkdownMention/aiMentionPlugin'
 import { AIChatIPCStartParams } from '@/pages/ai-re-act/hooks/type'
+import { imgTypes } from '@/components/MilkdownEditor/utils/utils'
 
 /**md编辑器中匹配出提及相关数据/纯文本 */
 export const extractDataWithMilkdown = (editor: EditorMilkdownProps) => {
   const mentions: AIMentionCommandParams[] = []
+  const imageList: string[] = []
   let plainText = ''
   editor?.action &&
     editor.action((ctx) => {
       const view = ctx.get(editorViewCtx)
-      const state = view.state
-      const doc = state.doc
+      const state = view?.state
+      const doc = state?.doc
 
       // 遍历文档树
       doc.descendants((node) => {
-        if (node.type.name === aiMentionCustomId) {
+        if (node?.type?.name === aiMentionCustomId) {
           mentions.push({
             ...(node.attrs as AIMentionCommandParams),
           })
         }
+        if (node?.type?.name === state?.schema?.nodes?.image?.name) {
+          const src = node.attrs.src
+          if (src) {
+            imageList.push(src)
+          }
+        }
       })
-      plainText = doc.textBetween(0, doc.content.size, '\n\n')
+      plainText = doc.textBetween(0, doc?.content?.size, '\n\n')
     })
-  return { mentions, plainText }
+  return { mentions, plainText, imageList }
 }
 
 type Mention = {
@@ -91,4 +99,8 @@ export const aiInputWithParamsTemplate = (data: AIInputWithParamsTemplate) => {
 ${JSON.stringify(data.param || {}, null, 2)}
 \`\`\`
   `
+}
+
+export const getAIImageSuffix = () => {
+  return imgTypes.map((ext) => ext.slice(1))
 }
