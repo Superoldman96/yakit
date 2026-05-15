@@ -8,10 +8,72 @@ import { ErrorBoundary } from 'react-error-boundary'
 import { ExclamationCircleOutlined } from '@ant-design/icons'
 import { OutlineXIcon } from '@/assets/icon/outline'
 import { createRoot } from 'react-dom/client'
-import { useI18nNamespaces } from '@/i18n/useI18nNamespaces'
-import { useUpdateEffect } from 'ahooks'
+import { TFunction, useI18nNamespaces } from '@/i18n/useI18nNamespaces'
 import i18n from '@/i18n/i18n'
 const tOriginal = i18n.getFixedT(null, 'yakitUi')
+
+export type ModalI18nNode = React.ReactNode | ((modalT: TFunction) => React.ReactNode) | string
+
+export const ALL_MODAL_I18N_NAMESPACES = [
+  'yakitUi',
+  'yakitRoute',
+  'core',
+  'layout',
+  'plugin',
+  'yakitStore',
+  'customizeMenu',
+  'home',
+  'history',
+  'webFuzzer',
+  'aiAgent',
+  'setting',
+  'yakChat',
+  'yakURLTree',
+  'yakRunnerAuditHole',
+  'yakRunner',
+  'yakPoC',
+  'websocket',
+  'vulinbox',
+  'utils',
+  'store',
+  'spaceEngine',
+  'simpleDetect',
+  'shortcutKey',
+  'screenRecorder',
+  'ruleManagement',
+  'risk',
+  'reverse',
+  'remote',
+  'projectManage',
+  'portscan',
+  'pluginHub',
+  'payload',
+  'notepad',
+  'mitm',
+  'icmpsizelog',
+  'HTTPHistoryAnalysis',
+  'hook',
+  'engineConsole',
+  'dns',
+  'cve',
+  'configNetwork',
+  'components',
+  'comparer',
+  'codec',
+  'brute',
+  'assetViewer',
+  'apiUtils',
+  'admin',
+]
+
+/** 将title, content 改为function传入 使用modalT 替换 t('') 即可解决中英文切换问题 */
+export const ModalI18nRender: React.FC<{ node?: ModalI18nNode }> = ({ node }) => {
+  const { t } = useI18nNamespaces(ALL_MODAL_I18N_NAMESPACES)
+  if (typeof node === 'function') {
+    return <>{(node as (modalT: TFunction) => React.ReactNode)(t)}</>
+  }
+  return <>{node}</>
+}
 
 interface YakitBaseModalProp extends Omit<YakitModalProp, 'okType'>, React.ComponentProps<any> {
   onVisibleSetter?: (setter: (i: boolean) => any) => any
@@ -19,22 +81,31 @@ interface YakitBaseModalProp extends Omit<YakitModalProp, 'okType'>, React.Compo
   subTitle?: string
 }
 
-export interface YakitModalConfirmProps extends YakitBaseModalProp {
-  title?: React.ReactNode | string
-  content?: React.ReactNode | string
+export interface YakitModalConfirmProps extends Omit<YakitBaseModalProp, 'title'> {
+  /**
+   * 推荐使用函数签名: (modalT) => ReactNode
+   * - modalT 等价于 i18n 的 t，可直接替换 t('xxx')
+   * - 使用函数可以避免闭包拿到旧值，确保语言切换后文案正确刷新
+   *
+   * 示例:
+   * title: (modalT) => modalT('YakitModalConfirm.debugInfo')
+   * content: (modalT) => <div>{modalT('YakitButton.ok')}</div>
+   */
+  title?: ModalI18nNode
+  content?: ModalI18nNode
   modalAfterClose?: () => any
   onOk?: (e) => any
   onCancel?: (e) => any
-  onOkText?: string
-  onCancelText?: string
+  onOkText?: ModalI18nNode
+  onCancelText?: ModalI18nNode
   showConfirmLoading?: boolean
 }
 
 interface YakitBaseModalProps extends YakitModalProp, React.ComponentProps<any> {
   onVisibleSetter?: (setter: (i: boolean) => void) => void
   showConfirmLoading?: boolean
-  onCancelText?: string
-  onOkText?: string
+  onCancelText?: ModalI18nNode
+  onOkText?: ModalI18nNode
 }
 
 export const YakitModalConfirm = (props: YakitModalConfirmProps) => {
@@ -86,20 +157,14 @@ export const YakitModalConfirm = (props: YakitModalConfirmProps) => {
                     <ExclamationCircleOutlined className={style['modal-icon']} />
                     <div>
                       {props.title && (
-                        <>
-                          {(typeof props.title === 'string' && (
-                            <div className={style['modal-title']}>{props.title}</div>
-                          )) ||
-                            props.title}
-                        </>
+                        <div className={style['modal-title']}>
+                          <ModalI18nRender node={props.title} />
+                        </div>
                       )}
                       {props.content && (
-                        <>
-                          {(typeof props.content === 'string' && (
-                            <div className={style['modal-content']}>{props.content}</div>
-                          )) ||
-                            props.content}
-                        </>
+                        <div className={style['modal-content']}>
+                          <ModalI18nRender node={props.content} />
+                        </div>
                       )}
                     </div>
                   </div>
@@ -137,10 +202,6 @@ const YakitBaseModal: React.FC<YakitBaseModalProps> = (props) => {
     }
   }, [visible])
 
-  useUpdateEffect(() => {
-    setVisible(false)
-  }, [i18n.language])
-
   return (
     <YakitModal
       footerStyle={{ borderTop: 0, padding: 0 }}
@@ -154,7 +215,7 @@ const YakitBaseModal: React.FC<YakitBaseModalProps> = (props) => {
             }}
             {...props.cancelButtonProps}
           >
-            {props.onCancelText || t('YakitButton.cancel')}
+            {props.onCancelText ? <ModalI18nRender node={props.onCancelText} /> : t('YakitButton.cancel')}
           </YakitButton>
           <YakitButton
             onClick={(e) => {
@@ -168,7 +229,7 @@ const YakitBaseModal: React.FC<YakitBaseModalProps> = (props) => {
             loading={loading}
             {...props.okButtonProps}
           >
-            {props.onOkText || t('YakitButton.ok')}
+            {props.onOkText ? <ModalI18nRender node={props.onOkText} /> : t('YakitButton.ok')}
           </YakitButton>
         </div>
       }
@@ -202,7 +263,7 @@ const YakitBaseModal: React.FC<YakitBaseModalProps> = (props) => {
 
 export const debugYakitModal = (y: any) => {
   const m = showYakitModal({
-    title: tOriginal('YakitModalConfirm.debugInfo'),
+    title: (modalT) => modalT('YakitModalConfirm.debugInfo'),
     width: '50%',
     content: (
       <div style={{ marginLeft: 20, marginRight: 20, marginTop: 16, marginBottom: 20 }}>{JSON.stringify(y)}</div>
@@ -215,7 +276,7 @@ export const debugYakitModal = (y: any) => {
 
 export const debugYakitModalAny = (y: any) => {
   const m = showYakitModal({
-    title: tOriginal('YakitModalConfirm.debugInfo'),
+    title: (modalT) => modalT('YakitModalConfirm.debugInfo'),
     width: '50%',
     content: <div style={{ marginLeft: 20, marginRight: 20, marginTop: 16, marginBottom: 20 }}>{y}</div>,
     onOk: () => {
@@ -224,7 +285,12 @@ export const debugYakitModalAny = (y: any) => {
   })
 }
 
-export const showYakitModal = (props: ShowModalProps) => {
+interface ShowModalV2Props extends Omit<ShowModalProps, 'title' | 'content'> {
+  title?: ModalI18nNode
+  content?: ModalI18nNode
+}
+
+export const showYakitModal = (props: ShowModalV2Props) => {
   const div = document.createElement('div')
   if (!!props.getContainer && props.getContainer instanceof HTMLElement) {
     props.getContainer.appendChild(div)
@@ -234,7 +300,7 @@ export const showYakitModal = (props: ShowModalProps) => {
 
   let setter: (r: boolean) => any = () => {}
   let yakitModalRootDiv
-  const render = (targetConfig: ShowModalProps) => {
+  const render = (targetConfig: ShowModalV2Props) => {
     setTimeout(() => {
       if (!yakitModalRootDiv) {
         yakitModalRootDiv = createRoot(div)
@@ -244,6 +310,9 @@ export const showYakitModal = (props: ShowModalProps) => {
           <YakitBaseModal
             bodyStyle={{ padding: 0 }}
             {...(targetConfig as YakitModalProp)}
+            title={
+              targetConfig.title !== undefined ? <ModalI18nRender node={targetConfig.title} /> : targetConfig.title
+            }
             onVisibleSetter={(r) => {
               setter = r
             }}
@@ -269,7 +338,7 @@ export const showYakitModal = (props: ShowModalProps) => {
                 )
               }}
             >
-              {targetConfig.content}
+              <ModalI18nRender node={targetConfig.content} />
             </ErrorBoundary>
           </YakitBaseModal>
         </>,

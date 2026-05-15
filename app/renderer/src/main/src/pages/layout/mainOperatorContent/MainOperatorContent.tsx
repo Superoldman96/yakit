@@ -149,7 +149,7 @@ import { defaultAddYakitScriptPageInfo } from '@/defaultConstants/AddYakitScript
 import { useMenuHeight } from '@/store/menuHeight'
 import { HybridScanInputTarget } from '@/models/HybridScan'
 import { defaultWebsocketFuzzerPageInfo } from '@/defaultConstants/WebsocketFuzzer'
-import { RecoveryModel, RestoreTabContent } from './TabRenameModalContent'
+import { DuplicateTabContent, RecoveryModel, RestoreTabContent } from './TabRenameModalContent'
 import {
   FuzzerConfig,
   QueryFuzzerConfigRequest,
@@ -196,6 +196,7 @@ const Close_Group_Tip = 'close-group_tip'
 const colorList = ['purple', 'blue', 'lakeBlue', 'green', 'red', 'orange', 'bluePurple', 'grey']
 const droppable = 'droppable'
 const droppableGroup = 'droppableGroup'
+const duplicateWebFuzzerTabsEvent = 'onDuplicateWebFuzzerTabs'
 const pageTabItemRightOperation: (t: TFunction) => YakitMenuItemType[] = (t) => {
   return [
     {
@@ -254,6 +255,12 @@ export const generateGroupId = (gIndex?: number) => {
   const time = (new Date().getTime() + (gIndex || 0)).toString()
   const groupId = `[${randomString(6)}]-${time}-group`
   return groupId
+}
+
+const generateTabIdentity = (key: string, index?: number) => {
+  const time = `${Date.now()}${typeof index === 'number' ? `-${index}` : ''}`
+  const tabId = `${key}-[${randomString(6)}]-${time}`
+  return { time, tabId }
 }
 
 /**
@@ -360,8 +367,7 @@ const rebuildMultipleNodeTree = (key: string, cache: MultipleNodeInfo[]): Multip
       newGroupId = '0'
     } else {
       // 2. 普通节点
-      const time = new Date().getTime().toString()
-      const tabId = `${key}-[${randomString(6)}]-${time}`
+      const { tabId } = generateTabIdentity(key)
       newId = tabId
     }
 
@@ -1635,6 +1641,78 @@ export const MainOperatorContent: React.FC<MainOperatorContentProps> = React.mem
       yakitNotify('error', t('MainOperatorContent.openWFFailed', { error: `${error}` }))
     }
   })
+
+  const onDuplicateWebFuzzerTabs = useMemoizedFn(({ item, count }: { item: MultipleNodeInfo; count: number }) => {
+    const currentItem = queryPagesDataById(YakitRoute.HTTPFuzzer, item.id)
+    const webFuzzerPageInfo = currentItem?.pageParamsInfo?.webFuzzerPageInfo
+    if (!webFuzzerPageInfo) return
+
+    const { request = defaultPostTemplate, advancedConfigValue, advancedConfigShow, hotPatchCode } = webFuzzerPageInfo
+
+    const pageParams: ComponentParams = {
+      request,
+      system: item.pageParams?.system,
+      advancedConfigValue,
+      advancedConfigShow,
+      hotPatchCode,
+    }
+
+    const baseName = item.verbose || currentItem?.pageName
+    const key = routeConvertKey(YakitRoute.HTTPFuzzer, '')
+
+    const newPageCache = cloneDeep(getPageCache())
+    const currentPageCache = newPageCache.find((ele) => ele.route === YakitRoute.HTTPFuzzer)
+    if (!currentPageCache) return
+
+    const { index, subIndex } = getPageItemById(currentPageCache.multipleNode || [], item.id)
+    const targetGroupId = subIndex !== -1 && index !== -1 ? currentPageCache.multipleNode[index].id : '0'
+    const groupChildrenLength =
+      targetGroupId !== '0' && index !== -1 ? currentPageCache.multipleNode[index].groupChildren?.length || 0 : 0
+
+    const baseSortId =
+      targetGroupId !== '0' ? groupChildrenLength + 1 : (currentPageCache.multipleNode?.length || 0) + 1
+    const createdNodes: MultipleNodeInfo[] = Array.from({ length: count }, (_, index) => {
+      const { time, tabId } = generateTabIdentity(key, index)
+      return {
+        id: tabId,
+        verbose: `${baseName}(${index + 1})`,
+        time,
+        pageParams: {
+          ...pageParams,
+          id: tabId,
+          groupId: targetGroupId,
+        },
+        groupId: targetGroupId,
+        sortFieId: baseSortId + index,
+      }
+    })
+
+    if (targetGroupId !== '0' && index !== -1) {
+      currentPageCache.multipleNode[index].groupChildren = [
+        ...(currentPageCache.multipleNode[index].groupChildren || []),
+        ...createdNodes,
+      ]
+    } else {
+      currentPageCache.multipleNode.push(...createdNodes)
+    }
+    currentPageCache.multipleLength = (currentPageCache.multipleLength || 0) + createdNodes.length
+    currentPageCache.openFlag = false
+    currentPageCache.selectSubItem = false
+
+    createdNodes.forEach((node) => {
+      addFuzzerList(node.id, node, node.sortFieId)
+    })
+
+    setPageCache(newPageCache)
+  })
+
+  useEffect(() => {
+    emiter.on(duplicateWebFuzzerTabsEvent, onDuplicateWebFuzzerTabs)
+    return () => {
+      emiter.off(duplicateWebFuzzerTabsEvent, onDuplicateWebFuzzerTabs)
+    }
+  }, [])
+
   /** websocket fuzzer 和 Fuzzer 类似 */
   const addWebsocketFuzzer = useMemoizedFn(
     (res: { tls: boolean; request: Uint8Array; openFlag?: boolean; toServer?: Uint8Array }) => {
@@ -1897,8 +1975,7 @@ export const MainOperatorContent: React.FC<MainOperatorContentProps> = React.mem
         const key = routeConvertKey(route, pluginName)
         let tabName = routeKeyToLabel.get(key) || menuName
 
-        const time = new Date().getTime().toString()
-        const tabId = `${key}-[${randomString(6)}]-${time}`
+        const { time, tabId } = generateTabIdentity(key)
 
         let verbose =
           nodeParams?.verbose || `${tabName}-${filterPage.length > 0 ? (filterPage[0].multipleLength || 0) + 1 : 1}`
@@ -2464,7 +2541,7 @@ export const MainOperatorContent: React.FC<MainOperatorContentProps> = React.mem
       ipcRenderer.invoke('QueryYakScript', newParams).then((item: QueryYakScriptsResponse) => {
         if (item.Data.length === 0) {
           const m = showYakitModal({
-            title: t('MainOperatorContent.importPlugin'),
+            title: (modalT) => modalT('MainOperatorContent.importPlugin'),
             type: 'white',
             content: <DownloadAllPlugin onClose={() => m.destroy()} />,
             bodyStyle: { padding: 24 },
@@ -3085,7 +3162,7 @@ export const MainOperatorContent: React.FC<MainOperatorContentProps> = React.mem
       case YakitRoute.HTTPFuzzer:
         setRecoveryModel('coverage')
         const m = showYakitModal({
-          title: t('MainOperatorContent.restoreTab'),
+          title: (modalT) => modalT('MainOperatorContent.restoreTab'),
           footer: null,
           content: (
             <RestoreTabContent
@@ -3466,8 +3543,8 @@ const TabList: React.FC<TabListProps> = React.memo((props) => {
     const m = YakitModalConfirm({
       width: 420,
       type: 'white',
-      onCancelText: t('YakitButton.cancel'),
-      onOkText: t('MainOperatorContent.closeAll'),
+      onCancelText: (modalT) => modalT('YakitButton.cancel'),
+      onOkText: (modalT) => modalT('MainOperatorContent.closeAll'),
       icon: <ExclamationCircleOutlined />,
       onOk: () => {
         const fixedTabs = pageCache.filter((ele) => getDefaultFixedTabs(softMode).includes(ele.route))
@@ -3486,7 +3563,7 @@ const TabList: React.FC<TabListProps> = React.memo((props) => {
       // onCancel: () => {
       //     m.destroy()
       // },
-      content: t('MainOperatorContent.closeAllTabsTitle'),
+      content: (modalT) => modalT('MainOperatorContent.closeAllTabsTitle'),
     })
   })
   /**关闭其他标签页 如果有首页需要保留首页*/
@@ -3494,8 +3571,8 @@ const TabList: React.FC<TabListProps> = React.memo((props) => {
     const m = YakitModalConfirm({
       width: 420,
       type: 'white',
-      onCancelText: t('YakitButton.cancel'),
-      onOkText: t('MainOperatorContent.closeOther'),
+      onCancelText: (modalT) => modalT('YakitButton.cancel'),
+      onOkText: (modalT) => modalT('MainOperatorContent.closeOther'),
       icon: <ExclamationCircleOutlined />,
       onOk: () => {
         if (pageCache.length <= 0) return
@@ -3513,7 +3590,7 @@ const TabList: React.FC<TabListProps> = React.memo((props) => {
       // onCancel: () => {
       //     m.destroy()
       // },
-      content: t('MainOperatorContent.keepCurrentCloseOthers'),
+      content: (modalT) => modalT('MainOperatorContent.keepCurrentCloseOthers'),
     })
   })
   return (
@@ -4627,6 +4704,22 @@ const SubTabs: React.FC<SubTabsProps> = React.memo(
         emiter.off('onCloseSubPageByInfo', onCloseSubPageByInfoFun)
       }
     }, [])
+
+    const onShowDuplicateModal = useMemoizedFn((item: MultipleNodeInfo) => {
+      const m = showYakitModal({
+        title: (modalT) => modalT('TabRenameModalContent.duplicateTabs'),
+        footer: null,
+        content: (
+          <DuplicateTabContent
+            maxCount={secondaryTabsNumRef.current}
+            subPageCount={getSubPageTotal(subPage)}
+            onClose={() => m.destroy()}
+            onDuplicate={(count) => emiter.emit(duplicateWebFuzzerTabsEvent, { item, count })}
+          />
+        ),
+      })
+    })
+
     /**
      * @description 页面节点的右键点击事件
      */
@@ -4662,10 +4755,22 @@ const SubTabs: React.FC<SubTabsProps> = React.memo(
         })
       }
       if (currentTabKey === YakitRoute.HTTPFuzzer) {
-        menuData.push({
-          label: t('MainOperatorContent.restoreTab'),
-          key: 'restoreTab',
-        })
+        if (subIndex !== -1) {
+          menuData = [
+            ...menuData,
+            {
+              label: t('TabRenameModalContent.duplicateTabs'),
+              key: 'duplicateTab',
+            },
+          ]
+        }
+        menuData = [
+          ...menuData,
+          {
+            label: t('MainOperatorContent.restoreTab'),
+            key: 'restoreTab',
+          },
+        ]
       }
 
       // 固定页面支持多开页面需要移除关闭标签选项
@@ -4707,6 +4812,9 @@ const SubTabs: React.FC<SubTabsProps> = React.memo(
               case 'newGroup':
                 onNewGroup(item)
                 break
+              case 'duplicateTab':
+                onShowDuplicateModal(item)
+                break
               case 'restoreTab':
                 onRestoreHistory(currentTabKey)
                 break
@@ -4728,10 +4836,10 @@ const SubTabs: React.FC<SubTabsProps> = React.memo(
         footer: null,
         closable: false,
         hiddenHeader: true,
-        content: (
+        content: (modalT) => (
           <React.Suspense fallback={<div>loading...</div>}>
             <TabRenameModalContent
-              title={t('YakitButton.rename')}
+              title={modalT('YakitButton.rename')}
               onClose={() => {
                 m.destroy()
               }}
@@ -4830,7 +4938,7 @@ const SubTabs: React.FC<SubTabsProps> = React.memo(
 
     const openBatchNewGroup = useMemoizedFn((item: MultipleNodeInfo) => {
       const m = showYakitModal({
-        title: t('MainOperatorContent.createGroup'),
+        title: (modalT) => modalT('MainOperatorContent.createGroup'),
         footer: null,
         content: (
           <BatchAddNewGroup
@@ -5097,8 +5205,8 @@ const SubTabs: React.FC<SubTabsProps> = React.memo(
         const m = YakitModalConfirm({
           width: 420,
           type: 'white',
-          onCancelText: t('YakitButton.cancel'),
-          onOkText: t('MainOperatorContent.closeOther'),
+          onCancelText: (modalT) => modalT('YakitButton.cancel'),
+          onOkText: (modalT) => modalT('MainOperatorContent.closeOther'),
           icon: <ExclamationCircleOutlined />,
           onOk: () => {
             const newSubPage: MultipleNodeInfo[] = [item]
@@ -5123,15 +5231,15 @@ const SubTabs: React.FC<SubTabsProps> = React.memo(
           // onCancel: () => {
           //     m.destroy()
           // },
-          content: t('MainOperatorContent.keepCurrentCloseOthersInGroup'),
+          content: (modalT) => modalT('MainOperatorContent.keepCurrentCloseOthersInGroup'),
         })
       } else {
         // 关闭组内的其他tabs
         const m = YakitModalConfirm({
           width: 420,
           type: 'white',
-          onCancelText: t('YakitButton.cancel'),
-          onOkText: t('MainOperatorContent.closeOtherInGroup'),
+          onCancelText: (modalT) => modalT('YakitButton.cancel'),
+          onOkText: (modalT) => modalT('MainOperatorContent.closeOtherInGroup'),
           icon: <ExclamationCircleOutlined />,
           onOk: () => {
             const groupItem = subPage[index]
@@ -5153,7 +5261,7 @@ const SubTabs: React.FC<SubTabsProps> = React.memo(
           // onCancel: () => {
           //     m.destroy()
           // },
-          content: t('MainOperatorContent.keepCurrentCloseOthersInGroup'),
+          content: (modalT) => modalT('MainOperatorContent.keepCurrentCloseOthersInGroup'),
         })
       }
     })
@@ -5362,8 +5470,8 @@ const SubTabs: React.FC<SubTabsProps> = React.memo(
         const m = YakitModalConfirm({
           width: 420,
           type: 'white',
-          onCancelText: t('YakitButton.cancel'),
-          onOkText: t('MainOperatorContent.closeGroup'),
+          onCancelText: (modalT) => modalT('YakitButton.cancel'),
+          onOkText: (modalT) => modalT('MainOperatorContent.closeGroup'),
           icon: <ExclamationCircleOutlined />,
           onOk: () => {
             getIsCloseGroupTip()
@@ -5398,8 +5506,8 @@ const SubTabs: React.FC<SubTabsProps> = React.memo(
       const m = YakitModalConfirm({
         width: 420,
         type: 'white',
-        onCancelText: t('YakitButton.cancel'),
-        onOkText: t('MainOperatorContent.closeOther'),
+        onCancelText: (modalT) => modalT('YakitButton.cancel'),
+        onOkText: (modalT) => modalT('MainOperatorContent.closeOther'),
         icon: <ExclamationCircleOutlined />,
         onOk: () => {
           const newPage = [{ ...groupItem }]
@@ -5428,7 +5536,7 @@ const SubTabs: React.FC<SubTabsProps> = React.memo(
         // onCancel: () => {
         //     m.destroy()
         // },
-        content: t('MainOperatorContent.keepCurrentGroupCloseOthers'),
+        content: (modalT) => modalT('MainOperatorContent.keepCurrentGroupCloseOthers'),
       })
     })
     /**
