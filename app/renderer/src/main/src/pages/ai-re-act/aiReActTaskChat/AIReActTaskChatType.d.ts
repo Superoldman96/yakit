@@ -2,6 +2,7 @@ import { YakitButtonProp } from '@/components/yakitUI/YakitButton/YakitButton'
 import { AIRecommendItem, RandomAIMaterialsDataProps } from '@/pages/ai-agent/aiChatWelcome/type'
 import { AIMentionCommandParams } from '@/pages/ai-agent/components/aiMilkdownInput/aiMilkdownMention/aiMentionPlugin'
 import { ReactNode } from 'react'
+import { AIStartParams } from '../hooks/grpcApi'
 
 export interface AIReActTaskChatProps {
   setShowFreeChat: (show: boolean) => void
@@ -45,6 +46,13 @@ export interface AIManualAdditionPopoverProps {
   setVisible?: (v: boolean) => void
   chatType: AIManualAdditionProps['chatType']
 }
+
+export interface AIInputSettingPopoverProps {
+  children?: ReactNode
+  visible?: boolean
+  setVisible?: (v: boolean) => void
+}
+export interface AIInputSettingFormProps extends Pick<AIStartParams, 'SyncPerceptionTrigger' | 'EnablePlan'> {}
 
 export interface AIGlobalCommandRefProps {
   value: string
