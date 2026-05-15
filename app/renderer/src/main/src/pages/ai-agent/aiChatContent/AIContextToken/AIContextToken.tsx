@@ -9,6 +9,7 @@ import {
   ResponseSpeedEcharts,
   ResponseSpeedEchartsProps,
   TokenCountEcharts,
+  type ContextStatsChartMetric,
 } from '../../chatTemplate/AIEcharts'
 import styles from '../AIChatContent.module.scss'
 import { FC, memo, useCallback, useEffect, useRef, useState } from 'react'
@@ -35,6 +36,8 @@ import { Tooltip } from 'antd'
 import useAIGlobalConfig from '@/pages/ai-re-act/hooks/useAIGlobalConfig'
 import ContextTable from './ContextTable/ContextTable'
 import { useI18nNamespaces } from '@/i18n/useI18nNamespaces'
+import { YakitRadioButtons } from '@/components/yakitUI/YakitRadioButtons/YakitRadioButtons'
+import { QuestionCircleOutlined } from '@ant-design/icons'
 
 const AIContextToken: FC<{
   session?: string
@@ -255,20 +258,30 @@ const AIEchartsDetails: React.FC<AIEchartsDetailsProps> = memo((props) => {
     return data
   }, [aiGlobalConfig.IntelligentModels, aiGlobalConfig.LightweightModels])
 
+  const [contextStatsMetric, setContextStatsMetric] = useState<ContextStatsChartMetric>('tokens')
+
   const intelligentToken = useCreation(() => {
-    if (!tierConsumption?.intelligent) return [0, 0, 0]
+    if (!tierConsumption?.intelligent) return [0, 0, 0, 0]
     const input = tierConsumption.intelligent.input_consumption || 0
     const output = tierConsumption.intelligent.output_consumption || 0
     const cacheHit = tierConsumption.intelligent.cache_hit_token || 0
-    return [formatNumberUnits(input), formatNumberUnits(output), formatNumberUnits(cacheHit)]
+    let percent = 0
+    if (input !== 0 && cacheHit !== 0) {
+      percent = Number(((Number(cacheHit) / Number(input)) * 100).toFixed(2))
+    }
+    return [formatNumberUnits(input), formatNumberUnits(output), formatNumberUnits(cacheHit), percent]
   }, [renderNumber, tierConsumption?.intelligent])
 
   const lightweightToken = useCreation(() => {
-    if (!tierConsumption?.lightweight) return [0, 0, 0]
+    if (!tierConsumption?.lightweight) return [0, 0, 0, 0]
     const input = tierConsumption.lightweight.input_consumption || 0
     const output = tierConsumption.lightweight.output_consumption || 0
     const cacheHit = tierConsumption.lightweight.cache_hit_token || 0
-    return [formatNumberUnits(input), formatNumberUnits(output), formatNumberUnits(cacheHit)]
+    let percent = 0
+    if (input !== 0 && cacheHit !== 0) {
+      percent = Number(((Number(cacheHit) / Number(input)) * 100).toFixed(2))
+    }
+    return [formatNumberUnits(input), formatNumberUnits(output), formatNumberUnits(cacheHit), percent]
   }, [renderNumber, tierConsumption?.lightweight])
 
   // 上下文压力集合
@@ -287,6 +300,13 @@ const AIEchartsDetails: React.FC<AIEchartsDetailsProps> = memo((props) => {
   const contextStatsData = useCreation(() => {
     return getContextStatsData(contextStats?.data)
   }, [renderNumber, contextStats])
+
+  const contextStatsTotalDisplay = useCreation(() => {
+    if (contextStatsMetric === 'tokens') {
+      return formatNumberUnits(contextStats?.prompt_tokens ?? 0)
+    }
+    return formatNumberUnits(contextStats?.prompt_bytes ?? 0)
+  }, [contextStatsMetric, contextStats?.prompt_bytes, contextStats?.prompt_tokens])
 
   // 上下文成分
   const contextSectionsData = useCreation(() => {
@@ -377,12 +397,12 @@ const AIEchartsDetails: React.FC<AIEchartsDetailsProps> = memo((props) => {
             <AITokens
               modelType={t('AiAgengt.intelligentModels')}
               aiModel={currentModel?.intelligentModels}
-              token={[intelligentToken[0], intelligentToken[1], intelligentToken[2]]}
+              token={[intelligentToken[0], intelligentToken[1], intelligentToken[2], intelligentToken[3]]}
             />
             <AITokens
               modelType={t('AiAgengt.lightweightModels')}
               aiModel={currentModel?.lightweightModels}
-              token={[lightweightToken[0], lightweightToken[1], lightweightToken[2]]}
+              token={[lightweightToken[0], lightweightToken[1], lightweightToken[2], lightweightToken[3]]}
             />
           </div>
         </div>
@@ -398,18 +418,29 @@ const AIEchartsDetails: React.FC<AIEchartsDetailsProps> = memo((props) => {
             <AICostDetailsEcharts dataEcharts={costEcharts} />
           </div>
         )}
-        {!!contextStats?.prompt_bytes && (
+        {(!!contextStats?.prompt_bytes || !!contextStats?.prompt_tokens) && (
           <div className={styles['cost-wrapper']}>
             <div className={styles['echarts-heard']}>
               <div className={styles['echarts-heard-left']}>
-                <div className={styles['title']}>上下文字节统计</div>
-                <div className={styles['unit']}>（单位: Byte）</div>
+                <div className={styles['title']}>上下文统计</div>
+                <YakitRadioButtons
+                  size="small"
+                  value={contextStatsMetric}
+                  buttonStyle="solid"
+                  onChange={(v) => {
+                    setContextStatsMetric(v.target.value as ContextStatsChartMetric)
+                  }}
+                  options={[
+                    { value: 'tokens', label: 'Token' },
+                    { value: 'bytes', label: 'Byte' },
+                  ]}
+                />
               </div>
               <div className={styles['total']}>
-                总数 <span>{contextStats?.prompt_bytes}</span>
+                总数 <span>{contextStatsTotalDisplay}</span>
               </div>
             </div>
-            <TokenCountEcharts contextStatsData={contextStatsData} />
+            <TokenCountEcharts contextStatsData={contextStatsData} metric={contextStatsMetric} />
           </div>
         )}
         {contextSectionsData?.sections.length > 0 && (
@@ -425,7 +456,7 @@ const AIEchartsDetails: React.FC<AIEchartsDetailsProps> = memo((props) => {
 interface AITokensProps {
   modelType: string
   aiModel?: AIModelConfig
-  token: [number | string, number | string, number | string]
+  token: [number | string, number | string, number | string, number | string]
 }
 const AITokens: React.FC<AITokensProps> = memo((props) => {
   const { modelType, aiModel, token } = props
@@ -466,7 +497,14 @@ const AITokens: React.FC<AITokensProps> = memo((props) => {
         </div>
         <div className={styles['diver']} />
         <div className={styles['ai-tokens-item']}>
-          <div className={styles['token-item']}>{t('AIContextToken.cache')}</div>
+          <div className={styles['token-item']}>
+            {t('AIContextToken.cache')}
+            {Number(token[3]) > 0 && (
+              <Tooltip title={`${t('AIContextToken.cacheTooltip')}：${token[3]}%`}>
+                <QuestionCircleOutlined />
+              </Tooltip>
+            )}
+          </div>
           <div className={classNames(styles['token-tag'], styles['download-token'])}>{token[2]}</div>
         </div>
       </div>

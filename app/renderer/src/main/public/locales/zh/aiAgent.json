@@ -353,7 +353,9 @@
     "totalOutput": "总输出",
     "input": "输入",
     "output": "输出",
-    "cache": "缓存"
+    "cache": "缓存",
+    "cacheTooltip": "缓存占输入百分比",
+    "switchChartMetric": "切换 Token / Byte"
   },
   "InstallLlamaServerModelPrompt": {
     "installing": "正在安装模型环境",

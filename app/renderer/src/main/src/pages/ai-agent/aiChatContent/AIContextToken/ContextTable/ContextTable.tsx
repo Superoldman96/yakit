@@ -1,4 +1,4 @@
-import { Table, TableColumnsType } from 'antd'
+import { Table, TableColumnsType, Tooltip } from 'antd'
 import { FC, useCallback, useMemo, useState } from 'react'
 import styles from './ContextTable.module.scss'
 import { OutlineChevrondownIcon, OutlineFilterIcon } from '@/assets/icon/outline'
@@ -7,7 +7,12 @@ import { YakitCheckbox } from '@/components/yakitUI/YakitCheckbox/YakitCheckbox'
 import { AIContextSectionsDetail } from '@/pages/ai-agent/type/aiChat'
 import { AIAgentGrpcApi } from '@/pages/ai-re-act/hooks/grpcApi'
 import { YakitModal } from '@/components/yakitUI/YakitModal/YakitModal'
+import { YakitPopover } from '@/components/yakitUI/YakitPopover/YakitPopover'
 import { YakitEditor } from '@/components/yakitUI/YakitEditor/YakitEditor'
+import { YakitMenu } from '@/components/yakitUI/YakitMenu/YakitMenu'
+import type { YakitMenuItemProps } from '@/components/yakitUI/YakitMenu/YakitMenu'
+import type { ContextStatsChartMetric } from '@/pages/ai-agent/chatTemplate/AIEcharts'
+import { useI18nNamespaces } from '@/i18n/useI18nNamespaces'
 
 /** 旧版 sections 仅有少量固定 role 时的展示回退 */
 const LEGACY_ROLE_LABELS: Record<string, string> = {
@@ -78,14 +83,44 @@ const RoleFilterDropdown: React.FC<{
   )
 }
 
+const METRIC_MENU_DATA: YakitMenuItemProps[] = [
+  { key: 'tokens', label: 'Token' },
+  { key: 'bytes', label: 'Byte' },
+]
+
+/** Token / 字节切换菜单（仅 UI，value 由各自父组件独立维护） */
+export const MetricFilterDropdown: FC<{
+  value: ContextStatsChartMetric
+  onChange: (value: ContextStatsChartMetric) => void
+}> = ({ value, onChange }) => {
+  return (
+    <div className={styles['filter-dropdown']}>
+      <YakitMenu
+        width={112}
+        type="primary"
+        data={METRIC_MENU_DATA}
+        selectedKeys={[value]}
+        onClick={({ key }) => {
+          if (key === 'bytes' || key === 'tokens') {
+            onChange(key)
+          }
+        }}
+      />
+    </div>
+  )
+}
+
 const ContextTable: FC<{
   contextSectionsData?: AIContextSectionsDetail
   /** prompt_profile 首次锁定的 role_name -> role_name_zh，与上下文字节统计一致 */
   roleLabelMap?: Record<string, string>
 }> = ({ contextSectionsData, roleLabelMap }) => {
+  const { t } = useI18nNamespaces(['aiAgent'])
   const [previewKey, setPreviewKey] = useState<string>('')
   const [expandedRowKeys, setExpandedRowKeys] = useState<React.Key[]>([])
-
+  /** 表格数量列 Token/字节，与图表统计独立 */
+  const [tableCountMetric, setTableCountMetric] = useState<ContextStatsChartMetric>('tokens')
+  const [tableMetricPopoverOpen, setTableMetricPopoverOpen] = useState(false)
   const roleFilters = useMemo(() => {
     const merged: Record<string, string> = { ...LEGACY_ROLE_LABELS, ...(roleLabelMap || {}) }
     const keys = new Set<string>()
@@ -107,6 +142,19 @@ const ContextTable: FC<{
     [roleLabelMap],
   )
 
+  const firstLayerKeys = useMemo(
+    () => new Set((contextSectionsData?.sections || []).map((s) => s.key)),
+    [contextSectionsData?.sections],
+  )
+
+  const firstLayerTotal = useMemo(() => {
+    const rows = contextSectionsData?.sections || []
+    if (tableCountMetric === 'tokens') {
+      return rows.reduce((sum, s) => sum + (Number(s.estimated_tokens) || 0), 0)
+    }
+    return rows.reduce((sum, s) => sum + (Number(s.bytes) || 0), 0)
+  }, [contextSectionsData?.sections, tableCountMetric])
+
   const columns: TableColumnsType<AIAgentGrpcApi.AIContextSections> = useMemo(
     () => [
       {
@@ -121,12 +169,46 @@ const ContextTable: FC<{
         ),
       },
       {
-        title: '字节数',
-        dataIndex: 'bytes',
+        title: (
+          <div className={styles['count-column-title']}>
+            <span>{tableCountMetric === 'tokens' ? 'Token' : 'Byte'}</span>
+            <YakitPopover
+              overlayClassName={styles['metric-table-filter-dropdown']}
+              visible={tableMetricPopoverOpen}
+              onVisibleChange={setTableMetricPopoverOpen}
+              placement="bottomLeft"
+              trigger="click"
+              content={
+                <MetricFilterDropdown
+                  value={tableCountMetric}
+                  onChange={(v) => {
+                    setTableCountMetric(v)
+                    setTableMetricPopoverOpen(false)
+                  }}
+                />
+              }
+            >
+              <Tooltip title={t('AIContextToken.switchChartMetric')}>
+                <OutlineChevrondownIcon className={styles['table-metric-filter-icon-dropdown']} />
+              </Tooltip>
+            </YakitPopover>
+          </div>
+        ),
+        dataIndex: tableCountMetric === 'tokens' ? 'estimated_tokens' : 'bytes',
         align: 'center',
-        key: 'bytes',
-        width: 80,
-        render: (bytes: number) => <span className={styles['context-sub-label']}>{bytes}</span>,
+        key: 'count',
+        width: 120,
+        render: (_: unknown, record: AIAgentGrpcApi.AIContextSections) => {
+          const raw = tableCountMetric === 'tokens' ? Number(record.estimated_tokens) || 0 : Number(record.bytes) || 0
+          const isFirstLayer = firstLayerKeys.has(record.key)
+          const pctText = isFirstLayer && firstLayerTotal > 0 ? ` (${((raw / firstLayerTotal) * 100).toFixed(2)}%)` : ''
+          return (
+            <span className={styles['context-sub-label']}>
+              {raw}
+              {pctText}
+            </span>
+          )
+        },
       },
       {
         title: '类型',
@@ -158,7 +240,9 @@ const ContextTable: FC<{
         render: (_, record) => {
           const previewValue = contextSectionsData?.summary.get(record.key)
           if (!previewValue || previewValue.trim() === '') return null
-          if (!record.bytes && !record.children?.length) return null
+          const hasCount =
+            !!(record.bytes || record.estimated_tokens) || !!(record.children && record.children.length > 0)
+          if (!hasCount) return null
 
           return (
             <YakitButton className={styles['view-btn']} type="text" onClick={() => setPreviewKey(record.key)}>
@@ -168,7 +252,16 @@ const ContextTable: FC<{
         },
       },
     ],
-    [contextSectionsData?.summary, roleFilters, resolveRoleText],
+    [
+      contextSectionsData?.summary,
+      roleFilters,
+      resolveRoleText,
+      firstLayerKeys,
+      firstLayerTotal,
+      tableCountMetric,
+      tableMetricPopoverOpen,
+      t,
+    ],
   )
 
   const previewContent = useMemo(() => {

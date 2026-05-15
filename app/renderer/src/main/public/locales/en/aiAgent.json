@@ -353,7 +353,9 @@
     "totalOutput": "Total Output",
     "input": "Input",
     "output": "Output",
-    "cache": "Cache"
+    "cache": "Cache",
+    "cacheTooltip": "Cache hit ratio",
+    "switchChartMetric": "Switch between Token and Byte"
   },
   "InstallLlamaServerModelPrompt": {
     "installing": "Installing model environment",
