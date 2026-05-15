@@ -112,6 +112,7 @@ import {
   registerWebFuzzerPageApplyRequestFromCard,
   registerWebFuzzerPageCasualReplaceReview,
   registerWebFuzzerPageGetRequestString,
+  registerWebFuzzerPageOnAIFuzzStatus,
   type WebFuzzerCasualReplaceReviewPayload,
 } from './webFuzzerAiRequestApplyBridge'
 import useChatIPCDispatcher from '@/pages/ai-agent/useContext/ChatIPCContent/useDispatcher'
@@ -139,6 +140,8 @@ import { YakitPopconfirm } from '@/components/yakitUI/YakitPopconfirm/YakitPopco
 import { defYakitAutoCompleteRef } from '@/components/yakitUI/YakitAutoComplete/YakitAutoComplete'
 import { YakitAutoCompleteRefProps } from '@/components/yakitUI/YakitAutoComplete/YakitAutoCompleteType'
 import { availableColors } from '@/components/HTTPFlowTable/HTTPFlowTable'
+import { HTTPFlowRealTimeTableAndEditor } from '@/components/HTTPHistory'
+import PluginTabs from '@/components/businessUI/PluginTabs/PluginTabs'
 import {
   DefFuzzerTableMaxData,
   defaultAdvancedConfigShow,
@@ -1371,6 +1374,26 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
   const tokenRef = useRef<string>(randomString(60))
   const taskIDRef = useRef<string>('')
   const runtimeIdRef = useRef<string>('')
+  /**
+   * AI `http_flow_fuzz_status` 当前过滤展示的 `runtime_id`（单条）：
+   * - 由 `registerWebFuzzerPageOnAIFuzzStatus` 在 fuzzer 页签内注册的处理器更新；
+   * - 为空时表示「全部 AI 会话流量」聚合视图，使用 `allAiFuzzRuntimeIds` 的 union；
+   * - 右侧 AI 发包 tab：`HTTPFlowRealTimeTableAndEditor` 按生效的 `runtime_id` 拉 history；
+   * - 当存在该值时，`renderHistoryAnalysis` 也优先采用它作为流量分析抽屉的 `runtimeId`。
+   */
+  const [aiFuzzRuntimeId, setAiFuzzRuntimeId] = useState<string>('')
+  /**
+   * 整个会话期间 AI 推过的所有 `runtime_id` 累积集合（去重、保留首次出现顺序）。
+   * 用于：清掉单条 tag 后，AI 发包 tab 切换为「会话全部 runtime_id 的聚合视图」。
+   */
+  const [allAiFuzzRuntimeIds, setAllAiFuzzRuntimeIds] = useState<string[]>([])
+  /**
+   * 右侧响应区当前选中来源：
+   * - 用户点击「发送请求」时切到 `manual`；AI `http_flow_fuzz_status` 推送时切到 `ai`；
+   * - 两个 tab 的 disable 条件：手动 tab 没发过包（`cachedTotal === 0 && !loading`）则禁用（单条响应时 `cachedTotal === 1`，仍可选中）；
+   *   AI tab 没收到过任何 `runtime_id`（`allAiFuzzRuntimeIds` 为空）则禁用。
+   */
+  const [responseSource, setResponseSource] = useState<'manual' | 'ai'>('manual')
   useEffect(() => {
     const token = tokenRef.current
 
@@ -1916,10 +1939,19 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
     })
     const unregisterGet = registerWebFuzzerPageGetRequestString(props.id, () => requestRef.current)
     const unregisterCasualReview = registerWebFuzzerPageCasualReplaceReview(props.id, onCasualReplaceReviewEnqueued)
+    const unregisterAIFuzzStatus = registerWebFuzzerPageOnAIFuzzStatus(props.id, (runtimeId) => {
+      if (!runtimeId) return
+      // 追加到会话累积集合（去重保序）
+      setAllAiFuzzRuntimeIds((prev) => (prev.includes(runtimeId) ? prev : [...prev, runtimeId]))
+      // 当前过滤切到该最新 runtime_id；自动切到 AI 发包 tab
+      setAiFuzzRuntimeId(runtimeId)
+      setResponseSource('ai')
+    })
     return () => {
       unregisterApply()
       unregisterGet()
       unregisterCasualReview()
+      unregisterAIFuzzStatus()
     }
   }, [props.id, onSetRequest, refreshRequest, onCasualReplaceReviewEnqueued])
   const onInsertYakFuzzerFun = useMemoizedFn(() => {
@@ -2353,6 +2385,59 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
     { immediate: false },
   )
 
+  /**
+   * AI 发包 tab 实际拉表的 `runtimeId`：
+   * - `aiFuzzRuntimeId` 存在 → 单条过滤；
+   * - 否则用 `allAiFuzzRuntimeIds` 的逗号串作为聚合视图；
+   * - `HTTPFlowRealTimeTableAndEditor` 内部 `getRunTimeIdObj` 会自动按 `,` 拆成 `RuntimeIDs[]`。
+   */
+  const effectiveAiRuntimeId = useMemo(() => {
+    if (aiFuzzRuntimeId) return aiFuzzRuntimeId
+    return allAiFuzzRuntimeIds.join(',')
+  }, [aiFuzzRuntimeId, allAiFuzzRuntimeIds])
+
+  /** AI tab 顶部的运行时过滤标签：只在单条模式下展示，点 X 切回到会话聚合视图；窄宽度下由表头布局与 ellipsis 收窄。 */
+  const aiFilterTagDom = useMemo(() => {
+    if (!aiFuzzRuntimeId) return null
+    return (
+      <span style={{ display: 'flex', minWidth: 0, maxWidth: '100%', overflow: 'hidden' }}>
+        <Tooltip title={aiFuzzRuntimeId} placement="top">
+          <YakitTag
+            color="info"
+            closable
+            onClose={() => setAiFuzzRuntimeId('')}
+            style={{ minWidth: 0, maxWidth: '100%', overflow: 'hidden' }}
+          >
+            <span className="content-ellipsis">{aiFuzzRuntimeId}</span>
+          </YakitTag>
+        </Tooltip>
+      </span>
+    )
+  }, [aiFuzzRuntimeId])
+
+  /**
+   * AI 发包 tab 的精简列：仅展示 序号 / 方法 / 状态码 / Host / IP / 操作；
+   * 其余列由 `defaultExcludeColumnsKey` 一次性排除，避免被全局列设置覆盖。
+   *（`Payloads` 等由 HTTPFlowTable 内 `noColumnsKey` 另行合并。）
+   */
+  const aiFuzzTableExcludeColumnsKey = useMemo(
+    () => [
+      'Url',
+      'Path',
+      'FromPlugin',
+      'Tags',
+      'BodyLength',
+      'HtmlTitle',
+      'GetParamsTotal',
+      'ContentType',
+      'PathSuffix',
+      'DurationMs',
+      'UpdatedAt',
+      'RequestSizeVerbose',
+    ],
+    [],
+  )
+
   const sendRequest = useMemoizedFn(() => {
     logger(
       httpFuzzerLog({
@@ -2371,6 +2456,8 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
         }),
       }),
     )
+    // 手动发包：响应区切回手动 tab；后续 `start()` 把 loading 置 true，让 tab 由 disabled 变为可用
+    setResponseSource('manual')
     start()
     setRedirectedResponse(undefined)
     sendFuzzerSettingInfo()
@@ -2390,9 +2477,15 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
   const renderHistoryAnalysis = useMemoizedFn(() => {
     const currentItem: PageNodeItemProps | undefined = queryPagesDataById(YakitRoute.HTTPFuzzer, props.id)
     if (!trafficAnalysisVisible || !currentItem) return
+    // 当 AI `http_flow_fuzz_status` 推送过 `runtime_id` 时，优先采用 AI 侧的，避免被本地发包累计的 runtimeId 串覆盖
+    const runtimeIds = aiFuzzRuntimeId
+      ? [aiFuzzRuntimeId]
+      : allAiFuzzRuntimeIds.length > 0
+        ? allAiFuzzRuntimeIds
+        : runtimeIdRef.current.split(',')
     const params = {
       webFuzzer: true,
-      runtimeId: runtimeIdRef.current.split(','),
+      runtimeId: runtimeIds,
       sourceType: 'scan',
       verbose: `${currentItem.pageName}-${t('HTTPFuzzerPage.allTraffic')}`,
       pageId: currentItem.pageId,
@@ -2867,139 +2960,210 @@ const HTTPFuzzerPageCore: React.FC<HTTPFuzzerPageProp> = (props) => {
                 }
                 secondNode={
                   <div ref={secondNodeRef} style={{ height: '100%', overflow: 'hidden' }}>
-                    {onlyOneResponse ? (
-                      <ResponseViewer
-                        pageId={props.id}
-                        keepSearchName="fuzzer-response"
-                        isHttps={advancedConfigValue.isHttps}
-                        ref={responseViewerRef}
-                        fuzzerResponse={httpResponse}
-                        request={requestRef.current}
-                        defaultResponseSearch={defaultResponseSearch}
-                        system={props.system}
-                        showMatcherAndExtraction={showMatcherAndExtraction}
-                        setShowMatcherAndExtraction={setShowMatcherAndExtraction}
-                        showExtra={showExtra}
-                        setShowExtra={setShowExtra}
-                        matcherValue={{
-                          matchersList: advancedConfigValue.matchers || [],
-                        }}
-                        extractorValue={{
-                          extractorList: advancedConfigValue.extractors || [],
-                        }}
-                        defActiveKey={activeKey}
-                        defActiveType={activeType}
-                        defActiveKeyAndOrder={defActiveKeyAndOrder}
-                        onSaveMatcherAndExtraction={(matcher, extractor) => {
-                          setAdvancedConfigValue({
-                            ...advancedConfigValue,
-                            matchers: matcher.matchersList,
-                            extractors: extractor.extractorList,
-                          })
-                        }}
-                        webFuzzerValue={requestRef.current}
-                        showResponseInfoSecondEditor={showResponseInfoSecondEditor}
-                        setShowResponseInfoSecondEditor={setShowResponseInfoSecondEditor}
-                        secondNodeTitle={secondNodeTitle}
-                        secondNodeExtra={secondNodeExtra}
-                        onSetOnlyOneResEditor={setOnlyOneResEditor}
-                        loading={loading}
-                      />
-                    ) : (
-                      <div
-                        className={classNames(styles['resize-card'], styles['resize-card-second'])}
-                        style={{ display: firstFull ? 'none' : '' }}
+                    <div
+                      className={classNames(styles['resize-card'], styles['resize-card-second'])}
+                      style={{ display: firstFull ? 'none' : '' }}
+                    >
+                      <PluginTabs
+                        tabPosition="right"
+                        activeKey={responseSource}
+                        onChange={(key) => setResponseSource(key === 'ai' ? 'ai' : 'manual')}
                       >
-                        <div className={classNames(styles['resize-card-heard'])}>
-                          <div className={styles['resize-card-heard-title']}>{secondNodeTitle()}</div>
-                          <div className={styles['resize-card-heard-extra']}></div>
-                          {secondNodeExtra()}
-                        </div>
-                        {cachedTotal >= 1 ? (
-                          <>
-                            {showSuccess === 'true' && (
-                              <HTTPFuzzerPageTable
-                                // onSendToWebFuzzer={onSendToWebFuzzer}
-                                success={true}
-                                data={successFuzzer}
-                                setExportData={setExportData}
-                                query={query}
-                                setQuery={setQuery}
-                                extractedMap={extractedMap}
-                                isEnd={loading}
+                        <PluginTabs.TabPane
+                          tab={t('HTTPFuzzerPage.responseTabManual')}
+                          key="manual"
+                          disabled={cachedTotal === 0 && !loading}
+                        >
+                          {onlyOneResponse ? (
+                            <div style={{ height: '100%', overflow: 'hidden' }}>
+                              <ResponseViewer
                                 pageId={props.id}
-                                moreLimtAlertMsg={moreLimtAlertMsg}
-                                noMoreLimtAlertMsg={noMoreLimtAlertMsg}
-                                fuzzerTableMaxData={fuzzerTableMaxData}
-                                hasExtractorRules={hasExtractorRules}
-                              />
-                            )}
-                            {showSuccess === 'false' && (
-                              <HTTPFuzzerPageTable
-                                success={false}
-                                data={failedFuzzer}
-                                query={query}
-                                setQuery={setQuery}
-                                isEnd={loading}
-                                extractedMap={extractedMap}
-                                pageId={props.id}
-                              />
-                            )}
-                            {showSuccess === 'Concurrent/Load' && (
-                              <div
-                                style={{
-                                  height: '100%',
-                                  overflowY: 'auto',
-                                  overflowX: 'hidden',
+                                keepSearchName="fuzzer-response"
+                                isHttps={advancedConfigValue.isHttps}
+                                ref={responseViewerRef}
+                                fuzzerResponse={httpResponse}
+                                request={requestRef.current}
+                                defaultResponseSearch={defaultResponseSearch}
+                                system={props.system}
+                                showMatcherAndExtraction={showMatcherAndExtraction}
+                                setShowMatcherAndExtraction={setShowMatcherAndExtraction}
+                                showExtra={showExtra}
+                                setShowExtra={setShowExtra}
+                                matcherValue={{
+                                  matchersList: advancedConfigValue.matchers || [],
                                 }}
-                                key={i18n.language}
-                              >
-                                <FuzzerConcurrentLoad
-                                  inViewportCurrent={inViewport && currentFuzzerPage}
-                                  fuzzerResChartData={fuzzerResChartData}
-                                />
+                                extractorValue={{
+                                  extractorList: advancedConfigValue.extractors || [],
+                                }}
+                                defActiveKey={activeKey}
+                                defActiveType={activeType}
+                                defActiveKeyAndOrder={defActiveKeyAndOrder}
+                                onSaveMatcherAndExtraction={(matcher, extractor) => {
+                                  setAdvancedConfigValue({
+                                    ...advancedConfigValue,
+                                    matchers: matcher.matchersList,
+                                    extractors: extractor.extractorList,
+                                  })
+                                }}
+                                webFuzzerValue={requestRef.current}
+                                showResponseInfoSecondEditor={showResponseInfoSecondEditor}
+                                setShowResponseInfoSecondEditor={setShowResponseInfoSecondEditor}
+                                secondNodeTitle={secondNodeTitle}
+                                secondNodeExtra={secondNodeExtra}
+                                onSetOnlyOneResEditor={setOnlyOneResEditor}
+                                loading={loading}
+                              />
+                            </div>
+                          ) : (
+                            <div
+                              style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}
+                            >
+                              <div className={classNames(styles['resize-card-heard'])}>
+                                <div className={styles['resize-card-heard-title']}>{secondNodeTitle()}</div>
+                                <div className={styles['resize-card-heard-extra']}></div>
+                                {secondNodeExtra()}
                               </div>
-                            )}
-                          </>
-                        ) : (
-                          <Result
-                            status={'warning'}
-                            title={t('HTTPFuzzerPage.editAndSendRequest')}
-                            subTitle={
-                              <div>
-                                {t('HTTPFuzzerPage.fuzzTestResultsInfo')}
-                                {skipSaveHTTPFlow ? (
+                              <div style={{ flex: 1, minHeight: 0 }}>
+                                {cachedTotal >= 1 ? (
                                   <>
-                                    {t('HTTPFuzzerPage.responseLimitExceeded')}
-                                    <YakitButton
-                                      type="text"
-                                      icon={<OutlineCogIcon />}
-                                      style={{
-                                        padding: 0,
-                                        height: 'auto',
-                                        verticalAlign: 'top',
-                                      }}
-                                      onClick={() => {
-                                        emiter.emit(
-                                          'menuOpenPage',
-                                          JSON.stringify({
-                                            route: YakitRoute.Beta_ConfigNetwork,
-                                          }),
-                                        )
-                                      }}
-                                    >
-                                      {t('HTTPFuzzerPage.saveHttpTrafficSettings')}
-                                    </YakitButton>
+                                    {showSuccess === 'true' && (
+                                      <HTTPFuzzerPageTable
+                                        // onSendToWebFuzzer={onSendToWebFuzzer}
+                                        success={true}
+                                        data={successFuzzer}
+                                        setExportData={setExportData}
+                                        query={query}
+                                        setQuery={setQuery}
+                                        extractedMap={extractedMap}
+                                        isEnd={loading}
+                                        pageId={props.id}
+                                        moreLimtAlertMsg={moreLimtAlertMsg}
+                                        noMoreLimtAlertMsg={noMoreLimtAlertMsg}
+                                        fuzzerTableMaxData={fuzzerTableMaxData}
+                                        hasExtractorRules={hasExtractorRules}
+                                      />
+                                    )}
+                                    {showSuccess === 'false' && (
+                                      <HTTPFuzzerPageTable
+                                        success={false}
+                                        data={failedFuzzer}
+                                        query={query}
+                                        setQuery={setQuery}
+                                        isEnd={loading}
+                                        extractedMap={extractedMap}
+                                        pageId={props.id}
+                                      />
+                                    )}
+                                    {showSuccess === 'Concurrent/Load' && (
+                                      <div
+                                        style={{
+                                          height: '100%',
+                                          overflowY: 'auto',
+                                          overflowX: 'hidden',
+                                        }}
+                                        key={i18n.language}
+                                      >
+                                        <FuzzerConcurrentLoad
+                                          inViewportCurrent={inViewport && currentFuzzerPage}
+                                          fuzzerResChartData={fuzzerResChartData}
+                                        />
+                                      </div>
+                                    )}
                                   </>
                                 ) : (
-                                  ''
+                                  <Result
+                                    status={'warning'}
+                                    title={t('HTTPFuzzerPage.editAndSendRequest')}
+                                    subTitle={
+                                      <div>
+                                        {t('HTTPFuzzerPage.fuzzTestResultsInfo')}
+                                        {skipSaveHTTPFlow ? (
+                                          <>
+                                            {t('HTTPFuzzerPage.responseLimitExceeded')}
+                                            <YakitButton
+                                              type="text"
+                                              icon={<OutlineCogIcon />}
+                                              style={{
+                                                padding: 0,
+                                                height: 'auto',
+                                                verticalAlign: 'top',
+                                              }}
+                                              onClick={() => {
+                                                emiter.emit(
+                                                  'menuOpenPage',
+                                                  JSON.stringify({
+                                                    route: YakitRoute.Beta_ConfigNetwork,
+                                                  }),
+                                                )
+                                              }}
+                                            >
+                                              {t('HTTPFuzzerPage.saveHttpTrafficSettings')}
+                                            </YakitButton>
+                                          </>
+                                        ) : (
+                                          ''
+                                        )}
+                                      </div>
+                                    }
+                                  />
                                 )}
                               </div>
-                            }
-                          />
-                        )}
-                      </div>
-                    )}
+                            </div>
+                          )}
+                        </PluginTabs.TabPane>
+                        <PluginTabs.TabPane
+                          tab={t('HTTPFuzzerPage.responseTabAi')}
+                          key="ai"
+                          disabled={allAiFuzzRuntimeIds.length === 0}
+                        >
+                          {/* AI tab：thin header 承载标题 + 放大/收起按钮，复用 secondFull 状态与手动 tab 共享布局切换 */}
+                          <div
+                            style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              height: '100%',
+                              overflow: 'hidden',
+                            }}
+                          >
+                            <div className={classNames(styles['resize-card-heard'])}>
+                              <div className={styles['resize-card-heard-title']}>{t('HTTPFuzzerPage.aiTabTitle')}</div>
+                              <div className={styles['resize-card-heard-extra']}></div>
+                              <div className={styles['resize-card-icon']} onClick={() => setSecondFull(!secondFull)}>
+                                {secondFull ? <ArrowsRetractIcon /> : <ArrowsExpandIcon />}
+                              </div>
+                            </div>
+                            <div style={{ flex: 1, minHeight: 0 }}>
+                              {effectiveAiRuntimeId ? (
+                                <HTTPFlowRealTimeTableAndEditor
+                                  key={effectiveAiRuntimeId}
+                                  wrapperStyle={{ padding: 0 }}
+                                  pageType="Plugin"
+                                  runtimeId={effectiveAiRuntimeId}
+                                  params={{ SourceType: 'scan' }}
+                                  filterTagDom={aiFilterTagDom}
+                                  defaultExcludeColumnsKey={aiFuzzTableExcludeColumnsKey}
+                                  httpHistoryTableTitleStyle={{
+                                    paddingTop: 12,
+                                    paddingLeft: 8,
+                                    paddingRight: 8,
+                                  }}
+                                  showSourceType={false}
+                                  showAdvancedSearch={false}
+                                  showProtocolType={false}
+                                  showColorSwatch={false}
+                                  showDelAll={false}
+                                  showBatchActions={false}
+                                  showFlod={false}
+                                  showHistoryAnalysisBtn
+                                  onHistoryAnalysisClick={jumpHTTPHistoryAnalysis}
+                                  titleHeight={47}
+                                />
+                              ) : null}
+                            </div>
+                          </div>
+                        </PluginTabs.TabPane>
+                      </PluginTabs>
+                    </div>
                   </div>
                 }
               />

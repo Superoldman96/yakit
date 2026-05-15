@@ -896,6 +896,7 @@ function useHistoryChat(params?: UseHistoryChatParams) {
           handleParseCasual({ mapKey: chatData.id, type: chatData.type })
           continue
         }
+
         if (item.Type === 'fail_plan_and_execution') {
           const chatData: AIChatQSData = {
             ...genBaseAIChatData(item),

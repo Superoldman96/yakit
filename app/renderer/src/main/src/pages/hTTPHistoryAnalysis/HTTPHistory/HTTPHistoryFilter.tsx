@@ -121,6 +121,8 @@ import { FlowAiStore } from '@/pages/ai-agent/store/ChatDataStore'
 import { AIInputInnerFeatureEnum } from '@/pages/ai-agent/template/type'
 import { HistoryAIReActChatProvider, useHistoryAIReActChat } from '@/components/historyAIReActChat'
 import { HTTPFlowRuleDataFilter } from '@/components/HTTPFlowTable/HTTPFlowRuleDataFilter'
+import { AIAgentGrpcApi } from '@/pages/ai-re-act/hooks/grpcApi'
+import useChatIPC from '@/pages/ai-re-act/hooks/useChatIPC'
 const { ipcRenderer } = window.require('electron')
 
 interface HTTPHistoryFilterProps {
