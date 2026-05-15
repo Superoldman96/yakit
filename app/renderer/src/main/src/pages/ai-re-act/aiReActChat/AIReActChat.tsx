@@ -1,7 +1,7 @@
 import React, { forwardRef, useImperativeHandle, useRef } from 'react'
 
 import styles from './AIReActChat.module.scss'
-import { AIHandleStartResProps, AIReActChatProps, AISendResProps } from './AIReActChatType'
+import { AIHandleStartResProps, AINotifyMessageProps, AIReActChatProps, AISendResProps } from './AIReActChatType'
 import { AIChatTextarea } from '@/pages/ai-agent/template/template'
 import { AIReActChatContents } from '../aiReActChatContents/AIReActChatContents'
 import { AIChatTextareaRefProps, AIChatTextareaSubmit } from '@/pages/ai-agent/template/type'
@@ -22,6 +22,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { AISession } from '@/pages/ai-agent/type/aiChat'
 import useAIAgentDispatcher from '@/pages/ai-agent/useContext/useDispatcher'
 import { randomString } from '@/utils/randomUtil'
+import useAINodeLabel from '../hooks/useAINodeLabel'
 
 export const AIReActChat: React.FC<AIReActChatProps> = React.memo(
   forwardRef((props, ref) => {
@@ -40,6 +41,7 @@ export const AIReActChat: React.FC<AIReActChatProps> = React.memo(
     const { chatIPCEvents, handleStop, handleSendSyncMessage } = useChatIPCDispatcher()
     const execute = useCreation(() => chatIPCData.execute, [chatIPCData.execute])
     const focusMode = useCreation(() => chatIPCData.focusMode, [chatIPCData.focusMode])
+    const notifyMessage = useCreation(() => chatIPCData.notifyMessage, [chatIPCData.notifyMessage])
 
     const wrapperRef = useRef<HTMLDivElement>(null)
 
@@ -252,6 +254,8 @@ export const AIReActChat: React.FC<AIReActChatProps> = React.memo(
               <div className={styles['footer-body']}>
                 <div className={styles['footer-inputs']}>
                   {execute && questionQueue?.total > 0 && <AITaskQuery />}
+                  {execute && notifyMessage?.content && <AINotifyMessage notifyMessage={notifyMessage} />}
+
                   <div className={classNames(styles['footer-inputs-file-list'])}>
                     <AIChatTextarea
                       ref={aiChatTextareaRef}
@@ -280,3 +284,21 @@ export const AIReActChat: React.FC<AIReActChatProps> = React.memo(
     )
   }),
 )
+
+const AINotifyMessage: React.FC<AINotifyMessageProps> = React.memo((props) => {
+  const { notifyMessage } = props
+  const { nodeLabel } = useAINodeLabel(notifyMessage?.label)
+  return (
+    <div className={styles['notify-message']}>
+      <div>{nodeLabel}</div>
+      <div className={styles['content-wrapper']}>
+        <div className={styles['marquee-inner']}>
+          <div className={styles['content']}>{notifyMessage?.content}</div>
+          <div aria-hidden="true" className={styles['content']}>
+            {notifyMessage?.content}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+})
